@@ -1,0 +1,133 @@
+<div class="editar-page">
+
+  <!-- ─── Loading inicial ──────────────────────────────────────────────────── -->
+  @if (cargando()) {
+    <div class="load-state">
+      <div class="load-spinner"></div>
+      <p class="load-text">Cargando proyecto...</p>
+    </div>
+  }
+
+  <!-- ─── Error de carga ───────────────────────────────────────────────────── -->
+  @if (!cargando() && errorCarga()) {
+    <div class="load-state">
+      <i class="bi bi-wifi-off load-icon text-danger"></i>
+      <p class="load-text">{{ errorCarga() }}</p>
+      <a [routerLink]="['/pro', proyectoId]" class="btn-secundario">
+        <i class="bi bi-chevron-left"></i> Volver al proyecto
+      </a>
+    </div>
+  }
+
+  <!-- ─── Contenido principal ──────────────────────────────────────────────── -->
+  @if (!cargando() && !errorCarga()) {
+
+    <!-- Header de página -->
+    <div class="page-header-bar">
+      <div class="header-left">
+        <div class="header-icon-wrap">
+          <i class="bi bi-pencil-square"></i>
+        </div>
+        <div>
+          <h1 class="page-title">Editar Proyecto</h1>
+          <p class="page-subtitle">
+            Modifica los datos de <strong>{{ nombreProyecto() }}</strong>
+          </p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secundario" type="button" (click)="cancelar()">
+          Cancelar
+        </button>
+        <button
+          class="btn-primario"
+          type="button"
+          (click)="guardarCambios()"
+          [disabled]="guardando() || cargandoCatalogos()"
+        >
+          @if (guardando()) {
+            <span class="mini-spinner"></span> Guardando...
+          } @else {
+            <i class="bi bi-check2-circle"></i> Guardar cambios
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- ─── Navegación de pestañas ──────────────────────────────────────────── -->
+    <div class="tabs-nav" role="tablist">
+      @for (tab of tabs; track tab.id) {
+        <button
+          type="button"
+          role="tab"
+          class="tab-btn"
+          [class.active]="tabActiva() === tab.id"
+          [attr.aria-selected]="tabActiva() === tab.id"
+          (click)="activarTab(tab.id)"
+        >
+          <i class="bi" [class]="tab.icon"></i>
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <!-- ─── Contenido de la pestaña activa ─────────────────────────────────── -->
+    @switch (tabActiva()) {
+
+      @case ('general') {
+        <app-proyecto-general-tab
+          [form]="form"
+          [cargandoCatalogos]="cargandoCatalogos()"
+          [tiposProyecto]="tiposProyecto()"
+          [estadosProyecto]="estadosProyecto()"
+          [prioridadesProyecto]="prioridadesProyecto()"
+        />
+      }
+
+      @case ('configuracion') {
+        <app-proyecto-configuracion-tab [form]="form" />
+      }
+
+      @case ('equipo') {
+        <app-proyecto-equipo-tab [proyectoId]="proyectoId" />
+      }
+
+      @case ('extras') {
+        <app-proyecto-extras-tab [proyectoId]="proyectoId" />
+      }
+
+    }
+
+    <!-- ─── Footer ──────────────────────────────────────────────────────────── -->
+    <div class="form-footer">
+      <span class="footer-note">
+        @if (tabActiva() === 'equipo' || tabActiva() === 'extras') {
+          <i class="bi bi-info-circle"></i>
+          Esta pestaña no genera cambios al guardar.
+        } @else {
+          <i class="bi bi-asterisk"></i>
+          Los campos con * son obligatorios. General y Configuración se guardan juntos.
+        }
+      </span>
+      <div class="footer-actions">
+        <button type="button" class="btn-secundario" (click)="cancelar()">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn-primario"
+          (click)="guardarCambios()"
+          [disabled]="guardando() || cargandoCatalogos() || tabActiva() === 'equipo' || tabActiva() === 'extras'"
+        >
+          @if (guardando()) {
+            <span class="mini-spinner"></span> Guardando...
+          } @else {
+            <i class="bi bi-check2-circle"></i> Guardar cambios
+          }
+        </button>
+      </div>
+    </div>
+
+  }
+
+</div>

@@ -1,0 +1,222 @@
+// ─── Modal Definición Funcional (dfm-*) ──────────────────────────────────────
+// Estilos movidos al global para reducir el bundle del componente.
+// Las clases dfm-* son suficientemente únicas para no generar conflictos globales.
+
+$primary:   #4361ee;
+$white:     #ffffff;
+$text:      #14172b;
+$muted:     #6c757d;
+$muted-lt:  #9ca3af;
+$border:    #e5e7eb;
+$border-lt: #f0f2f5;
+$surface:   #f8f9fb;
+$radius:    14px;
+$radius-sm: 9px;
+
+@keyframes dfm-in {
+  from { opacity: 0; transform: translateY(-12px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes dfm-spin { to { transform: rotate(360deg); } }
+
+%dfm-disabled { opacity: .6; cursor: not-allowed; box-shadow: none; }
+
+.dfm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 13, 28, .5);
+  backdrop-filter: blur(2px);
+  z-index: 9900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.dfm-panel {
+  background: $white;
+  border-radius: $radius;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: dfm-in .2s cubic-bezier(.22, 1, .36, 1) forwards;
+}
+
+.dfm-panel--wide { max-width: 760px; }
+
+.dfm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.1rem 1.35rem 0.9rem;
+  border-bottom: 1px solid $border;
+  flex-shrink: 0;
+}
+
+.dfm-title {
+  flex: 1;
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  i { color: $primary; }
+}
+
+.dfm-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: none;
+  background: transparent;
+  color: $muted;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .14s, color .14s;
+  i { font-size: 0.78rem; }
+  &:hover { background: $surface; color: $text; }
+}
+
+.dfm-body {
+  padding: 1.1rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dfm-body--cols {
+  flex-direction: row;
+  .dfm-group { flex: 1; }
+}
+
+.dfm-row   { display: flex; gap: 0.75rem; }
+.dfm-group { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; }
+.dfm-group--sm { max-width: 180px; }
+.dfm-label { font-size: 0.78rem; font-weight: 600; color: $text; letter-spacing: .01em; }
+
+.dfm-control {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  font-size: 0.84rem;
+  font-family: inherit;
+  color: $text;
+  background: $white;
+  outline: none;
+  resize: vertical;
+  transition: border-color .15s, box-shadow .15s;
+  box-sizing: border-box;
+  &::placeholder { color: $muted-lt; }
+  &:focus { border-color: $primary; box-shadow: 0 0 0 3px rgba(67, 97, 238, .12); }
+  &:disabled { background: $surface; color: $muted; cursor: not-allowed; opacity: .75; }
+}
+
+.dfm-select { cursor: pointer; resize: none; }
+
+.dfm-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  padding: 0.9rem 1.35rem 1.1rem;
+  border-top: 1px solid $border;
+  flex-shrink: 0;
+}
+
+.dfm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.48rem 1.1rem;
+  border-radius: $radius-sm;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  line-height: 1;
+  transition: all .15s;
+  i { font-size: 0.78rem; }
+}
+
+.dfm-btn--primary {
+  background: $primary;
+  color: $white;
+  box-shadow: 0 2px 8px rgba(67, 97, 238, .28);
+  &:hover { background: #3451d1; }
+  &:disabled { @extend %dfm-disabled; }
+}
+
+.dfm-btn--ghost {
+  background: transparent;
+  color: $muted;
+  border: 1.5px solid $border;
+  &:hover { background: $surface; color: $text; }
+  &:disabled { @extend %dfm-disabled; }
+}
+
+.dfm-btn--danger {
+  background: #dc2626;
+  color: $white;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, .28);
+  &:hover:not(:disabled) { background: #b91c1c; }
+  &:disabled { @extend %dfm-disabled; }
+}
+
+.dfm-btn--warning {
+  background: #d97706;
+  color: $white;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, .28);
+  &:hover:not(:disabled) { background: #b45309; }
+  &:disabled { @extend %dfm-disabled; }
+}
+
+.dfm-btn--success {
+  background: #059669;
+  color: $white;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, .28);
+  &:hover:not(:disabled) { background: #047857; }
+  &:disabled { @extend %dfm-disabled; }
+}
+
+.dfm-desc { font-size: 0.85rem; color: $muted; margin: 0; line-height: 1.6; }
+
+.dfm-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, .4);
+  border-top-color: $white;
+  border-radius: 50%;
+  animation: dfm-spin .65s linear infinite;
+  flex-shrink: 0;
+}
+
+.dfm-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: $radius-sm;
+  font-size: 0.8rem;
+  color: #dc2626;
+  line-height: 1.5;
+  i { flex-shrink: 0; margin-top: .05rem; }
+}
+
+.dfm-error--full { flex: 0 0 100%; width: 100%; }
+.dfm-required    { color: #dc2626; margin-left: 0.15rem; }

@@ -1,0 +1,146 @@
+<!-- ─── Header ──────────────────────────────────────────────────────────────── -->
+<div class="fl-header">
+  <div>
+    <h3 class="fl-title">Fases del proyecto</h3>
+    <p class="fl-subtitle">Seguimiento de las fases y su avance general</p>
+  </div>
+  @if (puedeEditar()) {
+    <button class="fl-btn-nueva" (click)="nuevaFase.emit()">
+      <i class="bi bi-plus-lg"></i> Nueva fase
+    </button>
+  }
+</div>
+
+<!-- ─── Tabla (desktop) ──────────────────────────────────────────────────────── -->
+@if (fases().length > 0) {
+  <div class="fl-table-wrap">
+    <table class="fl-table">
+      <thead>
+        <tr>
+          <th>FASE</th>
+          <th>PROGRESO</th>
+          <th>HISTORIAS</th>
+          <th>ACTIVIDADES</th>
+          <th>ESTADO</th>
+          @if (puedeEditar()) { <th>ACCIONES</th> }
+        </tr>
+      </thead>
+      <tbody>
+        @for (fase of fases(); track fase.id) {
+          <tr>
+            <!-- Fase -->
+            <td class="td-fase">
+              <div class="fase-num" [style.background]="fase.color + '22'" [style.color]="fase.color">
+                {{ fase.numero }}
+              </div>
+              <div class="fase-info">
+                <span class="fase-nombre">{{ fase.nombre }}</span>
+                @if (fase.descripcion) {
+                  <span class="fase-desc">{{ fase.descripcion }}</span>
+                }
+              </div>
+            </td>
+
+            <!-- Progreso -->
+            <td class="td-progreso">
+              <div class="prog-bar-wrap">
+                <div class="prog-track">
+                  <div class="prog-fill" [style.width.%]="fase.progreso" [style.background]="fase.color"></div>
+                </div>
+                <span class="prog-pct">{{ fase.progreso }}%</span>
+              </div>
+            </td>
+
+            <!-- Historias -->
+            <td class="td-conteo">
+              <span class="conteo-val">{{ fase.historiasCompletadas }}</span>
+              <span class="conteo-sep">/</span>
+              <span class="conteo-total">{{ fase.historiasTotal }}</span>
+            </td>
+
+            <!-- Actividades -->
+            <td class="td-conteo">
+              <span class="conteo-val">{{ fase.actividadesCompletadas }}</span>
+              <span class="conteo-sep">/</span>
+              <span class="conteo-total">{{ fase.actividadesTotal }}</span>
+            </td>
+
+            <!-- Estado -->
+            <td>
+              <app-estado-badge [estado]="fase.estado" size="sm" />
+            </td>
+
+            <!-- Acciones -->
+            @if (puedeEditar()) {
+              <td class="td-acciones">
+                <div class="menu-wrap" (mouseleave)="cerrarMenu()">
+                  <button class="btn-menu" (click)="toggleMenu(fase.id)" [attr.aria-expanded]="menuAbierto === fase.id">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  @if (menuAbierto === fase.id) {
+                    <div class="dropdown-menu-fl" role="menu">
+                      <button (click)="accion.emit({ fase, tipo: 'editar' }); cerrarMenu()">
+                        <i class="bi bi-pencil"></i> Editar
+                      </button>
+                      <button class="danger" (click)="accion.emit({ fase, tipo: 'eliminar' }); cerrarMenu()">
+                        <i class="bi bi-trash"></i> Eliminar
+                      </button>
+                    </div>
+                  }
+                </div>
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─── Cards (mobile) ──────────────────────────────────────────────────────── -->
+  <div class="fl-cards">
+    @for (fase of fases(); track fase.id) {
+      <div class="fl-card">
+        <div class="fl-card-header">
+          <div class="fase-num" [style.background]="fase.color + '22'" [style.color]="fase.color">
+            {{ fase.numero }}
+          </div>
+          <div class="fase-info">
+            <span class="fase-nombre">{{ fase.nombre }}</span>
+            @if (fase.descripcion) { <span class="fase-desc">{{ fase.descripcion }}</span> }
+          </div>
+          <app-estado-badge [estado]="fase.estado" size="sm" />
+        </div>
+        <div class="fl-card-body">
+          <div class="fl-card-row">
+            <span class="fl-card-label">Progreso</span>
+            <div class="prog-bar-wrap">
+              <div class="prog-track">
+                <div class="prog-fill" [style.width.%]="fase.progreso" [style.background]="fase.color"></div>
+              </div>
+              <span class="prog-pct">{{ fase.progreso }}%</span>
+            </div>
+          </div>
+          <div class="fl-card-row">
+            <span class="fl-card-label">Historias</span>
+            <span class="conteo-val">{{ fase.historiasCompletadas }}/{{ fase.historiasTotal }}</span>
+          </div>
+          <div class="fl-card-row">
+            <span class="fl-card-label">Actividades</span>
+            <span class="conteo-val">{{ fase.actividadesCompletadas }}/{{ fase.actividadesTotal }}</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+} @else {
+  <div class="fl-empty">
+    <i class="bi bi-layers"></i>
+    <p>No hay fases registradas para este proyecto.</p>
+    @if (puedeEditar()) {
+      <button class="fl-btn-nueva" (click)="nuevaFase.emit()">
+        <i class="bi bi-plus-lg"></i> Agregar primera fase
+      </button>
+    }
+  </div>
+}

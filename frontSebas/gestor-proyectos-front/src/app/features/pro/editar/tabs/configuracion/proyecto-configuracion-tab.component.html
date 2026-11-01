@@ -1,0 +1,68 @@
+<div [formGroup]="form">
+
+  <section class="form-card">
+    <div class="card-header">
+      <i class="bi bi-gear-fill card-icon"></i>
+      <h2 class="card-title">Configuración del proyecto</h2>
+    </div>
+
+    <!-- icono -->
+    <div class="form-field">
+      <label class="form-label">Icono / Identificador visual</label>
+      <p class="field-hint">
+        Emoji o texto corto que identifica al proyecto (ej. <strong>🚀</strong>, <strong>WEB</strong>, <strong>API</strong>).
+        Máx. 10 caracteres.
+      </p>
+      <input
+        class="form-input icono-input"
+        type="text"
+        formControlName="icono"
+        placeholder="🚀"
+        autocomplete="off"
+        maxlength="10"
+      />
+    </div>
+
+    <!-- repoUrl -->
+    <div class="form-field" [class.field-error]="hasError('repoUrl')">
+      <label class="form-label">URL del repositorio</label>
+      <div class="input-icon-wrap">
+        <i class="bi bi-git input-icon-left"></i>
+        <input
+          class="form-input has-icon-left"
+          type="url"
+          formControlName="repoUrl"
+          placeholder="https://github.com/org/repo"
+        />
+      </div>
+      @if (hasError('repoUrl')) {
+        <p class="error-msg">
+          <i class="bi bi-exclamation-circle"></i>
+          Ingresa una URL válida (debe comenzar con http:// o https://).
+        </p>
+      }
+    </div>
+
+    <!-- appUrl -->
+    <div class="form-field mb-0" [class.field-error]="hasError('appUrl')">
+      <label class="form-label">URL de la aplicación</label>
+      <div class="input-icon-wrap">
+        <i class="bi bi-globe2 input-icon-left"></i>
+        <input
+          class="form-input has-icon-left"
+          type="url"
+          formControlName="appUrl"
+          placeholder="https://mi-proyecto.com"
+        />
+      </div>
+      @if (hasError('appUrl')) {
+        <p class="error-msg">
+          <i class="bi bi-exclamation-circle"></i>
+          Ingresa una URL válida (debe comenzar con http:// o https://).
+        </p>
+      }
+    </div>
+
+  </section>
+
+</div>

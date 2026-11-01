@@ -1,0 +1,1093 @@
+<!-- ── Carga ──────────────────────────────────────────────────────────────────── -->
+@if (cargando()) {
+  <div class="loading-state">
+    <div class="skeleton-header"></div>
+    <div class="skeleton-strip"></div>
+    <div class="skeleton-layout">
+      <div class="skeleton-main">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card sk-tall"></div>
+        <div class="skeleton-card"></div>
+      </div>
+      <div class="skeleton-aside">
+        <div class="skeleton-card sk-short"></div>
+        <div class="skeleton-card"></div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ── Error sin ticket ────────────────────────────────────────────────────── -->
+@if (!cargando() && error() && !ticket()) {
+  <div class="empty-state">
+    <i class="bi bi-exclamation-triangle empty-icon text-danger"></i>
+    <h2>No se pudo cargar el ticket</h2>
+    <p class="text-muted">{{ error() }}</p>
+    <div class="d-flex gap-2 mt-2">
+      <a routerLink="/pro" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Proyectos
+      </a>
+    </div>
+  </div>
+}
+
+<!-- ── Vista principal ────────────────────────────────────────────────────── -->
+@if (!cargando() && ticket(); as t) {
+  <div class="detalle-page" [style.--tipo-color]="tipoCfg().color">
+
+    <!-- ───────────────────── ENCABEZADO ──────────────────────────────────── -->
+    <div class="header-card" [ngClass]="'ticket-theme--' + tipoCfg().code.toLowerCase()">
+      <!-- Decoración abstracta sutil — esquina superior derecha -->
+      <div class="header-deco" aria-hidden="true"></div>
+
+      <div class="header-top">
+
+        <!-- Izquierda: icono grande · folio · tipo · título · descripción -->
+        <div class="header-left">
+          <div class="tipo-icon-wrap"
+               [style.background]="tipoCfg().color"
+               [style.box-shadow]="'0 6px 20px ' + tipoCfg().color + '4d'">
+            <i class="bi" [class]="tipoCfg().icon" aria-hidden="true"></i>
+          </div>
+          <div class="header-title-block">
+            <div class="header-chips">
+              <span class="folio-tag"
+                    [style.color]="tipoCfg().color"
+                    [style.background]="tipoCfg().color + '0e'"
+                    [style.border-color]="tipoCfg().color + '35'">{{ t.folio }}</span>
+              <span class="tipo-badge-sm"
+                    [style.background]="tipoCfg().color + '18'"
+                    [style.color]="tipoCfg().color">
+                {{ tipoCfg().label }}
+              </span>
+            </div>
+            <h1 class="ticket-titulo-h1">{{ t.titulo }}</h1>
+            @if (t.descripcion) {
+              <p class="ticket-desc-short">{{ t.descripcion }}</p>
+            }
+          </div>
+        </div>
+
+        <!-- Derecha: botón de acciones con dropdown -->
+        <div class="acciones-dropdown-wrap">
+          @if (menuAccionesAbierto()) {
+            <div class="dropdown-backdrop" (click)="menuAccionesAbierto.set(false)"></div>
+          }
+          <button type="button" class="acciones-trigger"
+                  [disabled]="t.accionesDisponibles.length === 0 || accionEnProceso() !== null"
+                  (click)="toggleMenuAcciones()">
+            @if (accionEnProceso()) {
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            } @else {
+              <i class="bi bi-lightning-fill" aria-hidden="true"></i>
+            }
+            Acciones
+            @if (t.accionesDisponibles.length > 0) {
+              <span class="acciones-count">{{ t.accionesDisponibles.length }}</span>
+            }
+            <i class="bi bi-chevron-down dropdown-chevron"
+               [class.rotated]="menuAccionesAbierto()" aria-hidden="true"></i>
+          </button>
+          @if (menuAccionesAbierto()) {
+            <div class="acciones-menu" role="menu">
+              @if (t.accionesDisponibles.length === 0) {
+                <p class="acciones-vacia">Sin acciones disponibles</p>
+              } @else {
+                @for (accion of t.accionesDisponibles; track accion.codigo) {
+                  <button type="button" class="acciones-menu-item" role="menuitem"
+                          [ngClass]="menuItemCss(accion.codigo)"
+                          (click)="ejecutarYCerrar(accion)">
+                    <span class="acciones-item-icon">
+                      <i class="bi" [class]="obtenerIconoAccion(accion.codigo)" aria-hidden="true"></i>
+                    </span>
+                    <span class="acciones-item-body">
+                      <span class="acciones-item-nombre">{{ accion.nombre }}</span>
+                      <span class="acciones-item-destino">{{ accion.nombreEstadoDestino }}</span>
+                    </span>
+                  </button>
+                }
+              }
+            </div>
+          }
+        </div>
+
+      </div><!-- /header-top -->
+
+      <!-- Meta strip: única fuente de Estado · Prioridad · Responsable · fechas -->
+      <div class="meta-strip">
+        <div class="meta-strip-item">
+          <span class="meta-strip-lbl">Estado</span>
+          <app-estado-badge [estado]="t.estado.codigo" size="sm" />
+        </div>
+
+        @if (t.prioridad) {
+          <div class="meta-strip-sep"></div>
+          <div class="meta-strip-item">
+            <span class="meta-strip-lbl">Prioridad</span>
+            <span class="prio-badge" [ngClass]="prio(t.prioridad.codigo).css">
+              {{ prio(t.prioridad.codigo).label }}
+            </span>
+          </div>
+        }
+
+        <div class="meta-strip-sep"></div>
+        <div class="meta-strip-item">
+          <span class="meta-strip-lbl">Responsable</span>
+          @if (t.usuarioResponsable) {
+            <div class="meta-avatar-row">
+              <div class="meta-avatar">{{ t.usuarioResponsable.nombre[0] }}</div>
+              <span class="meta-val">{{ t.usuarioResponsable.nombre }}</span>
+            </div>
+          } @else {
+            <span class="meta-val meta-val--muted">Sin asignar</span>
+          }
+        </div>
+
+        @if (t.fechaCreacion) {
+          <div class="meta-strip-sep"></div>
+          <div class="meta-strip-item">
+            <span class="meta-strip-lbl">Creado</span>
+            <span class="meta-val">{{ formatFecha(t.fechaCreacion) }}</span>
+          </div>
+        }
+
+        @if (t.fechaActualizacion) {
+          <div class="meta-strip-sep"></div>
+          <div class="meta-strip-item">
+            <span class="meta-strip-lbl">Actualizado</span>
+            <span class="meta-val">{{ formatFechaRelativa(t.fechaActualizacion) }}</span>
+          </div>
+        }
+
+        @if (t.fechaInicio) {
+          <div class="meta-strip-sep"></div>
+          <div class="meta-strip-item">
+            <span class="meta-strip-lbl">Inicio</span>
+            <span class="meta-val">{{ formatFecha(t.fechaInicio) }}</span>
+          </div>
+        }
+
+        @if (t.fechaVencimiento) {
+          <div class="meta-strip-sep"></div>
+          <div class="meta-strip-item">
+            <span class="meta-strip-lbl">Vence</span>
+            <span class="meta-val meta-val--fecha">{{ formatFecha(t.fechaVencimiento) }}</span>
+          </div>
+        }
+      </div>
+    </div><!-- /header-card -->
+
+    <!-- ───────────────────── ALERTAS ─────────────────────────────────────── -->
+    @if (notificacion()) {
+      <div class="ticket-alert ticket-alert--ok" role="alert">
+        <i class="bi bi-check-circle-fill"></i> {{ notificacion() }}
+      </div>
+    }
+    @if (error() && ticket()) {
+      <div class="ticket-alert ticket-alert--error" role="alert">
+        <i class="bi bi-exclamation-circle-fill"></i> {{ error() }}
+      </div>
+    }
+
+    <!-- ───────────────────── PESTAÑAS ─────────────────────────────────────── -->
+    <nav class="tabs-nav" aria-label="Secciones del ticket">
+      @for (tab of tabsAdaptados(); track tab.id) {
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="tabActual() === tab.id"
+          (click)="setTab(tab.id)">
+          <i class="bi" [class]="tab.icon" aria-hidden="true"></i>
+          {{ tab.label }}
+        </button>
+      }
+    </nav>
+
+    <!-- ══════════════════════ TAB: RESUMEN ════════════════════════════════ -->
+    @if (tabActual() === 'resumen') {
+      <div class="resumen-layout" [class.resumen-layout--full]="t.tipo.codigo === 'FASE' && t.estado.codigo !== 'BORRADOR'">
+
+        <!-- ── Columna principal ──────────────────────────────────────────── -->
+        <div class="resumen-main">
+
+          <!-- 1. Descripción -->
+          <section class="section-card">
+            <h2 class="section-title">
+              <i class="bi bi-file-text"></i> Descripción
+            </h2>
+            @if (t.descripcion) {
+              <div class="desc-body">{{ t.descripcion }}</div>
+            } @else {
+              <div class="empty-hint">Sin descripción registrada.</div>
+            }
+          </section>
+
+          <!-- 2. Relaciones — para FASE muestra hijos HIST + botón crear; para otros tickets no aparece aquí -->
+          @if (t.tipo.codigo === 'FASE') {
+            <section class="section-card">
+              <div class="df-card-header">
+                <h2 class="section-title df-no-mb">
+                  <i class="bi bi-diagram-3"></i> Relaciones
+                </h2>
+                @if (historiasBotonesVisibles()) {
+                  <button type="button" class="df-btn df-btn--primary"
+                          (click)="abrirModalCrearHistoria()">
+                    <i class="bi bi-plus-lg"></i> Crear historia
+                  </button>
+                }
+              </div>
+
+              @if (historiasFase().length) {
+                <h3 class="rel-subtitle">Historias de Usuario</h3>
+                <div class="relation-list">
+                  @for (hijo of historiasFase(); track hijo.id) {
+                    <a [routerLink]="['/tickets', hijo.folio]" class="ticket-relation-item">
+                      <span class="folio-tag folio-link">{{ hijo.folio }}</span>
+                      <span class="tipo-badge relation-tipo-badge"
+                            [style.background]="tipoColor(hijo.tipoTicket) + '18'"
+                            [style.color]="tipoColor(hijo.tipoTicket)">
+                        <i class="bi" [class]="tipoIcono(hijo.tipoTicket)" aria-hidden="true"></i>
+                        {{ tipoCfgPara(hijo.tipoTicket)?.label ?? hijo.tipoTicket }}
+                      </span>
+                      <span class="relation-title">{{ hijo.titulo }}</span>
+                      <span class="relation-estado">{{ hijo.estado }}</span>
+                      <i class="bi bi-chevron-right relation-arrow" aria-hidden="true"></i>
+                    </a>
+                  }
+                </div>
+              } @else {
+                <p class="empty-hint" style="margin:0">No existen Historias de Usuario registradas para esta fase.</p>
+              }
+            </section>
+          }
+
+          <!-- FASE (no BORRADOR): definición funcional / Resto: info estándar + relaciones -->
+          @if (t.tipo.codigo === 'FASE' && t.estado.codigo !== 'BORRADOR') {
+
+            <!-- Aviso solo lectura — PENDIENTE_VALIDACION -->
+            @if (t.estado.codigo === 'PENDIENTE_VALIDACION') {
+              <div class="df-readonly-notice">
+                <div class="df-readonly-icon"><i class="bi bi-send-check-fill"></i></div>
+                <div>
+                  <strong class="df-readonly-title">Definición enviada</strong>
+                  <p class="df-readonly-text">La definición funcional fue enviada al administrador y se encuentra pendiente de revisión.</p>
+                </div>
+              </div>
+            }
+
+            @if (cargandoDefinicion()) {
+              <div class="df-def-cargando">
+                <span class="df-def-spinner"></span>
+                <span>Cargando definición funcional...</span>
+              </div>
+            } @else if (errorDefinicion()) {
+              <div class="df-def-error">
+                <i class="bi bi-exclamation-circle"></i>
+                <span>{{ errorDefinicion() }}</span>
+                <button type="button" class="df-btn df-btn--ghost" (click)="reintentarDefinicion()">
+                  <i class="bi bi-arrow-clockwise"></i> Reintentar
+                </button>
+              </div>
+            } @else {
+
+            <!-- Objetivo de la fase -->
+            <section class="section-card">
+              <div class="df-card-header">
+                <h2 class="section-title df-no-mb">
+                  <i class="bi bi-bullseye"></i> Objetivo de la fase
+                </h2>
+                @if (puedeEditarDefinicion()) {
+                  <button type="button" class="df-btn df-btn--ghost"
+                          [disabled]="cargandoDefinicion()" (click)="editarObjetivo()">
+                    <i class="bi bi-pencil"></i> Editar
+                  </button>
+                }
+              </div>
+              @if (definicionFase()?.objetivo?.trim()) {
+                <div class="df-textarea-static">{{ definicionFase()!.objetivo }}</div>
+              } @else {
+                <p class="df-section-empty-msg">Todavía no se ha definido el objetivo de esta fase.</p>
+              }
+            </section>
+
+            <!-- Alcance -->
+            <section class="section-card">
+              <div class="df-card-header">
+                <h2 class="section-title df-no-mb">
+                  <i class="bi bi-arrows-angle-expand"></i> Alcance
+                </h2>
+                @if (puedeEditarDefinicion()) {
+                  <button type="button" class="df-btn df-btn--ghost"
+                          [disabled]="cargandoDefinicion()" (click)="editarAlcance()">
+                    <i class="bi bi-pencil"></i> Editar alcance
+                  </button>
+                }
+              </div>
+              @if (!definicionFase()?.incluye?.trim() && !definicionFase()?.fueraAlcance?.trim()) {
+                <p class="df-section-empty-msg">Todavía no se ha documentado el alcance de esta fase.</p>
+              } @else {
+                <div class="df-alcance-grid">
+                  <div class="df-alcance-col df-alcance-col--in">
+                    <div class="df-alcance-header">
+                      <i class="bi bi-check-circle-fill"></i>
+                      <span>Incluye</span>
+                    </div>
+                    @if (definicionFase()?.incluye?.trim()) {
+                      <div class="df-textarea-static">{{ definicionFase()!.incluye }}</div>
+                    } @else {
+                      <p class="df-section-empty-msg">Sin definir.</p>
+                    }
+                  </div>
+                  <div class="df-alcance-col df-alcance-col--out">
+                    <div class="df-alcance-header">
+                      <i class="bi bi-x-circle-fill"></i>
+                      <span>Fuera de alcance</span>
+                    </div>
+                    @if (definicionFase()?.fueraAlcance?.trim()) {
+                      <div class="df-textarea-static">{{ definicionFase()!.fueraAlcance }}</div>
+                    } @else {
+                      <p class="df-section-empty-msg">Sin definir.</p>
+                    }
+                  </div>
+                </div>
+              }
+            </section>
+
+            <!-- Requerimientos funcionales -->
+            <section class="section-card">
+              <div class="df-card-header">
+                <h2 class="section-title df-no-mb">
+                  <i class="bi bi-card-checklist"></i> Requerimientos funcionales
+                </h2>
+                @if (puedeEditarDefinicion()) {
+                  <button type="button" class="df-btn df-btn--primary"
+                          [disabled]="cargandoDefinicion()" (click)="agregarRequerimiento()">
+                    <i class="bi bi-plus-lg"></i> Agregar requerimiento
+                  </button>
+                }
+              </div>
+              @if (!definicionFase()?.requerimientos?.length) {
+                <p class="df-section-empty-msg">No existen requerimientos funcionales registrados.</p>
+              } @else {
+                <div class="table-wrap df-table-mt">
+                  <table class="tickets-table">
+                    <thead>
+                      <tr>
+                        <th class="col-folio">Código</th>
+                        <th class="col-titulo">Requerimiento</th>
+                        <th class="df-col-prio">Prioridad</th>
+                        <th class="df-col-estado">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (req of definicionFase()!.requerimientos; track req.id) {
+                        <tr>
+                          <td><span class="folio-tag">{{ req.codigo }}</span></td>
+                          <td>{{ req.titulo }}</td>
+                          <td>
+                            @if (req.prioridad) {
+                              <span [class]="'prio-badge ' + prio(req.prioridad).css">{{ prio(req.prioridad).label }}</span>
+                            }
+                          </td>
+                          <td>
+                            @if (req.estado) {
+                              <span class="df-badge df-badge--ok">{{ req.estado }}</span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </section>
+
+            <!-- Reglas de negocio -->
+            <section class="section-card">
+              <div class="df-card-header">
+                <h2 class="section-title df-no-mb">
+                  <i class="bi bi-shield-check"></i> Reglas de negocio
+                </h2>
+                @if (puedeEditarDefinicion()) {
+                  <button type="button" class="df-btn df-btn--primary"
+                          [disabled]="cargandoDefinicion()" (click)="agregarRegla()">
+                    <i class="bi bi-plus-lg"></i> Agregar regla
+                  </button>
+                }
+              </div>
+              @if (!definicionFase()?.reglas?.length) {
+                <p class="df-section-empty-msg">No existen reglas de negocio registradas.</p>
+              } @else {
+                <div class="table-wrap df-table-mt">
+                  <table class="tickets-table">
+                    <thead>
+                      <tr>
+                        <th class="col-folio">Código</th>
+                        <th>Regla</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (regla of definicionFase()!.reglas; track regla.id) {
+                        <tr>
+                          <td><span class="folio-tag">{{ regla.codigo }}</span></td>
+                          <td>{{ regla.descripcion }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </section>
+
+            <!-- Criterios de validación -->
+            <section class="section-card">
+              <div class="df-card-header">
+                <h2 class="section-title df-no-mb">
+                  <i class="bi bi-patch-check"></i> Criterios de validación
+                </h2>
+                @if (puedeEditarDefinicion()) {
+                  <button type="button" class="df-btn df-btn--primary"
+                          [disabled]="cargandoDefinicion()" (click)="agregarCriterio()">
+                    <i class="bi bi-plus-lg"></i> Agregar criterio
+                  </button>
+                }
+              </div>
+              @if (!definicionFase()?.criterios?.length) {
+                <p class="df-section-empty-msg">No existen criterios de validación registrados.</p>
+              } @else {
+                <ul class="df-criterios-list">
+                  @for (criterio of definicionFase()!.criterios; track criterio.id) {
+                    <li class="df-criterio-item">
+                      <span class="df-checkbox df-checkbox--checked" aria-hidden="true">
+                        <i class="bi bi-check-lg"></i>
+                      </span>
+                      <span>{{ criterio.descripcion }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </section>
+
+            }
+
+          } @else {
+
+            <!-- 2. Información administrativa (sin duplicar Estado · Prioridad · Responsable) -->
+            <section class="section-card">
+              <h2 class="section-title">
+                <i class="bi" [class]="tipoCfg().icon"></i> Información del ticket
+              </h2>
+              <div class="info-grid-2col">
+                @if (t.usuarioCreador) {
+                  <div class="info-field">
+                    <span class="info-field-lbl">
+                      @switch (t.tipo.codigo) {
+                        @case ('BUG') { Reportado por }
+                        @case ('MEJ') { Propuesto por }
+                        @case ('DOC') { Autor }
+                        @default      { Creado por }
+                      }
+                    </span>
+                    <div class="detail-person">
+                      <div class="detail-avatar">{{ t.usuarioCreador.nombre[0] }}</div>
+                      <span class="info-field-val">{{ t.usuarioCreador.nombre }}</span>
+                    </div>
+                  </div>
+                }
+                @if (t.fechaInicio) {
+                  <div class="info-field">
+                    <span class="info-field-lbl">Fecha inicio</span>
+                    <span class="info-field-val">{{ formatFecha(t.fechaInicio) }}</span>
+                  </div>
+                }
+                @if (t.fechaVencimiento) {
+                  <div class="info-field">
+                    <span class="info-field-lbl">Fecha límite</span>
+                    <span class="info-field-val info-field-val--warn">{{ formatFecha(t.fechaVencimiento) }}</span>
+                  </div>
+                }
+                @if (t.fechaFin) {
+                  <div class="info-field">
+                    <span class="info-field-lbl">
+                      @if (t.tipo.codigo === 'BUG') { Fecha resuelto } @else { Fecha fin }
+                    </span>
+                    <span class="info-field-val">{{ formatFecha(t.fechaFin) }}</span>
+                  </div>
+                }
+                @if (!t.usuarioCreador && !t.fechaInicio && !t.fechaVencimiento && !t.fechaFin) {
+                  <div class="info-field info-field--full">
+                    <span class="empty-hint">Sin datos administrativos adicionales.</span>
+                  </div>
+                }
+              </div>
+            </section>
+
+            <!-- 3. Relaciones del ticket -->
+            <section class="section-card">
+              <h2 class="section-title">
+                <i class="bi bi-diagram-3"></i> Relaciones
+              </h2>
+
+              @if (t.ticketPadre; as padre) {
+                <h3 class="rel-subtitle">Ticket padre</h3>
+                <a [routerLink]="['/tickets', padre.folio]"
+                   class="ticket-relation-item mb-2">
+                  <span class="folio-tag folio-link">{{ padre.folio }}</span>
+                  <span class="tipo-badge relation-tipo-badge"
+                        [style.background]="tipoColor(padre.tipoTicket) + '18'"
+                        [style.color]="tipoColor(padre.tipoTicket)">
+                    <i class="bi" [class]="tipoIcono(padre.tipoTicket)" aria-hidden="true"></i>
+                    {{ tipoCfgPara(padre.tipoTicket)?.label ?? padre.tipoTicket }}
+                  </span>
+                  <span class="relation-title">{{ padre.titulo }}</span>
+                  <span class="relation-estado">{{ padre.estado }}</span>
+                  <i class="bi bi-chevron-right relation-arrow" aria-hidden="true"></i>
+                </a>
+              }
+
+              @if (t.ticketsHijos.length) {
+                <h3 class="rel-subtitle">{{ t.ticketPadre ? 'Tickets hijos' : 'Tickets relacionados' }}</h3>
+                <div class="relation-list">
+                  @for (hijo of t.ticketsHijos; track hijo.id) {
+                    <a [routerLink]="['/tickets', hijo.folio]"
+                       class="ticket-relation-item">
+                      <span class="folio-tag folio-link">{{ hijo.folio }}</span>
+                      <span class="tipo-badge relation-tipo-badge"
+                            [style.background]="tipoColor(hijo.tipoTicket) + '18'"
+                            [style.color]="tipoColor(hijo.tipoTicket)">
+                        <i class="bi" [class]="tipoIcono(hijo.tipoTicket)" aria-hidden="true"></i>
+                        {{ tipoCfgPara(hijo.tipoTicket)?.label ?? hijo.tipoTicket }}
+                      </span>
+                      <span class="relation-title">{{ hijo.titulo }}</span>
+                      <span class="relation-estado">{{ hijo.estado }}</span>
+                      <i class="bi bi-chevron-right relation-arrow" aria-hidden="true"></i>
+                    </a>
+                  }
+                </div>
+              }
+
+              @if (!t.ticketPadre && !t.ticketsHijos.length) {
+                <p class="empty-hint" style="margin:0">Sin relaciones registradas.</p>
+              }
+            </section>
+
+          }
+
+          <!-- 4. Comentarios -->
+          <section class="section-card">
+            <h2 class="section-title">
+              <i class="bi bi-chat-dots"></i> Comentarios
+              @if (comentarios().length) {
+                <span class="section-count">{{ comentarios().length }}</span>
+              }
+            </h2>
+
+            <!-- Formulario nuevo comentario -->
+            <div class="comment-form">
+              <div class="comment-form-avatar">
+                <div class="comment-avatar-initials" style="background:#4361ee">
+                  <i class="bi bi-person-fill" style="font-size:0.78rem;color:#fff"></i>
+                </div>
+              </div>
+              <div class="comment-form-body">
+                <textarea
+                  class="comment-input"
+                  rows="3"
+                  maxlength="2000"
+                  placeholder="Escribe un comentario..."
+                  [value]="comentarioTexto()"
+                  (input)="comentarioTexto.set($any($event.target).value)"
+                  [disabled]="enviandoComentario()">
+                </textarea>
+                <div class="comment-form-footer">
+                  <span class="char-count" [class.char-count--warn]="comentarioTexto().length > 1800">
+                    {{ comentarioTexto().length }}/2000
+                  </span>
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    (click)="comentar()"
+                    [disabled]="!comentarioTexto().trim() || enviandoComentario()">
+                    @if (enviandoComentario()) {
+                      <span class="spinner-border spinner-border-sm me-1"
+                            role="status" aria-hidden="true"></span>
+                      Publicando...
+                    } @else {
+                      <i class="bi bi-send me-1"></i>Comentar
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error comentarios -->
+            @if (errorComentarios()) {
+              <div class="comment-error">
+                <i class="bi bi-exclamation-circle"></i> {{ errorComentarios() }}
+              </div>
+            }
+
+            <!-- Lista de comentarios estilo conversación -->
+            @if (cargandoComentarios()) {
+              <p class="text-muted fst-italic" style="font-size:0.82rem;margin:0">
+                Cargando comentarios...
+              </p>
+            } @else if (comentarios().length > 0) {
+              <div class="comment-list">
+                @for (comentario of comentarios(); track comentario.id; let last = $last) {
+                  <div class="comment-item">
+                    <div class="comment-avatar-col">
+                      @if (comentario.usuario.avatarUrl) {
+                        <img [src]="comentario.usuario.avatarUrl"
+                             [alt]="comentario.usuario.nombreCompleto"
+                             class="comment-avatar-img" />
+                      } @else {
+                        <div class="comment-avatar-initials"
+                             [style.background]="avatarColor(comentario.usuario.id)">
+                          {{ obtenerIniciales(comentario.usuario) }}
+                        </div>
+                      }
+                      @if (!last) {
+                        <div class="comment-line"></div>
+                      }
+                    </div>
+                    <div class="comment-body">
+                      <div class="comment-meta">
+                        <div class="comment-author-block">
+                          <span class="comment-author">{{ comentario.usuario.nombreCompleto }}</span>
+                        </div>
+                        <span class="comment-date"
+                              [title]="comentario.fechaCreacion | date:'dd/MM/yyyy HH:mm'">
+                          {{ formatFechaRelativa(comentario.fechaCreacion) }}
+                        </span>
+                      </div>
+                      <div class="comment-bubble">
+                        <p class="comment-text">{{ comentario.comentario }}</p>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="empty-hint" style="margin:0">Sin comentarios aún.</p>
+            }
+          </section>
+
+        </div><!-- /resumen-main -->
+
+        <!-- ── Barra lateral (solo para no-FASE o FASE BORRADOR) ──────────── -->
+        @if (t.tipo.codigo !== 'FASE' || t.estado.codigo === 'BORRADOR') {
+          <aside class="resumen-sidebar">
+
+            <!-- Ubicación jerárquica -->
+            @if (ubicacionItems().length > 1) {
+              <div class="sidebar-card">
+                <h3 class="sidebar-card-title">
+                  <i class="bi bi-diagram-2"></i> Ubicación
+                </h3>
+                <div class="jerarquia-chain">
+                  @for (node of ubicacionItems(); track node.folio; let first = $first) {
+                    @if (!first) { <span class="jerarquia-sep">→</span> }
+                    @if (node.link) {
+                      <a [routerLink]="node.link" class="jerarquia-node jerarquia-node--link">
+                        {{ node.folio }}
+                      </a>
+                    } @else {
+                      <span class="jerarquia-node jerarquia-node--current">{{ node.folio }}</span>
+                    }
+                  }
+                </div>
+                @if (proyectoActivo()) {
+                  <p class="jerarquia-proyecto">
+                    <i class="bi bi-folder2-open"></i> {{ proyectoActivo()!.nombre }}
+                  </p>
+                }
+              </div>
+            }
+
+            <!-- Contexto del ticket -->
+            <div class="sidebar-card">
+              <h3 class="sidebar-card-title">
+                <i class="bi bi-info-circle"></i> Contexto
+              </h3>
+              <dl class="detail-list">
+                @if (t.usuarioCreador) {
+                  <dt>Creado por</dt>
+                  <dd>
+                    <div class="detail-person">
+                      <div class="detail-avatar">{{ t.usuarioCreador.nombre[0] }}</div>
+                      {{ t.usuarioCreador.nombre }}
+                    </div>
+                  </dd>
+                }
+                @if (t.fechaCreacion) {
+                  <dt>Fecha creación</dt>
+                  <dd class="detail-date">{{ formatFecha(t.fechaCreacion, true) }}</dd>
+                }
+                @if (t.fechaActualizacion) {
+                  <dt>Última actualización</dt>
+                  <dd class="detail-date">{{ formatFechaRelativa(t.fechaActualizacion) }}</dd>
+                }
+                @if (t.fechaFin) {
+                  <dt>Fecha fin</dt>
+                  <dd class="detail-date">{{ formatFecha(t.fechaFin) }}</dd>
+                }
+              </dl>
+            </div>
+
+          </aside><!-- /resumen-sidebar -->
+        }
+      </div><!-- /resumen-layout -->
+    }
+
+    <!-- ══════════════════════ TAB: HISTORIAL ══════════════════════════════ -->
+    @if (tabActual() === 'historial') {
+      <section class="section-card">
+        <h2 class="section-title">
+          <i class="bi bi-clock-history"></i> Historial de cambios
+        </h2>
+        @if (historial().length === 0) {
+          <div class="empty-hint-block">
+            <i class="bi bi-clock-history empty-hint-icon"></i>
+            <p>No hay actividad registrada.</p>
+            <small class="text-muted">El historial estará disponible cuando el backend exponga el endpoint de actividad del ticket.</small>
+          </div>
+        }
+      </section>
+    }
+
+  </div><!-- /detalle-page -->
+
+  @if (modalAsignarAnalistaOpen()) {
+    <app-asignar-analista-modal
+      [ticketId]="t.id"
+      [proyectoId]="proyectoIdActual()"
+      (responsableSeleccionado)="onResponsableSeleccionado($event)"
+      (cerrar)="modalAsignarAnalistaOpen.set(false)"
+    />
+  }
+
+  <!-- ── Modal: Editar objetivo ─────────────────────────────────────────── -->
+  @if (modalObjetivoOpen()) {
+    <div class="dfm-overlay"
+         (click)="$event.target === $event.currentTarget && cerrarModalObjetivo()">
+      <div class="dfm-panel">
+        <div class="dfm-header">
+          <h3 class="dfm-title"><i class="bi bi-bullseye"></i> Objetivo de la fase</h3>
+          <button type="button" class="dfm-close"
+                  [disabled]="guardandoObjetivo()" (click)="cerrarModalObjetivo()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="dfm-body">
+          @if (errorObjetivo()) {
+            <div class="dfm-error">
+              <i class="bi bi-exclamation-circle"></i> {{ errorObjetivo() }}
+            </div>
+          }
+          <div class="dfm-group">
+            <label class="dfm-label">Objetivo</label>
+            <textarea class="dfm-control" rows="6"
+                      placeholder="Describe el propósito y resultado esperado de esta fase..."
+                      [value]="modalObjetivoTexto()"
+                      (input)="modalObjetivoTexto.set($any($event.target).value)"></textarea>
+          </div>
+        </div>
+        <div class="dfm-footer">
+          <button type="button" class="dfm-btn dfm-btn--ghost"
+                  [disabled]="guardandoObjetivo()" (click)="cerrarModalObjetivo()">
+            Cancelar
+          </button>
+          <button type="button" class="dfm-btn dfm-btn--primary"
+                  [disabled]="guardandoObjetivo() || !modalObjetivoTexto().trim()"
+                  (click)="guardarObjetivo()">
+            @if (guardandoObjetivo()) {
+              <span class="dfm-spinner"></span> Guardando...
+            } @else {
+              <i class="bi bi-check-lg"></i> Guardar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Modal: Editar alcance ──────────────────────────────────────────── -->
+  @if (modalAlcanceOpen()) {
+    <div class="dfm-overlay"
+         (click)="$event.target === $event.currentTarget && cerrarModalAlcance()">
+      <div class="dfm-panel dfm-panel--wide">
+        <div class="dfm-header">
+          <h3 class="dfm-title"><i class="bi bi-arrows-angle-expand"></i> Alcance</h3>
+          <button type="button" class="dfm-close"
+                  [disabled]="guardandoAlcance()" (click)="cerrarModalAlcance()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="dfm-body dfm-body--cols">
+          @if (errorAlcance()) {
+            <div class="dfm-error dfm-error--full">
+              <i class="bi bi-exclamation-circle"></i> {{ errorAlcance() }}
+            </div>
+          }
+          <div class="dfm-group">
+            <label class="dfm-label">Incluye</label>
+            <textarea class="dfm-control" rows="8"
+                      placeholder="Funcionalidades y alcances incluidos..."
+                      [value]="modalAlcanceIncluye()"
+                      (input)="modalAlcanceIncluye.set($any($event.target).value)"></textarea>
+          </div>
+          <div class="dfm-group">
+            <label class="dfm-label">Fuera de alcance</label>
+            <textarea class="dfm-control" rows="8"
+                      placeholder="Funcionalidades excluidas explícitamente..."
+                      [value]="modalAlcanceFuera()"
+                      (input)="modalAlcanceFuera.set($any($event.target).value)"></textarea>
+          </div>
+        </div>
+        <div class="dfm-footer">
+          <button type="button" class="dfm-btn dfm-btn--ghost"
+                  [disabled]="guardandoAlcance()" (click)="cerrarModalAlcance()">
+            Cancelar
+          </button>
+          <button type="button" class="dfm-btn dfm-btn--primary"
+                  [disabled]="guardandoAlcance()"
+                  (click)="guardarAlcance()">
+            @if (guardandoAlcance()) {
+              <span class="dfm-spinner"></span> Guardando...
+            } @else {
+              <i class="bi bi-check-lg"></i> Guardar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Modal: Agregar requerimiento ──────────────────────────────────── -->
+  @if (modalReqOpen()) {
+    <div class="dfm-overlay"
+         (click)="$event.target === $event.currentTarget && cerrarModalReq()">
+      <div class="dfm-panel">
+        <div class="dfm-header">
+          <h3 class="dfm-title"><i class="bi bi-card-checklist"></i> Nuevo requerimiento</h3>
+          <button type="button" class="dfm-close"
+                  [disabled]="guardandoReq()" (click)="cerrarModalReq()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="dfm-body">
+          @if (errorReq()) {
+            <div class="dfm-error">
+              <i class="bi bi-exclamation-circle"></i> {{ errorReq() }}
+            </div>
+          }
+          <div class="dfm-row">
+            <div class="dfm-group dfm-group--sm">
+              <label class="dfm-label">Código</label>
+              <input class="dfm-control" type="text" placeholder="RF-001"
+                     [value]="modalReqCodigo()"
+                     (input)="modalReqCodigo.set($any($event.target).value)">
+            </div>
+            <div class="dfm-group dfm-group--sm">
+              <label class="dfm-label">Prioridad</label>
+              <select class="dfm-control dfm-select"
+                      [value]="modalReqPrioridad()"
+                      (change)="modalReqPrioridad.set($any($event.target).value)">
+                <option value="">Seleccionar...</option>
+                <option value="ALTA">Alta</option>
+                <option value="MEDIA">Media</option>
+                <option value="BAJA">Baja</option>
+              </select>
+            </div>
+          </div>
+          <div class="dfm-group">
+            <label class="dfm-label">Descripción del requerimiento <span class="dfm-required">*</span></label>
+            <textarea class="dfm-control" rows="4"
+                      placeholder="Descripción funcional del requerimiento..."
+                      [value]="modalReqTitulo()"
+                      (input)="modalReqTitulo.set($any($event.target).value)"></textarea>
+          </div>
+        </div>
+        <div class="dfm-footer">
+          <button type="button" class="dfm-btn dfm-btn--ghost"
+                  [disabled]="guardandoReq()" (click)="cerrarModalReq()">
+            Cancelar
+          </button>
+          <button type="button" class="dfm-btn dfm-btn--primary"
+                  [disabled]="guardandoReq() || !modalReqTitulo().trim()"
+                  (click)="guardarRequerimiento()">
+            @if (guardandoReq()) {
+              <span class="dfm-spinner"></span> Guardando...
+            } @else {
+              <i class="bi bi-check-lg"></i> Guardar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Modal: Agregar regla ───────────────────────────────────────────── -->
+  @if (modalReglaOpen()) {
+    <div class="dfm-overlay"
+         (click)="$event.target === $event.currentTarget && cerrarModalRegla()">
+      <div class="dfm-panel">
+        <div class="dfm-header">
+          <h3 class="dfm-title"><i class="bi bi-shield-check"></i> Nueva regla de negocio</h3>
+          <button type="button" class="dfm-close"
+                  [disabled]="guardandoRegla()" (click)="cerrarModalRegla()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="dfm-body">
+          @if (errorRegla()) {
+            <div class="dfm-error">
+              <i class="bi bi-exclamation-circle"></i> {{ errorRegla() }}
+            </div>
+          }
+          <div class="dfm-group dfm-group--sm">
+            <label class="dfm-label">Código</label>
+            <input class="dfm-control" type="text" placeholder="RN-001"
+                   [value]="modalReglaCodigo()"
+                   (input)="modalReglaCodigo.set($any($event.target).value)">
+          </div>
+          <div class="dfm-group">
+            <label class="dfm-label">Descripción de la regla <span class="dfm-required">*</span></label>
+            <textarea class="dfm-control" rows="4"
+                      placeholder="Condición o restricción de negocio..."
+                      [value]="modalReglaDesc()"
+                      (input)="modalReglaDesc.set($any($event.target).value)"></textarea>
+          </div>
+        </div>
+        <div class="dfm-footer">
+          <button type="button" class="dfm-btn dfm-btn--ghost"
+                  [disabled]="guardandoRegla()" (click)="cerrarModalRegla()">
+            Cancelar
+          </button>
+          <button type="button" class="dfm-btn dfm-btn--primary"
+                  [disabled]="guardandoRegla() || !modalReglaDesc().trim()"
+                  (click)="guardarRegla()">
+            @if (guardandoRegla()) {
+              <span class="dfm-spinner"></span> Guardando...
+            } @else {
+              <i class="bi bi-check-lg"></i> Guardar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Modal: Agregar criterio ────────────────────────────────────────── -->
+  @if (modalCriterioOpen()) {
+    <div class="dfm-overlay"
+         (click)="$event.target === $event.currentTarget && cerrarModalCriterio()">
+      <div class="dfm-panel">
+        <div class="dfm-header">
+          <h3 class="dfm-title"><i class="bi bi-patch-check"></i> Nuevo criterio de validación</h3>
+          <button type="button" class="dfm-close"
+                  [disabled]="guardandoCriterio()" (click)="cerrarModalCriterio()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="dfm-body">
+          @if (errorCriterio()) {
+            <div class="dfm-error">
+              <i class="bi bi-exclamation-circle"></i> {{ errorCriterio() }}
+            </div>
+          }
+          <div class="dfm-group">
+            <label class="dfm-label">Criterio <span class="dfm-required">*</span></label>
+            <textarea class="dfm-control" rows="4"
+                      placeholder="Condición que debe cumplirse para validar esta fase..."
+                      [value]="modalCriterioDesc()"
+                      (input)="modalCriterioDesc.set($any($event.target).value)"></textarea>
+          </div>
+        </div>
+        <div class="dfm-footer">
+          <button type="button" class="dfm-btn dfm-btn--ghost"
+                  [disabled]="guardandoCriterio()" (click)="cerrarModalCriterio()">
+            Cancelar
+          </button>
+          <button type="button" class="dfm-btn dfm-btn--primary"
+                  [disabled]="guardandoCriterio() || !modalCriterioDesc().trim()"
+                  (click)="guardarCriterio()">
+            @if (guardandoCriterio()) {
+              <span class="dfm-spinner"></span> Guardando...
+            } @else {
+              <i class="bi bi-check-lg"></i> Guardar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Modal: Confirmar acción ───────────────────────────────────────── -->
+  @if (modalAccionAbierto()) {
+    <div class="dfm-overlay"
+         (click)="$event.target === $event.currentTarget && cerrarModalAccion()">
+      <div class="dfm-panel">
+        <div class="dfm-header">
+          <h3 class="dfm-title">{{ accionSeleccionada()?.titulo }}</h3>
+          <button type="button" class="dfm-close"
+                  [disabled]="guardandoAccion()" (click)="cerrarModalAccion()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="dfm-body">
+          <p class="dfm-desc">{{ accionSeleccionada()?.mensaje }}</p>
+          @if (errorAccion()) {
+            <div class="dfm-error">
+              <i class="bi bi-exclamation-circle"></i> {{ errorAccion() }}
+            </div>
+          }
+          <div class="dfm-group">
+            <label class="dfm-label">
+              {{ accionSeleccionada()?.etiquetaCampo }}
+              @if (accionSeleccionada()?.comentarioObligatorio) {
+                <span class="dfm-required">*</span>
+              }
+            </label>
+            <textarea class="dfm-control" rows="5"
+                      [placeholder]="accionSeleccionada()?.placeholder ?? ''"
+                      [value]="comentarioAccion()"
+                      (input)="comentarioAccion.set($any($event.target).value)"
+                      [disabled]="guardandoAccion()">
+            </textarea>
+          </div>
+        </div>
+        <div class="dfm-footer">
+          <button type="button" class="dfm-btn dfm-btn--ghost"
+                  [disabled]="guardandoAccion()" (click)="cerrarModalAccion()">
+            Cancelar
+          </button>
+          <button type="button" class="dfm-btn"
+                  [class.dfm-btn--danger]="accionSeleccionada()?.tipo === 'danger'"
+                  [class.dfm-btn--warning]="accionSeleccionada()?.tipo === 'warning'"
+                  [class.dfm-btn--success]="accionSeleccionada()?.tipo === 'success'"
+                  [class.dfm-btn--primary]="accionSeleccionada()?.tipo === 'normal'"
+                  [disabled]="guardandoAccion() || (accionSeleccionada()?.comentarioObligatorio === true && !comentarioAccion().trim())"
+                  (click)="confirmarAccion()">
+            @if (guardandoAccion()) {
+              <span class="dfm-spinner"></span> Procesando...
+            } @else {
+              {{ accionSeleccionada()?.textoConfirmar }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Modal: Crear Historia de Usuario ─────────────────────────────────── -->
+  @if (modalHistoriaAbierto()) {
+    <app-crear-historia-modal
+      [proyectoId]="obtenerProyectoIdActual()"
+      [faseId]="t.id"
+      (historiaCreada)="onHistoriaCreada()"
+      (cerrar)="modalHistoriaAbierto.set(false)"
+    />
+  }
+}

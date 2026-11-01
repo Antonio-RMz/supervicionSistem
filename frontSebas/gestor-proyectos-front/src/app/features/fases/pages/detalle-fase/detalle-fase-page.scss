@@ -1,0 +1,212 @@
+@use '../../../../../styles/detalle';
+
+// ─── Objetivo ────────────────────────────────────────────────────────────────
+.objetivo {
+  margin: 0.75rem 0 0;
+  color: var(--texto);
+  line-height: 1.55;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.avance {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.1rem;
+  color: var(--texto-suave);
+
+  .barra { flex: 1; max-width: 560px; }
+}
+
+// ─── Diseño de la fase ──────────────────────────────────────────────────────
+.diseno h2 .bi { color: var(--morado); }
+
+.usan {
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--morado-suave);
+  color: var(--morado);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.figma-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+  padding: 0.45rem 0.5rem 0.45rem 0.85rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--fondo-pagina);
+
+  > .bi { color: var(--texto-suave); }
+
+  .enlace,
+  input {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--tinta);
+    font-family: var(--fuente-mono);
+    font-size: 0.85rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  input {
+    padding: 0.35rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+  }
+}
+
+.diseno > .boton { margin-top: 0.85rem; }
+
+.para-todas { margin-top: 0.85rem; }
+
+.boton.chico { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
+
+// ─── Historias ──────────────────────────────────────────────────────────────
+.leyenda {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.75rem;
+}
+
+.punto-ambar {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ambar);
+}
+
+.historia .nombre { font-weight: 600; }
+
+// Eliminar desde la lista (Líder o Admin, si aún no se inicia).
+.quitar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto-suave);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--rojo-suave); color: var(--rojo-texto); }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.estado {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+// ─── Lateral ─────────────────────────────────────────────────────────────────
+.proyecto {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 0.9rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: var(--fondo-pagina);
+  text-decoration: none;
+
+  span:nth-child(2) { flex: 1; min-width: 0; }
+
+  strong {
+    display: block;
+    color: var(--tinta);
+    font-weight: 500;
+  }
+
+  small { color: var(--texto-suave); }
+
+  i { color: var(--texto-suave); }
+
+  &:hover i { color: var(--morado); }
+}
+
+.codigo-proyecto {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--morado-suave);
+  color: var(--morado);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.conteos,
+.actividad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+}
+
+.conteos strong {
+  margin-left: auto;
+  color: var(--tinta);
+}
+
+.actividad {
+  li { align-items: flex-start; }
+
+  .punto { margin-top: 0.45rem; }
+
+  strong {
+    display: block;
+    color: var(--tinta);
+    font-weight: 500;
+  }
+
+  small { color: var(--texto-suave); }
+}
+
+@media (max-width: 640px) {
+  .historia {
+    flex-wrap: wrap;
+
+    .nombre { flex-basis: 100%; order: 3; }
+  }
+}
+
+.botones-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.confirmar-texto {
+  margin: 0;
+  color: var(--texto);
+  line-height: 1.55;
+}

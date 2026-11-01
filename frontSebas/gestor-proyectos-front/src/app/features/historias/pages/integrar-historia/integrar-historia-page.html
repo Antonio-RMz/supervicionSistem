@@ -1,0 +1,195 @@
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else if (integracion(); as i) {
+  <nav class="migas" aria-label="Ruta">
+    <a [routerLink]="['/proyectos', i.proyectoId, 'fases']">{{ i.proyectoNombre }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <a [routerLink]="['/proyectos', i.proyectoId, 'fases', i.faseId]">{{ i.faseTitulo }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <a [routerLink]="['/proyectos', i.proyectoId, 'historias', i.historiaId]">{{ i.codigo }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <span>Integrar</span>
+  </nav>
+
+  <header class="encabezado">
+    <div>
+      <div class="titulo">
+        <h1>Integrar historia</h1>
+        <app-tipo-ticket tipo="HIST" />
+        <span class="subtitulo">{{ i.codigo }} · {{ i.titulo }}</span>
+        <app-etiqueta-estado [etiqueta]="i.etiqueta" />
+      </div>
+      <p>{{ i.descripcion }}</p>
+    </div>
+  </header>
+
+  <!-- ─── Ramas → develop → staging → release ─── -->
+  <ol class="tarjeta flujo">
+    @for (p of i.flujo; track p.titulo; let n = $index; let ultimo = $last) {
+      <li [class]="p.avance">
+        @if (p.avance === 'hecho') {
+          <i class="bi bi-check-circle-fill marca"></i>
+        } @else if (n === 1) {
+          <i class="bi bi-sign-merge-right marca"></i>
+        } @else {
+          <i class="bi bi-clock marca"></i>
+        }
+        <span>
+          <strong>{{ p.titulo }}</strong>
+          <small>{{ p.detalle }}</small>
+        </span>
+      </li>
+      @if (!ultimo) {
+        <i class="bi bi-arrow-right flecha"></i>
+      }
+    }
+  </ol>
+
+  <div class="columnas">
+    <div class="principal">
+      <!-- ─── Qué se integra ─── -->
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Qué se integra</h2>
+          <span class="detalle">{{ i.resumen }}</span>
+        </div>
+        @for (m of i.modulos; track m.nombre) {
+          <div class="modulo">
+            <i class="bi {{ m.icono }} icono tono-{{ m.tono }}"></i>
+            <strong>{{ m.nombre }}</strong>
+            <small>{{ m.descripcion }}</small>
+          </div>
+          <ul class="filas tickets">
+            @for (t of m.tickets; track t.id) {
+              <li>
+                <app-tipo-ticket [tipo]="t.tipo" />
+                <div class="nombre">
+                  <a class="enlace-titulo" [routerLink]="['/proyectos', i.proyectoId, 'tickets', t.id]">
+                    {{ t.codigo }} · {{ t.titulo }}
+                  </a>
+                  @if (t.rama) {
+                    <div class="ramas">
+                      <span class="rama"><i class="bi bi-git"></i> {{ t.rama }}</span>
+                      <i class="bi bi-arrow-right"></i>
+                      <span>develop</span>
+                    </div>
+                  }
+                </div>
+                <div class="estado-pr">
+                  @if (t.pr) {
+                    <span class="numero-pr">{{ t.pr }}</span>
+                  }
+                  @for (c of t.chips; track c.texto) {
+                    <span class="pastilla tono-{{ c.tono }}">{{ c.texto }}</span>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        } @empty {
+          <p class="vacio">La historia no tiene tickets con código que integrar.</p>
+        }
+      </section>
+
+      <!-- ─── Revisión previa ─── -->
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Revisión previa</h2>
+          <span class="detalle">{{ i.resumenRevision }}</span>
+        </div>
+        <ul class="filas">
+          @for (r of i.revision; track r.texto) {
+            <li class="revision">
+              <i class="bi" [class.bi-check-circle-fill]="r.estado === 'ok'" [class.ok]="r.estado === 'ok'"
+                 [class.bi-exclamation-circle-fill]="r.estado === 'aviso'" [class.aviso-ambar]="r.estado === 'aviso'"
+                 [class.bi-x-circle-fill]="r.estado === 'falta'" [class.falta]="r.estado === 'falta'"></i>
+              <span class="nombre">{{ r.texto }}</span>
+              <span class="detalle" [class.rojo]="r.estado === 'falta'">{{ r.detalle }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- ─── Qué pasará al integrar ─── -->
+      @if (i.estado !== 'INTEGRADA' && i.estado !== 'CERRADA') {
+        <section class="tarjeta bloque">
+          <h2>Qué pasará al integrar</h2>
+          <ol class="pasos">
+            @for (p of i.pasos; track $index; let n = $index) {
+              <li><span class="numero">{{ n + 1 }}</span> {{ p }}</li>
+            }
+          </ol>
+        </section>
+      }
+    </div>
+
+    <aside class="lateral">
+      <!-- ─── Acciones ─── -->
+      <section class="tarjeta bloque acciones" [class.activo]="i.rol && i.estado === 'ACEPTADA'">
+        <div class="bloque-cabecera">
+          <h2>Acciones</h2>
+          @if (i.rol) {
+            <span class="pastilla tono-morado">{{ i.rol }}</span>
+          }
+        </div>
+        <p class="pista">Solo quien tiene el permiso de integrar (Líder) ve estos botones.</p>
+
+        @if (i.rol && i.estado === 'ACEPTADA') {
+          <div class="botones-panel">
+            <button type="button" class="boton {{ i.impedimentos.length ? 'bloqueado' : 'boton-primario' }}"
+                    [disabled]="i.impedimentos.length > 0 || enviando()" [title]="i.impedimentos.join('. ')"
+                    (click)="integrar()">
+              <i class="bi bi-sign-merge-right"></i> {{ enviando() ? 'Integrando…' : 'Integrar a develop' }}
+            </button>
+            <a class="boton boton-secundario" [routerLink]="['/proyectos', i.proyectoId, 'historias', i.historiaId]">
+              <i class="bi bi-clock"></i> Integrar más tarde
+            </a>
+          </div>
+          @if (i.impedimentos.length) {
+            <ul class="revisiones">
+              @for (f of i.impedimentos; track f) {
+                <li class="revision"><i class="bi bi-x-circle falta"></i> {{ f }}</li>
+              }
+            </ul>
+          }
+          <p class="nota"><i class="bi bi-info-circle"></i> Si después falla en staging, se crea un BUGS dentro de la misma historia.</p>
+        } @else if (i.estado === 'ACEPTADA') {
+          <p class="sin-botones"><i class="bi bi-eye"></i> La integra el Líder del proyecto.</p>
+        } @else {
+          <p class="sin-botones"><i class="bi bi-eye"></i> {{ i.etiqueta.texto }}: no hay nada que integrar ahora.</p>
+        }
+      </section>
+
+      <!-- ─── Ambientes ─── -->
+      <section class="tarjeta bloque">
+        <h2>Ambientes</h2>
+        <ul class="ambientes">
+          @for (a of i.ambientes; track a.nombre) {
+            <li>
+              <span class="punto tono-{{ a.tono }}"></span>
+              <span class="nombre">{{ a.nombre }}</span>
+              <span class="detalle">{{ a.texto }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- ─── Historias de la fase ─── -->
+      <section class="tarjeta bloque">
+        <h2>Historias de la {{ i.faseTitulo }}</h2>
+        <ul class="ambientes">
+          @for (h of i.historiasDeFase; track h.id) {
+            <li>
+              <app-tipo-ticket tipo="HIST" />
+              <a class="nombre enlace-titulo" [routerLink]="['/proyectos', i.proyectoId, 'historias', h.id]">{{ h.codigo }}</a>
+              <app-etiqueta-estado [etiqueta]="h.etiqueta" />
+            </li>
+          }
+        </ul>
+        <p class="pista">{{ i.notaRelease }}</p>
+      </section>
+    </aside>
+  </div>
+}

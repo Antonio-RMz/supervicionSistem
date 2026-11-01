@@ -1,0 +1,182 @@
+<nav class="migas" aria-label="Ruta">
+  <a routerLink="/proyectos">Proyectos</a>
+  <i class="bi bi-chevron-right"></i>
+  <a [routerLink]="['/proyectos', id()]">{{ preparacion()?.proyectoNombre ?? '…' }}</a>
+  <i class="bi bi-chevron-right"></i>
+  @if (editando()) {
+    <a [routerLink]="['/proyectos', id(), 'fases', faseId()]">Fase {{ guardada()?.numero ?? '…' }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <span>Editar</span>
+  } @else {
+    <span>Nueva fase</span>
+  }
+</nav>
+
+<header class="encabezado">
+  <div>
+    <h1>{{ editando() ? 'Editar fase' : 'Nueva fase' }}</h1>
+    @if (preparacion(); as p) {
+      @if (editando()) {
+        <p>Fase {{ p.numero }} de {{ p.proyectoNombre }}. Los cambios se ven de inmediato en el proyecto.</p>
+      } @else {
+        <p>
+          Será la Fase {{ p.numero }} de {{ p.proyectoNombre }} y se crea como Planeada. Se inicia desde su detalle
+          cuando ya tenga historias de usuario.
+        </p>
+      }
+    }
+  </div>
+</header>
+
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (preparacion(); as p) {
+  <div class="columnas">
+    <form id="form-fase" class="secciones" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+      <!-- ─── Datos de la fase ─── -->
+      <section class="tarjeta seccion formulario">
+        <h2>Datos de la fase</h2>
+        <label class="campo">
+          <span>Nombre de la fase <b>*</b></span>
+          <div class="entrada con-prefijo" [class.con-error]="invalido('nombre')">
+            <span class="prefijo">Fase {{ p.numero }} ·</span>
+            <input formControlName="nombre" placeholder="Portal móvil" />
+          </div>
+          @if (invalido('nombre')) {
+            <small class="mensaje-campo">Escribe el nombre de la fase.</small>
+          }
+        </label>
+        <label class="campo">
+          <span>Objetivo</span>
+          <textarea formControlName="objetivo" placeholder="Qué sale en este release: qué podrá hacer el cliente al publicarlo."></textarea>
+        </label>
+        <div class="fila tres">
+          <label class="campo">
+            <span>Inicio <b>*</b></span>
+            <input type="date" formControlName="fechaInicio" [class.con-error]="invalido('fechaInicio')" />
+          </label>
+          <label class="campo">
+            <span>Fin estimado <b>*</b></span>
+            <input type="date" formControlName="fechaFin" [min]="form.controls.fechaInicio.value"
+                   [class.con-error]="invalido('fechaFin') || finAntesDeInicio()" />
+            @if (finAntesDeInicio()) {
+              <small class="mensaje-campo">No puede ser antes del inicio.</small>
+            }
+          </label>
+          <label class="campo">
+            <span>Responsable <b>*</b></span>
+            <select formControlName="responsableId" [class.con-error]="invalido('responsableId')">
+              @for (e of p.equipo; track e.id) {
+                <option [ngValue]="e.id">{{ e.nombreCompleto }}</option>
+              }
+            </select>
+          </label>
+        </div>
+        <div class="fila tres">
+          <label class="campo">
+            <span>Versión del release</span>
+            <div class="entrada" [class.con-error]="invalido('versionRelease')">
+              <input formControlName="versionRelease" placeholder="v1.3.0" />
+              <i class="bi bi-tag sufijo"></i>
+            </div>
+            @if (invalido('versionRelease')) {
+              <small class="mensaje-campo">Como v1.3.0</small>
+            } @else {
+              <small class="pista">El tag se crea al cerrar la fase.</small>
+            }
+          </label>
+          <label class="campo">
+            <span>Prioridad</span>
+            <select formControlName="prioridad">
+              <option value="ALTA">Alta</option>
+              <option value="MEDIA">Media</option>
+              <option value="BAJA">Baja</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <!-- ─── Repositorios involucrados ─── -->
+      <section class="tarjeta seccion formulario">
+        <div>
+          <h2>Repositorios involucrados</h2>
+          <p class="ayuda">Qué partes del sistema se trabajan en esta fase. Los tickets de la fase solo se podrán asignar a estos repositorios.</p>
+        </div>
+        <div class="modulos" [class.con-error]="faltanModulos()">
+          @for (m of p.modulos; track m.id) {
+            <button type="button" class="modulo tono-{{ m.tono }}" [class.elegido]="moduloIds().includes(m.id)"
+                    [attr.aria-pressed]="moduloIds().includes(m.id)" (click)="alternarModulo(m.id)"
+                    [title]="enUso(m.id) ? 'Ya tiene historias o tickets en esta fase' : ''">
+              <span class="icono"><i class="bi {{ m.icono }}"></i></span>
+              <span class="texto">
+                <strong>{{ m.nombre }}</strong>
+                <small>{{ m.largo }}{{ m.tecnologia ? ' · ' + m.tecnologia : '' }}</small>
+              </span>
+              @if (enUso(m.id)) {
+                <i class="bi bi-lock-fill marca"></i>
+              } @else {
+                <i class="bi marca" [class.bi-check-circle-fill]="moduloIds().includes(m.id)" [class.bi-circle]="!moduloIds().includes(m.id)"></i>
+              }
+            </button>
+          } @empty {
+            <p class="ayuda">El proyecto no tiene repositorios. Agrégalos desde Editar proyecto.</p>
+          }
+        </div>
+        @if (faltanModulos()) {
+          <small class="mensaje-campo">Elige al menos un repositorio.</small>
+        }
+      </section>
+
+      <!-- ─── Criterios de cierre ─── -->
+      <section class="tarjeta seccion formulario">
+        <div>
+          <h2>Criterios para cerrar la fase</h2>
+          <p class="ayuda">El Líder solo podrá cerrar la fase cuando se cumplan todos.</p>
+        </div>
+        <ul class="automaticos">
+          @for (c of p.criteriosAutomaticos; track c) {
+            <li><i class="bi bi-lock"></i> {{ c }} <span class="etiqueta-auto">Automático</span></li>
+          }
+        </ul>
+        <app-lista-editable [(items)]="criteriosManuales" placeholder="Agregar criterio manual…" etiqueta="Manual" />
+      </section>
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      <div class="pie-formulario">
+        <a class="boton boton-secundario" [routerLink]="editando() ? ['/proyectos', id(), 'fases', faseId()] : ['/proyectos', id(), 'fases']">Cancelar</a>
+        <button type="submit" form="form-fase" class="boton boton-primario" [disabled]="enviando() || cargando() || !preparacion()">
+          {{ enviando() ? 'Guardando…' : editando() ? 'Guardar cambios' : 'Crear fase' }}
+        </button>
+      </div>
+    </form>
+
+    @if (resumen(); as r) {
+      <aside class="tarjeta resumen">
+        <h2>Resumen</h2>
+        <div class="resumen-nombre">
+          <app-avatar [iniciales]="'F' + p.numero" tono="gris" [cuadro]="true" />
+          <div>
+            <strong>{{ r.nombre }}</strong>
+            <app-etiqueta-estado [etiqueta]="r.etiqueta" />
+          </div>
+        </div>
+        <dl>
+          <div><dt>Proyecto</dt><dd>{{ p.proyectoNombre }}</dd></div>
+          <div><dt>Fechas</dt><dd>{{ r.fechas }}</dd></div>
+          <div><dt>Duración</dt><dd>{{ r.duracion }}</dd></div>
+          <div><dt>Responsable</dt><dd>{{ r.responsable }}</dd></div>
+          <div><dt>Release</dt><dd>{{ r.release }}</dd></div>
+          <div><dt>Repositorios</dt><dd>{{ r.modulos }}</dd></div>
+          <div><dt>Criterios de cierre</dt><dd>{{ r.criterios }}</dd></div>
+        </dl>
+        @if (!editando()) {
+          <p class="nota"><i class="bi bi-info-circle"></i> Después de crearla, el Analista agrega las historias de usuario; cada una lleva sus criterios de aceptación.</p>
+        }
+      </aside>
+    }
+  </div>
+} @else if (error()) {
+  <p class="error-carga">{{ error() }} <a [routerLink]="['/proyectos', id()]">Volver al proyecto</a></p>
+}

@@ -1,0 +1,255 @@
+<div class="feature-page">
+  <div class="page-header">
+    <div class="page-header-icon">
+      <i class="bi {{ pageIcon }}"></i>
+    </div>
+    <div>
+      <h1 class="page-title">{{ pageTitle }}</h1>
+      <p class="page-subtitle">{{ pageDesc }}</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h5 class="mb-0">Listado</h5>
+      <div class="d-flex gap-2">
+        <div class="input-group input-group-sm" style="width: 220px;">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar..."
+            [value]="busqueda()"
+            (input)="onBusqueda($event)"
+          >
+        </div>
+        <button class="btn btn-primary btn-sm" (click)="abrirModalCrear()">
+          <i class="bi bi-plus-lg me-1"></i> Nuevo
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+
+      @if (loading()) {
+        <div class="estado-vacio">
+          <div class="spinner-ring"></div>
+          <p class="estado-texto">Cargando usuarios...</p>
+        </div>
+      }
+
+      @if (!loading() && error()) {
+        <div class="estado-vacio">
+          <i class="bi bi-wifi-off estado-icon text-danger"></i>
+          <p class="estado-texto">{{ error() }}</p>
+          <button class="btn-reintentar" (click)="reintentar()">
+            <i class="bi bi-arrow-clockwise me-1"></i> Reintentar
+          </button>
+        </div>
+      }
+
+      @if (!loading() && !error()) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Email</th>
+                <th scope="col">Rol</th>
+                <th scope="col">Fecha registro</th>
+                <th scope="col" class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (usuariosFiltrados().length === 0) {
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                    @if (busqueda()) {
+                      Sin resultados para "<strong>{{ busqueda() }}</strong>"
+                    } @else {
+                      No hay usuarios registrados
+                    }
+                  </td>
+                </tr>
+              }
+              @for (u of usuariosFiltrados(); track u.id; let i = $index) {
+                <tr>
+                  <td class="text-muted" style="width: 48px;">{{ i + 1 }}</td>
+                  <td>
+                    <div class="usuario-nombre">{{ u.nombre }} {{ u.apellido }}</div>
+                    @if (u.passTemporal) {
+                      <span class="badge-pass-temp" title="Tiene contraseña temporal">
+                        <i class="bi bi-key-fill"></i> Pass temporal
+                      </span>
+                    }
+                  </td>
+                  <td class="text-muted">{{ u.email }}</td>
+                  <td>
+                    <span class="rol-badge" [class]="rolBadgeClass(u.nombreRol)">
+                      {{ u.nombreRol }}
+                    </span>
+                  </td>
+                  <td class="text-muted">{{ formatFecha(u.fechaRegistro) }}</td>
+                  <td class="text-end">
+                    <div class="d-flex gap-1 justify-content-end">
+                      <button
+                        class="btn btn-outline-secondary btn-sm btn-accion"
+                        title="Editar"
+                        (click)="abrirModalEditar(u)"
+                      >
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-warning btn-sm btn-accion"
+                        title="Desactivar usuario"
+                        (click)="confirmarDesactivar(u)"
+                      >
+                        <i class="bi bi-person-x"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <div class="card-footer d-flex justify-content-between align-items-center">
+      <small class="text-muted">
+        Mostrando {{ usuariosFiltrados().length }} de {{ usuarios().length }} registros
+      </small>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Confirmar eliminar ──────────────────────────────────────────────────── -->
+@if (usuarioADesactivar(); as usuario) {
+  <div class="u-backdrop" (click)="cancelarDesactivar()"></div>
+  <div class="u-confirm" role="alertdialog" aria-modal="true">
+    <div class="u-confirm-icon">
+      <i class="bi bi-person-x-fill"></i>
+    </div>
+    <h4 class="u-confirm-title">¿Desactivar usuario?</h4>
+    <p class="u-confirm-text">
+      <strong>{{ usuario.nombre }} {{ usuario.apellido }}</strong> perderá acceso al sistema.
+    </p>
+    <div class="u-confirm-actions">
+      <button class="u-btn-cancel" (click)="cancelarDesactivar()">Cancelar</button>
+      <button class="u-btn-deactivate" (click)="desactivar(usuario)">Desactivar</button>
+    </div>
+  </div>
+}
+
+<!-- ─── Modal crear / editar ────────────────────────────────────────────────── -->
+@if (mostrarModal()) {
+  <div class="u-backdrop" (click)="cerrarModal()"></div>
+  <div class="u-panel" role="dialog" aria-modal="true">
+
+    <div class="u-panel-head">
+      <h3 class="u-panel-title">
+        <i class="bi" [class]="esEdicion() ? 'bi-pencil-square' : 'bi-person-plus-fill'"></i>
+        {{ esEdicion() ? 'Editar usuario' : 'Nuevo usuario' }}
+      </h3>
+      <button class="u-btn-close" type="button" (click)="cerrarModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="u-panel-body">
+      <form (ngSubmit)="guardar()" #f="ngForm">
+
+        <div class="u-form-row">
+          <div class="u-form-field">
+            <label class="u-label">Nombre <span class="u-required">*</span></label>
+            <input
+              class="u-input"
+              type="text"
+              name="nombre"
+              [(ngModel)]="form.nombre"
+              required
+              placeholder="Ej. Jorge"
+            >
+          </div>
+          <div class="u-form-field">
+            <label class="u-label">Apellido <span class="u-required">*</span></label>
+            <input
+              class="u-input"
+              type="text"
+              name="apellido"
+              [(ngModel)]="form.apellido"
+              required
+              placeholder="Ej. Sebastian"
+            >
+          </div>
+        </div>
+
+        <div class="u-form-field">
+          <label class="u-label">Email <span class="u-required">*</span></label>
+          <input
+            class="u-input"
+            type="email"
+            name="email"
+            [(ngModel)]="form.email"
+            required
+            placeholder="correo@ejemplo.com"
+          >
+        </div>
+
+        <div class="u-form-field">
+          <label class="u-label">Rol <span class="u-required">*</span></label>
+          <select class="u-input" name="idRol" [(ngModel)]="form.idRol" required>
+            @for (rol of roles(); track rol.id) {
+              <option [ngValue]="rol.id">{{ rol.nombreRol }}</option>
+            }
+          </select>
+        </div>
+
+        @if (!esEdicion()) {
+          <p class="u-hint">
+            <i class="bi bi-info-circle"></i>
+            Se generará una contraseña temporal y se enviará al email del usuario.
+          </p>
+        }
+
+        @if (esEdicion()) {
+          @if (passTemporal(); as pass) {
+            <div class="u-pass-box">
+              <div class="u-pass-label">
+                <i class="bi bi-key-fill"></i> Contraseña temporal activa
+              </div>
+              <div class="u-pass-row">
+                <code class="u-pass-value">{{ pass }}</code>
+                <button type="button" class="u-pass-copy" (click)="copiarPass()">
+                  @if (copiado()) {
+                    <i class="bi bi-check2"></i> Copiado
+                  } @else {
+                    <i class="bi bi-clipboard"></i> Copiar
+                  }
+                </button>
+              </div>
+            </div>
+          }
+        }
+
+        <div class="u-panel-foot">
+          <button type="button" class="u-btn-cancel" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="u-btn-save" [disabled]="guardando() || !f.valid">
+            @if (guardando()) {
+              <span class="u-spinner"></span> Guardando...
+            } @else {
+              {{ esEdicion() ? 'Actualizar' : 'Crear usuario' }}
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+}

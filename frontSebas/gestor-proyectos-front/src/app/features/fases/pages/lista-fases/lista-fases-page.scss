@@ -1,0 +1,186 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  h1 { font-size: 1.9rem; }
+
+  p {
+    margin: 0.4rem 0 0;
+    color: var(--texto-suave);
+  }
+}
+
+// ─── Filtros (mismo estilo que Historias) ──────────────────────────────────
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.buscar,
+.filtro {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+
+  &:focus-within { border-color: var(--morado); }
+}
+
+.buscar {
+  flex: 0 1 360px;
+
+  i { color: var(--texto-suave); }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.65rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+  }
+}
+
+.filtro {
+  color: var(--tinta);
+  font-weight: 500;
+
+  select {
+    padding: 0.65rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--tinta);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  &.activo {
+    border-color: var(--morado-borde);
+    background: var(--morado-suave);
+  }
+}
+
+.limpiar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto-suave);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover { background: var(--fondo); }
+}
+
+.cuenta {
+  margin-left: auto;
+  color: var(--texto-suave);
+}
+
+// ─── Tabla ───────────────────────────────────────────────────────────────────
+.tabla { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  padding: 0.85rem 1.25rem;
+  background: var(--fondo-pagina);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid var(--borde);
+  color: var(--tinta);
+  vertical-align: middle;
+}
+
+tbody tr:hover td { background: var(--fondo-pagina); }
+
+.fase {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+
+  strong {
+    display: block;
+    color: var(--tinta);
+    font-weight: 600;
+  }
+
+  small { color: var(--texto-suave); }
+
+  &:hover strong { color: var(--morado); }
+}
+
+.marca {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  font-weight: 700;
+
+  &.listo { background: var(--verde); color: var(--sobre-color); }
+  &.actual { background: var(--morado); color: var(--sobre-color); }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.avance {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 110px;
+  font-size: 0.92rem;
+}
+
+.suave {
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.vacio {
+  padding: 1.5rem;
+  color: var(--texto-suave);
+  text-align: center;
+}

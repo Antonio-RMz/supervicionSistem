@@ -1,0 +1,184 @@
+.login-page {
+  display: flex;
+  min-height: 100vh;
+}
+
+// ─── Left branding panel ────────────────────────────────────────────────────
+.login-brand {
+  flex: 1;
+  background: linear-gradient(145deg, #14172b 0%, #1e2749 40%, #2d3561 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(67, 97, 238, 0.18) 0%, transparent 70%);
+    top: -100px;
+    right: -100px;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.14) 0%, transparent 70%);
+    bottom: -80px;
+    left: -80px;
+  }
+}
+
+.brand-content {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+}
+
+.brand-icon {
+  width: 68px;
+  height: 68px;
+  background: rgba(67, 97, 238, 0.2);
+  border: 2px solid rgba(67, 97, 238, 0.4);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #818cf8;
+  margin-bottom: 1.5rem;
+}
+
+.brand-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 1rem;
+  line-height: 1.25;
+}
+
+.brand-subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+
+  i {
+    color: #4ade80;
+    font-size: 0.95rem;
+  }
+}
+
+// ─── Right form panel ────────────────────────────────────────────────────────
+.login-form-panel {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: #fff;
+
+  @media (min-width: 992px) {
+    max-width: 500px;
+  }
+}
+
+.form-wrapper {
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-header {
+  margin-bottom: 2rem;
+  text-align: center;
+
+  @media (min-width: 992px) {
+    text-align: left;
+  }
+}
+
+.logo-mobile {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #4361ee, #7c3aed);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #fff;
+  margin: 0 auto 1.25rem;
+}
+
+.form-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #14172b;
+  margin-bottom: 0.3rem;
+}
+
+.form-subtitle {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.input-group-text {
+  background: #f8f9fa;
+  border-right: none;
+  color: #6c757d;
+}
+
+.form-control {
+  border-left: none;
+
+  &:focus {
+    border-color: #dee2e6;
+    box-shadow: none;
+  }
+}
+
+.btn-login {
+  background: linear-gradient(135deg, #4361ee, #3a0ca3);
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.8rem;
+  border-radius: 10px;
+  transition: opacity 0.18s, transform 0.18s;
+
+  &:hover:not(:disabled) {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.75;
+  }
+}
+
+.form-footer {
+  margin-top: 2rem;
+  text-align: center;
+}

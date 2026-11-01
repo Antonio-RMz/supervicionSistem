@@ -1,0 +1,202 @@
+<div class="act-page">
+
+  <!-- ── Encabezado ────────────────────────────────────────────────────────── -->
+  <div class="act-header">
+    <div>
+      <h1 class="act-header-title">Mis actividades</h1>
+      <p class="act-header-sub">
+        {{ totalFiltradas() }} de {{ totalPropias() }} asignadas a mí
+        · {{ totalIntegradas() }} integrada{{ totalIntegradas() !== 1 ? 's' : '' }}
+      </p>
+    </div>
+    @if (puedeCrear()) {
+      <button class="btn-nueva" (click)="mostrarModal.set(true)">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva actividad
+      </button>
+    }
+  </div>
+
+  <!-- ── Barra de filtros ──────────────────────────────────────────────────── -->
+  <div class="act-filtros" role="search">
+
+    <div class="filtro-busqueda">
+      <i class="bi bi-search filtro-icon" aria-hidden="true"></i>
+      <input
+        class="filtro-input"
+        type="text"
+        placeholder="Buscar por código o título…"
+        [value]="filtroBusqueda()"
+        (input)="filtroBusqueda.set($any($event.target).value)"
+        aria-label="Buscar actividad"
+      />
+      @if (filtroBusqueda()) {
+        <button class="filtro-clear-inline" (click)="filtroBusqueda.set('')" aria-label="Limpiar búsqueda">
+          <i class="bi bi-x" aria-hidden="true"></i>
+        </button>
+      }
+    </div>
+
+    <div class="filtro-select-wrap">
+      <i class="bi bi-layers filtro-icon" aria-hidden="true"></i>
+      <select class="filtro-select" aria-label="Filtrar por fase" (change)="setFiltroFase($event)">
+        <option value="" [selected]="filtroFaseId() === null">Todas las fases</option>
+        @for (f of fasesDisponibles(); track f.id) {
+          <option [value]="f.id" [selected]="filtroFaseId() === f.id">{{ f.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filtro-select-wrap">
+      <i class="bi bi-circle-half filtro-icon" aria-hidden="true"></i>
+      <select class="filtro-select" aria-label="Filtrar por estado" (change)="setFiltroEstado($event)">
+        <option value=""                    [selected]="filtroEstado() === ''">Todos los estados</option>
+        <option value="POR_HACER"           [selected]="filtroEstado() === 'POR_HACER'">Por hacer</option>
+        <option value="EN_DESARROLLO"       [selected]="filtroEstado() === 'EN_DESARROLLO'">En desarrollo</option>
+        <option value="REVISION_QA"         [selected]="filtroEstado() === 'REVISION_QA'">Revisión QA</option>
+        <option value="LISTO_PARA_INTEGRAR" [selected]="filtroEstado() === 'LISTO_PARA_INTEGRAR'">Listo para integrar</option>
+        <option value="PR_EN_REVISION"      [selected]="filtroEstado() === 'PR_EN_REVISION'">PR en revisión</option>
+        <option value="INTEGRADO"           [selected]="filtroEstado() === 'INTEGRADO'">Integrado</option>
+      </select>
+    </div>
+
+    @if (hayFiltrosActivos()) {
+      <button class="filtro-limpiar" (click)="limpiarFiltros()">
+        <i class="bi bi-x-circle" aria-hidden="true"></i> Limpiar
+      </button>
+    }
+
+  </div>
+
+  <!-- ── Grid de tickets ───────────────────────────────────────────────────── -->
+  @if (actividadesFiltradas().length > 0) {
+    <div class="ticket-grid" role="list">
+      @for (a of actividadesFiltradas(); track a.id) {
+        <article
+          class="ticket"
+          [class.ticket-done]="a.estado === 'INTEGRADO'"
+          [style.--fase-color]="a.faseColor"
+          role="listitem"
+          tabindex="0"
+          (click)="irADetalle(a)"
+          (keydown.enter)="irADetalle(a)"
+          (keydown.space)="$event.preventDefault(); irADetalle(a)"
+          [attr.aria-label]="a.codigo + ' · ' + a.titulo"
+        >
+          <span class="ticket-accent" aria-hidden="true"></span>
+
+          <div class="ticket-body">
+            <!-- Código + badge -->
+            <div class="ticket-top">
+              <span class="ticket-codigo">{{ a.codigo }}</span>
+              <app-estado-badge [estado]="a.estado" size="sm" />
+            </div>
+
+            <!-- Título -->
+            <p class="ticket-titulo">{{ a.titulo }}</p>
+
+            <!-- Pie: historia · asignado -->
+            <div class="ticket-footer">
+              <span class="ticket-historia">
+                <i class="bi bi-journal-bookmark" aria-hidden="true"></i>
+                {{ a.historiaCodigo }}
+              </span>
+
+              @if (getAsignado(a.asignadoId); as u) {
+                <div class="ticket-avatar" [style.background]="u.color" [title]="u.nombre + ' ' + u.apellido" aria-hidden="true">
+                  {{ u.iniciales }}
+                </div>
+              } @else {
+                <div class="ticket-avatar-vacio" title="Sin asignar" aria-hidden="true"></div>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+
+  } @else {
+    <div class="act-empty">
+      <i class="bi bi-check2-all" aria-hidden="true"></i>
+      <p class="act-empty-title">No se encontraron actividades</p>
+      @if (hayFiltrosActivos()) {
+        <p class="act-empty-sub">Prueba ajustando los filtros o limpiándolos.</p>
+        <button class="act-empty-btn" (click)="limpiarFiltros()">
+          <i class="bi bi-x-circle" aria-hidden="true"></i> Limpiar filtros
+        </button>
+      } @else {
+        <p class="act-empty-sub">Este proyecto aún no tiene actividades.</p>
+        @if (puedeCrear()) {
+          <button class="act-empty-btn" (click)="mostrarModal.set(true)">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Crear la primera actividad
+          </button>
+        }
+      }
+    </div>
+  }
+
+</div>
+
+<!-- ── Modal nueva actividad ─────────────────────────────────────────────────── -->
+@if (mostrarModal()) {
+  <div class="act-overlay" (click)="cerrarModal()" role="dialog" aria-modal="true" aria-label="Nueva actividad">
+    <div class="act-modal" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <h2 class="modal-title">Nueva actividad</h2>
+        <button class="modal-close" (click)="cerrarModal()" aria-label="Cerrar">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="modal-field">
+          <label for="m-fase" class="modal-label">Fase <span class="modal-req">*</span></label>
+          <select id="m-fase" class="modal-select" (change)="setNuevaFase($event)">
+            <option value="" [selected]="nuevaActFaseId() === null">Seleccionar fase…</option>
+            @for (f of fasesDisponibles(); track f.id) {
+              <option [value]="f.id" [selected]="nuevaActFaseId() === f.id">{{ f.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="modal-field">
+          <label for="m-historia" class="modal-label">Historia <span class="modal-req">*</span></label>
+          @if (nuevaActFaseId() === null) {
+            <p class="modal-hint">Selecciona una fase primero.</p>
+          } @else if (historiasModal().length === 0) {
+            <p class="modal-hint">No hay historias en esta fase.</p>
+          } @else {
+            <select id="m-historia" class="modal-select" (change)="setNuevaHistoria($event)">
+              <option value="" [selected]="nuevaActHistoriaId() === null">Seleccionar historia…</option>
+              @for (h of historiasModal(); track h.id) {
+                <option [value]="h.id" [selected]="nuevaActHistoriaId() === h.id">
+                  {{ h.codigo }} — {{ h.titulo }}
+                </option>
+              }
+            </select>
+          }
+        </div>
+
+        <div class="modal-field">
+          <label for="m-titulo" class="modal-label">Título <span class="modal-req">*</span></label>
+          <input
+            id="m-titulo" class="modal-input" type="text"
+            placeholder="Describe brevemente la tarea…"
+            [value]="nuevaActTitulo()"
+            (input)="nuevaActTitulo.set($any($event.target).value)"
+          />
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-ghost" (click)="cerrarModal()">Cancelar</button>
+        <button class="modal-btn modal-btn-primary" [disabled]="!puedeGuardar()" (click)="crearActividad()">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i> Crear actividad
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

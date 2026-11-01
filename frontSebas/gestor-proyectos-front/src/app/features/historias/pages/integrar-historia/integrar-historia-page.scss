@@ -1,0 +1,184 @@
+@use '../../../../../styles/detalle';
+
+.subtitulo {
+  color: var(--tinta);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+// ─── Ramas → develop → staging → release ────────────────────────────────────
+.flujo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 1rem;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 170px;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+
+    strong {
+      display: block;
+      color: var(--tinta);
+      font-size: 0.95rem;
+    }
+
+    small { color: var(--texto-suave); }
+
+    &.hecho {
+      border-color: var(--verde-borde);
+      background: var(--verde-suave);
+
+      .marca { color: var(--verde); }
+    }
+
+    &.actual {
+      border: 2px solid var(--morado);
+      background: var(--morado-suave);
+
+      .marca,
+      strong { color: var(--morado); }
+    }
+  }
+
+  .marca {
+    color: var(--texto-suave);
+    font-size: 1.2rem;
+  }
+
+  .flecha { color: var(--texto-suave); }
+}
+
+// ─── Qué se integra ──────────────────────────────────────────────────────────
+.modulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+
+  .icono {
+    color: var(--tono-solido);
+    font-size: 1.1rem;
+  }
+
+  strong { color: var(--tinta); }
+  small { color: var(--texto-suave); }
+}
+
+.tickets {
+  margin-top: 0.6rem;
+
+  > li { flex-wrap: wrap; }
+}
+
+.ramas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.rama {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  background: var(--consola);
+  color: var(--consola-texto);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.estado-pr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.numero-pr {
+  margin-right: 0.2rem;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+// ─── Revisión y pasos ────────────────────────────────────────────────────────
+.revision > i.aviso-ambar { color: var(--ambar); }
+
+.revision .detalle { white-space: normal; text-align: right; }
+
+.pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    color: var(--tinta);
+  }
+}
+
+.numero {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--morado-suave);
+  color: var(--morado);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+// ─── Lateral ─────────────────────────────────────────────────────────────────
+.nota {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+}
+
+.ambientes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .nombre { font-weight: 500; }
+}
+
+@media (max-width: 900px) {
+  .flujo .flecha { display: none; }
+}

@@ -1,0 +1,231 @@
+@use '../../../../../styles/detalle';
+
+.icono-release {
+  color: var(--morado);
+  font-size: 1.5rem;
+}
+
+.cierre {
+  color: var(--tinta);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+// ─── Los 5 pasos ─────────────────────────────────────────────────────────────
+.pasos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 1rem;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 170px;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+
+    strong {
+      display: block;
+      color: var(--tinta);
+      font-size: 0.95rem;
+    }
+
+    small { color: var(--texto-suave); }
+
+    &.hecho {
+      border-color: var(--verde-borde);
+      background: var(--verde-suave);
+
+      .marca { background: var(--verde); color: var(--sobre-color); }
+    }
+
+    &.actual {
+      border: 2px solid var(--morado);
+      background: var(--morado-suave);
+
+      .marca { background: var(--morado); color: var(--sobre-color); }
+      strong { color: var(--morado); }
+    }
+  }
+
+  .flecha { color: var(--texto-suave); }
+}
+
+.marca {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+// ─── Módulos ─────────────────────────────────────────────────────────────────
+.modulo .icono {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--tono-fondo);
+  color: var(--tono-texto);
+}
+
+.modulo strong + small {
+  margin-left: 0.4rem;
+  color: var(--texto-suave);
+}
+
+.ramas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+  color: var(--texto-suave);
+}
+
+.rama {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  background: var(--consola);
+  color: var(--consola-texto);
+  font-size: 0.82rem;
+}
+
+.historia .nombre { font-weight: 600; }
+
+.estado {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+// ─── Notas ───────────────────────────────────────────────────────────────────
+.notas {
+  margin-top: 0.9rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 10px;
+  background: var(--fondo-pagina);
+}
+
+.seccion {
+  margin: 0.6rem 0 0.35rem;
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  &:first-child { margin-top: 0; }
+}
+
+.cambio {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.35rem 0;
+  color: var(--tinta);
+}
+
+.texto-notas {
+  margin: 0;
+  color: var(--tinta);
+  white-space: pre-line;
+}
+
+.editor {
+  width: 100%;
+  margin-top: 0.9rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  font: inherit;
+  resize: vertical;
+}
+
+.botones-notas {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+// ─── Lateral ─────────────────────────────────────────────────────────────────
+.nota {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+}
+
+.envio {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 1rem;
+  color: var(--tinta);
+  cursor: pointer;
+}
+
+.aprobaciones,
+.despues {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aprobaciones li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+
+  strong {
+    display: block;
+    color: var(--tinta);
+    font-weight: 500;
+  }
+
+  small { color: var(--texto-suave); }
+
+  i { font-size: 1.15rem; }
+  .ok { color: var(--verde); }
+  .info { color: var(--borde-fuerte); }
+}
+
+.despues li {
+  display: flex;
+  gap: 0.6rem;
+  color: var(--tinta);
+
+  i { color: var(--texto-suave); }
+}
+
+.ancho {
+  width: 100%;
+  margin-top: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .pasos .flecha { display: none; }
+}

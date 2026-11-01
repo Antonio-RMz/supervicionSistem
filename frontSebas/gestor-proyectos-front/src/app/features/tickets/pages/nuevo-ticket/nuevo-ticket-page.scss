@@ -1,0 +1,417 @@
+// Los campos vienen de styles/_formulario.scss (.formulario, .campo, .entrada...).
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.15rem; }
+
+.migas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--texto-suave);
+
+  a {
+    color: var(--morado);
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  i { font-size: 0.75rem; }
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.3rem 0 0;
+    color: var(--tinta);
+  }
+}
+
+.columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.secciones,
+.lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.seccion { padding: 1.5rem 1.75rem; }
+
+.ayuda {
+  margin: 0.25rem 0 0;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.vacio {
+  padding: 2rem;
+  color: var(--texto-suave);
+  text-align: center;
+
+  a { color: var(--morado); }
+}
+
+.formulario .historia-fila { grid-template-columns: 1fr 1.6fr; }
+
+// ─── Tarjeta de la historia ──────────────────────────────────────────────────
+.tarjeta-historia {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--violeta-borde);
+  border-radius: 12px;
+  background: var(--violeta-suave);
+
+  p {
+    margin: 0;
+    color: var(--tinta);
+  }
+
+  small { color: var(--texto-suave); }
+}
+
+.th-arriba {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  strong { color: var(--tinta); }
+}
+
+.etiqueta-lista {
+  margin-left: auto;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--violeta);
+  font-size: 0.8rem;
+}
+
+// ─── Tipos ───────────────────────────────────────────────────────────────────
+.tipos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.tipo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--borde);
+  border-radius: 12px;
+  background: var(--blanco);
+  text-align: left;
+  cursor: pointer;
+
+  strong {
+    display: block;
+    color: var(--tinta);
+  }
+
+  small { color: var(--texto-suave); }
+
+  &.elegido {
+    border-color: var(--morado);
+    background: var(--morado-suave);
+
+    strong { color: var(--morado); }
+  }
+}
+
+// ─── Capas ───────────────────────────────────────────────────────────────────
+.capas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.capa {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &.elegida {
+    border-color: var(--morado-borde);
+    background: var(--morado-suave);
+    color: var(--morado);
+    font-weight: 500;
+  }
+}
+
+// ─── Criterios ───────────────────────────────────────────────────────────────
+.criterios {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+
+    &.elegido {
+      border-color: var(--morado-borde);
+      background: var(--morado-suave);
+    }
+  }
+
+  label {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--tinta);
+    cursor: pointer;
+  }
+
+  input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--morado);
+  }
+}
+
+.cubierto {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.vacio-lista { color: var(--texto-suave); }
+
+// ─── Dependencias ────────────────────────────────────────────────────────────
+.dependencias {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+
+    > i { color: var(--ambar); }
+
+    .ayuda { margin: 0; }
+
+    strong {
+      flex: 1;
+      min-width: 0;
+      color: var(--tinta);
+      font-weight: 500;
+    }
+  }
+}
+
+.estado {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--morado-suave);
+  color: var(--morado);
+  font-size: 0.8rem;
+}
+
+.quitar {
+  border: 0;
+  background: none;
+  color: var(--texto-suave);
+  cursor: pointer;
+
+  &:hover { color: var(--rojo); }
+}
+
+.agregar-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  align-self: flex-start;
+  padding: 0 0.9rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  color: var(--tinta);
+  font-weight: 600;
+
+  select {
+    width: auto !important;
+    max-width: 420px;
+    padding: 0.6rem 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    font-weight: 600;
+  }
+}
+
+// ─── Lateral ─────────────────────────────────────────────────────────────────
+.sufijo {
+  padding-right: 0.2rem;
+  color: var(--texto-suave);
+}
+
+.rama {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.85rem 0 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: var(--consola);
+  color: var(--consola-texto);
+
+  code {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--fuente-mono);
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+  }
+
+  button {
+    border: 0;
+    background: none;
+    color: #94a3b8;
+    cursor: pointer;
+
+    &:hover { color: var(--consola-texto); }
+  }
+}
+
+.repo { color: var(--texto-suave); }
+
+.flujo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0.85rem 0 0;
+  padding: 0 0 0 1.1rem;
+  list-style: none;
+
+  li {
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0.4rem;
+      left: -1.1rem;
+      width: 9px;
+      height: 9px;
+      border: 2px solid var(--borde-fuerte);
+      border-radius: 50%;
+      background: var(--blanco);
+    }
+
+    &.actual::before {
+      border-color: var(--morado);
+      background: var(--morado);
+    }
+
+    &.actual strong { color: var(--morado); }
+  }
+
+  .paso-titulo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  strong {
+    color: var(--tinta);
+    font-weight: 500;
+  }
+
+  // Tipo de usuario que actúa en el paso (igual que en el Flujo del detalle).
+  .rol {
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: var(--tono-fondo);
+    color: var(--tono-texto);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  small {
+    display: block;
+    color: var(--texto-suave);
+  }
+}
+
+.resumen dl {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1rem 0 0;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  dt { color: var(--texto-suave); }
+
+  dd {
+    margin: 0;
+    color: var(--tinta);
+    font-weight: 500;
+  }
+}
+
+.error {
+  margin: 0;
+  color: var(--rojo-texto);
+}
+
+@media (max-width: 1100px) {
+  .columnas { grid-template-columns: 1fr; }
+  .tipos { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .tipos,
+  .formulario .historia-fila { grid-template-columns: 1fr; }
+}

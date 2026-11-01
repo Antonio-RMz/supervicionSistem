@@ -1,0 +1,352 @@
+// Piezas comunes de las páginas de detalle (fase, historia): migas, columnas, tarjetas,
+// panel de Acciones con sus revisiones y la tarjeta de datos. Cada página agrega lo suyo.
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.1rem; }
+
+.migas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--texto-suave);
+
+  a {
+    color: var(--morado);
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  i { font-size: 0.75rem; }
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  p {
+    margin: 0.4rem 0 0;
+    color: var(--texto-suave);
+  }
+}
+
+.titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tipo-fila {
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.principal,
+.lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.bloque { padding: 1.3rem 1.5rem; }
+
+.bloque-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pista {
+  margin: 0.5rem 0 0;
+  color: var(--texto-suave);
+}
+
+.vacio {
+  padding: 1rem 0;
+  color: var(--texto-suave);
+}
+
+// Pastilla de color: "Faltan 2", "HIST-16", "Líder"
+.pastilla {
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--tono-fondo);
+  color: var(--tono-texto);
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+// Botón con borde morado ("+ Nueva historia" dentro de una tarjeta)
+.boton-suave {
+  border-color: var(--morado-borde);
+  background: var(--morado-suave);
+  color: var(--morado);
+
+  &:hover { border-color: var(--morado); }
+}
+
+.boton.chico { padding: 0.45rem 0.9rem; }
+
+// ─── Listas de las tarjetas ──────────────────────────────────────────────────
+.filas {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  > li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.95rem 0;
+    border-top: 1px solid var(--borde);
+  }
+}
+
+.nombre {
+  flex: 1;
+  min-width: 0;
+  color: var(--tinta);
+}
+
+.codigo {
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.detalle {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  white-space: nowrap;
+
+  &.rojo { color: var(--rojo); }
+}
+
+app-avatar.chico ::ng-deep .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.68rem;
+}
+
+// Palomita verde, tache rojo o círculo punteado
+.revision > i {
+  font-size: 1.15rem;
+
+  &.ok { color: var(--verde); }
+  &.falta { color: var(--rojo); }
+  &.info { color: var(--borde-fuerte); }
+}
+
+// ─── Acciones del flujo: a la derecha del título (el Flujo va en la columna derecha) ──
+// La tarjeta de Acciones va arriba de la columna derecha, al nivel del título.
+.lado-acciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+}
+
+.acciones-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+
+  h2 { margin: 0; font-size: 1rem; }
+}
+
+// Todos los botones del mismo tamaño, de dos en dos (uno solo ocupa todo el ancho).
+.fila-acciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+
+  .boton {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+}
+
+// Si queda uno solo en su fila, ocupa todo el ancho.
+.fila-acciones > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+// Botón que existe pero aún no se puede: gris con candado ("Cerrar fase")
+.boton.bloqueado {
+  background: var(--fondo);
+  color: var(--texto-suave);
+  opacity: 1;
+}
+
+.sin-botones {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+// ─── Panel de Acciones ordenado por peso (ticket y fase) ─────────────────────
+.estado-actual {
+  margin: 0;
+  color: var(--texto);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+// Lo que hace avanzar: a todo el ancho, uno por renglón.
+.acciones-principales {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .boton { width: 100%; padding: 0.6rem 0.9rem; }
+}
+
+// Lo alterno (Rechazar, Bloquear, Retirar...): lista vertical tipo menú,
+// todas del mismo ancho y alineadas a la izquierda, sin importar cuántas sean.
+.acciones-alternas {
+  display: flex;
+  flex-direction: column;
+  margin: 0 -0.5rem;
+
+  .boton {
+    justify-content: flex-start;
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--tinta);
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-align: left;
+
+    i { width: 1rem; color: var(--texto-suave); }
+    &:hover:not(:disabled) { background: var(--fondo); }
+  }
+
+  .boton-peligro-suave i { color: inherit; }
+  .boton.bloqueado { color: var(--texto-suave); }
+}
+
+// Cancelar: como enlace discreto al pie de la tarjeta.
+.accion-discreta {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { color: var(--rojo); text-decoration: underline; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.revisiones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    color: var(--tinta);
+  }
+}
+
+// Lo que falta para avanzar: debajo de los botones, uno por renglón.
+.lado-acciones .revisiones {
+  gap: 0.35rem;
+  margin: 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+
+  li { align-items: center; gap: 0.35rem; }
+  i { font-size: 1rem; }
+}
+
+.datos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  dt { color: var(--texto-suave); }
+
+  dd {
+    margin: 0;
+    color: var(--tinta);
+    text-align: right;
+  }
+}
+
+.punto {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--tono-solido);
+}
+
+// Dos columnas mientras quepan; en una sola, primero el título, luego Acciones y Flujo, y después lo demás.
+@media (max-width: 900px) {
+  .columnas {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+
+  .principal,
+  .lateral { display: contents; }
+
+  .encabezado { order: -3; }
+  .lado-acciones { order: -2; }
+  app-flujo { order: -1; }
+}

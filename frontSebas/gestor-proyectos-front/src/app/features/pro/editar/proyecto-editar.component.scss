@@ -1,0 +1,73 @@
+@use '../proyecto-form' as *;
+
+.editar-page {
+  width: 100%;
+}
+
+// ─── Estado de carga inicial ──────────────────────────────────────────────────
+.load-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 320px;
+  text-align: center;
+}
+
+.load-icon { font-size: 2.5rem; }
+
+.load-text {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+.load-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e9ecef;
+  border-top-color: #4361ee;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+// ─── Tabs estilo Jira ────────────────────────────────────────────────────────
+.tabs-nav {
+  display: flex;
+  align-items: flex-end;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 0;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.25rem;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -2px;
+  background: none;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+  transition: color 0.18s, border-color 0.18s;
+  font-family: inherit;
+
+  i { font-size: 0.8rem; }
+
+  &:hover { color: #374151; }
+
+  &.active {
+    color: #4361ee;
+    border-bottom-color: #4361ee;
+  }
+}

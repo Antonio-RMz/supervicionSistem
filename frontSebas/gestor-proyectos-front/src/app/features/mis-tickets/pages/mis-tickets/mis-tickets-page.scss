@@ -1,0 +1,277 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+h1 { font-size: 1.9rem; }
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  p {
+    margin: 0.3rem 0 0;
+    color: var(--texto-suave);
+  }
+}
+
+.recargando {
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+// ─── Filtros ─────────────────────────────────────────────────────────────────
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.buscar,
+.filtro {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+
+  &:focus-within { border-color: var(--morado); }
+}
+
+.buscar {
+  flex: 0 1 360px;
+
+  i { color: var(--texto-suave); }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.65rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+  }
+}
+
+.filtro {
+  color: var(--tinta);
+  font-weight: 500;
+
+  select {
+    padding: 0.65rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--tinta);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  &.activo {
+    border-color: var(--morado-borde);
+    background: var(--morado-suave);
+  }
+}
+
+.vistas {
+  display: flex;
+  margin-left: auto;
+  padding: 0.2rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+
+  button {
+    padding: 0.4rem 0.7rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--texto-suave);
+    font-size: 1.05rem;
+    cursor: pointer;
+
+    &.activa {
+      background: var(--morado-suave);
+      color: var(--morado);
+    }
+  }
+}
+
+// ─── Lista ───────────────────────────────────────────────────────────────────
+.tabla-contenedor {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  padding: 0.85rem 1.1rem;
+  background: var(--fondo-pagina);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.8rem 1.1rem;
+  border-top: 1px solid var(--borde);
+  color: var(--tinta);
+}
+
+.codigo,
+.contexto {
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.titulo {
+  min-width: 220px;
+  font-weight: 500;
+}
+
+.estado {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  white-space: nowrap;
+
+  &.rechazo {
+    background: var(--rojo-suave);
+    color: var(--rojo);
+  }
+}
+
+.responsable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+app-avatar.chico ::ng-deep .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 0.7rem;
+}
+
+.sin-asignar {
+  color: var(--texto-suave);
+  font-style: italic;
+}
+
+// Lo que sigue en el flujo; en morado si te toca a ti. La acción se hace al entrar al ticket.
+.pendiente {
+  display: inline-flex;
+  align-items: center;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+  white-space: nowrap;
+
+  &.mia { color: var(--morado); font-weight: 600; }
+  &.corregir { color: var(--rojo); }
+}
+
+.sin-resultados {
+  padding: 2.5rem 1rem;
+  color: var(--texto-suave);
+  text-align: center;
+
+  i { color: var(--verde); margin-right: 0.35rem; }
+}
+
+.enlace {
+  border: 0;
+  background: none;
+  color: var(--morado);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.vacio {
+  padding: 2rem;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+.nota {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+// ─── Tablero ─────────────────────────────────────────────────────────────────
+.tablero {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 0 0 280px;
+  padding: 0.85rem;
+  border-radius: var(--radio);
+  background: var(--fondo);
+
+  h2 {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+
+    span { color: var(--texto-suave); font-weight: 500; }
+  }
+}
+
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+
+  &.mia { border-left: 3px solid var(--morado); }
+
+  p {
+    margin: 0;
+    color: var(--tinta);
+    font-weight: 500;
+  }
+
+  .accion { align-self: flex-start; }
+}
+
+.ficha-arriba,
+.ficha-abajo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ficha-abajo { justify-content: space-between; }
+
+.prioridad { margin-left: auto; }
+
+@media (max-width: 640px) {
+  .vistas { margin-left: 0; }
+}

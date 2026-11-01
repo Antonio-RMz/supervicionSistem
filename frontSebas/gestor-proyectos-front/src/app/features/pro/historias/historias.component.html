@@ -1,0 +1,177 @@
+<div class="his-page">
+
+  <!-- ── Encabezado ────────────────────────────────────────────────────────── -->
+  <div class="his-header">
+    <div>
+      <h1 class="his-header-title">Historias del proyecto</h1>
+      <p class="his-header-sub">
+        {{ totalFiltradas() }} de {{ totalHistorias() }} historias
+        · {{ fasesDisponibles().length }} fase{{ fasesDisponibles().length !== 1 ? 's' : '' }}
+      </p>
+    </div>
+    @if (puedeCrear()) {
+      <button class="btn-nueva" (click)="mostrarModal.set(true)">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva historia
+      </button>
+    }
+  </div>
+
+  <!-- ── Barra de filtros ──────────────────────────────────────────────────── -->
+  <div class="his-filtros" role="search">
+    <!-- Búsqueda por texto -->
+    <div class="filtro-busqueda">
+      <i class="bi bi-search filtro-icon" aria-hidden="true"></i>
+      <input
+        class="filtro-input filtro-input-wide"
+        type="text"
+        placeholder="Buscar por código o título…"
+        [value]="filtroBusqueda()"
+        (input)="filtroBusqueda.set($any($event.target).value)"
+        aria-label="Buscar historia"
+      />
+      @if (filtroBusqueda()) {
+        <button class="filtro-clear-inline" (click)="filtroBusqueda.set('')" aria-label="Limpiar búsqueda">
+          <i class="bi bi-x" aria-hidden="true"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Fase -->
+    <div class="filtro-select-wrap">
+      <i class="bi bi-layers filtro-icon" aria-hidden="true"></i>
+      <select class="filtro-select" aria-label="Filtrar por fase" (change)="setFiltroFase($event)">
+        <option value="" [selected]="filtroFaseId() === null">Todas las fases</option>
+        @for (f of fasesDisponibles(); track f.id) {
+          <option [value]="f.id" [selected]="filtroFaseId() === f.id">{{ f.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Estado -->
+    <div class="filtro-select-wrap">
+      <i class="bi bi-circle-half filtro-icon" aria-hidden="true"></i>
+      <select class="filtro-select" aria-label="Filtrar por estado" (change)="setFiltroEstado($event)">
+        <option value=""          [selected]="filtroEstado() === ''">Todos los estados</option>
+        <option value="PENDIENTE"   [selected]="filtroEstado() === 'PENDIENTE'">Por hacer</option>
+        <option value="EN_PROGRESO" [selected]="filtroEstado() === 'EN_PROGRESO'">En progreso</option>
+        <option value="COMPLETADA"  [selected]="filtroEstado() === 'COMPLETADA'">Hecho</option>
+      </select>
+    </div>
+
+    <!-- Asignado -->
+    <div class="filtro-select-wrap">
+      <i class="bi bi-person filtro-icon" aria-hidden="true"></i>
+      <select class="filtro-select" aria-label="Filtrar por asignado" (change)="setFiltroAsignado($event)">
+        <option value="" [selected]="filtroAsignadoId() === null">Todos</option>
+        @for (u of equipo(); track u.id) {
+          <option [value]="u.id" [selected]="filtroAsignadoId() === u.id">
+            {{ u.nombre }} {{ u.apellido }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <!-- Limpiar filtros -->
+    @if (hayFiltrosActivos()) {
+      <button class="filtro-limpiar" (click)="limpiarFiltros()">
+        <i class="bi bi-x-circle" aria-hidden="true"></i> Limpiar
+      </button>
+    }
+  </div>
+
+  <!-- ── Grupos de historias ───────────────────────────────────────────────── -->
+  @if (hayResultados()) {
+    <div class="his-grupos">
+      @for (grupo of gruposFiltrados(); track grupo.faseId) {
+        <div class="his-grupo">
+
+          <!-- Encabezado de fase -->
+          <div class="his-grupo-header">
+            <span class="his-fase-dot" [style.background]="grupo.faseColor" aria-hidden="true"></span>
+            <span class="his-fase-nombre">{{ grupo.faseNombre }}</span>
+            <span class="his-grupo-count">
+              {{ grupo.historias.length }} historia{{ grupo.historias.length !== 1 ? 's' : '' }}
+            </span>
+          </div>
+
+          <!-- Filas de historias -->
+          <div class="his-grupo-body" role="list">
+            @for (h of grupo.historias; track h.id) {
+              <div
+                class="his-fila"
+                role="listitem"
+                tabindex="0"
+                (click)="irADetalle(h.id)"
+                (keydown.enter)="irADetalle(h.id)"
+                (keydown.space)="$event.preventDefault(); irADetalle(h.id)"
+                [attr.aria-label]="h.codigo + ' - ' + h.titulo"
+              >
+                <!-- Prioridad -->
+                <i
+                  class="bi bi-flag-fill his-prio-icon"
+                  [style.color]="prioColor(h.prioridad)"
+                  aria-hidden="true"
+                ></i>
+
+                <!-- Código -->
+                <span class="his-codigo">{{ h.codigo }}</span>
+
+                <!-- Título -->
+                <span class="his-titulo">{{ h.titulo }}</span>
+
+                <!-- Estado -->
+                <span class="his-estado" [class]="estadoClass(h.estado)">
+                  {{ estadoLabel(h.estado) }}
+                </span>
+
+                <!-- Asignado -->
+                @if (getAsignado(h.asignadoId); as asignado) {
+                  <div
+                    class="his-avatar"
+                    [style.background]="asignado.color"
+                    [title]="asignado.nombre + ' ' + asignado.apellido"
+                    aria-hidden="true"
+                  >{{ asignado.iniciales }}</div>
+                } @else {
+                  <div class="his-avatar-vacio" title="Sin asignar" aria-hidden="true"></div>
+                }
+
+                <i class="bi bi-chevron-right his-arrow" aria-hidden="true"></i>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+  } @else {
+    <!-- Estado vacío -->
+    <div class="his-empty">
+      <i class="bi bi-journal-x" aria-hidden="true"></i>
+      <p class="his-empty-title">No se encontraron historias</p>
+      @if (hayFiltrosActivos()) {
+        <p class="his-empty-sub">Prueba ajustando los filtros o limpiándolos.</p>
+        <button class="his-empty-btn" (click)="limpiarFiltros()">
+          <i class="bi bi-x-circle" aria-hidden="true"></i> Limpiar filtros
+        </button>
+      } @else {
+        <p class="his-empty-sub">Este proyecto aún no tiene historias registradas.</p>
+        @if (puedeCrear()) {
+          <button class="his-empty-btn" (click)="mostrarModal.set(true)">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> Crear la primera historia
+          </button>
+        }
+      }
+    </div>
+  }
+
+</div>
+
+<!-- ── Modal nueva historia ──────────────────────────────────────────────────── -->
+@if (mostrarModal()) {
+  <app-crear-historia-modal
+    [proyectoId]="proyectoId()"
+    (historiaCreada)="onHistoriaCreada()"
+    (cerrar)="mostrarModal.set(false)"
+  />
+}

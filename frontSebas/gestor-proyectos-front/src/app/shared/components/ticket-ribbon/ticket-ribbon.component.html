@@ -1,0 +1,10 @@
+<div
+  class="tr-ribbon"
+  [style.--rc]="cfg().color"
+  [style.--rb]="cfg().bg"
+  [title]="cfg().label"
+>
+  <i class="bi" [class]="cfg().icon" aria-hidden="true"></i>
+  <span class="tr-label">{{ cfg().label }}</span>
+</div>
+<div class="tr-crease" [style.background]="cfg().color"></div>

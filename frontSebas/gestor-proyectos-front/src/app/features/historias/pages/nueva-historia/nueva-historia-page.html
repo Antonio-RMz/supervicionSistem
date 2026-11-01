@@ -1,0 +1,236 @@
+<nav class="migas" aria-label="Ruta">
+  <a routerLink="/proyectos">Proyectos</a>
+  <i class="bi bi-chevron-right"></i>
+  <a [routerLink]="['/proyectos', id()]">{{ preparacion()?.proyectoNombre ?? '…' }}</a>
+  @if (faseElegida(); as f) {
+    <i class="bi bi-chevron-right"></i>
+    <a [routerLink]="['/proyectos', id(), 'fases']">{{ f.titulo }}</a>
+  }
+  <i class="bi bi-chevron-right"></i>
+  @if (guardada(); as g) {
+    <a [routerLink]="['/proyectos', id(), 'historias', g.id]">{{ g.codigo }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <span>Editar</span>
+  } @else {
+    <span>Nueva historia</span>
+  }
+</nav>
+
+<header class="encabezado">
+  <div>
+    @if (editando()) {
+      <h1>Editar {{ guardada()?.codigo ?? 'historia' }}</h1>
+      <p>
+        {{ completo() ? 'Defínela completa y márcala como Lista desde su detalle.'
+          : 'Es Borrador: solo lo básico. Lo demás se captura al iniciar su planeación.' }}
+        Para cambiarla de fase usa "Mover de fase" en su detalle.
+      </p>
+    } @else {
+      <h1>Nueva historia de usuario</h1>
+      <p>Solo lo básico: nace como Borrador. Después, en su detalle, presiona Iniciar planeación para definirla completa.</p>
+    }
+  </div>
+</header>
+
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (preparacion(); as p) {
+  @if (!p.fases.length) {
+    <p class="tarjeta vacio">
+      Este proyecto no tiene fases que reciban historias (Planeadas o En curso).
+      <a [routerLink]="['/proyectos', id(), 'fases', 'nueva']">Crea una fase</a> primero.
+    </p>
+  } @else {
+    <div class="columnas">
+      <form class="secciones" [formGroup]="form" (ngSubmit)="guardarHistoria()" novalidate>
+        <!-- ─── Fase ─── -->
+        <section class="tarjeta seccion formulario">
+          <div>
+            <h2>Fase</h2>
+            <p class="ayuda">En qué release sale esta historia.</p>
+          </div>
+          <label class="campo">
+            <span>Fase <b>*</b></span>
+            <select (change)="elegirFase(+$any($event.target).value)" [class.con-error]="invalido('faseId')"
+                    [disabled]="editando()">
+              @for (f of p.fases; track f.id) {
+                <option [value]="f.id" [selected]="f.id === form.controls.faseId.value">{{ f.titulo }}</option>
+              }
+            </select>
+          </label>
+        </section>
+
+        <!-- ─── La historia ─── -->
+        <section class="tarjeta seccion formulario">
+          <div>
+            <h2>La historia</h2>
+            <p class="ayuda">{{ completo() ? 'Escríbela desde el punto de vista de quien la usa.' : 'Un título que diga qué se quiere lograr.' }}</p>
+          </div>
+          <label class="campo">
+            <span>Título <b>*</b></span>
+            <input formControlName="titulo" placeholder="Consultar mis pedidos desde la app" [class.con-error]="invalido('titulo')" />
+            @if (invalido('titulo')) {
+              <small class="mensaje-campo">Escribe el título.</small>
+            }
+          </label>
+          @if (completo()) {
+            <label class="entrada historia-linea" [class.con-error]="falta('como')">
+              <span class="prefijo">Como</span>
+              <input formControlName="como" placeholder="cliente con contrato activo" list="usuarios-del-sistema" />
+            </label>
+            <!-- Sugerencias del "Como": los usuarios del sistema del proyecto -->
+            <datalist id="usuarios-del-sistema">
+              @for (u of p.usuariosDelSistema; track u.nombre) {
+                <option [value]="u.nombre">{{ u.descripcion }}</option>
+              }
+            </datalist>
+            <label class="entrada historia-linea" [class.con-error]="falta('quiero')">
+              <span class="prefijo">Quiero</span>
+              <input formControlName="quiero" placeholder="ver mis pedidos y en qué estado está cada uno" />
+            </label>
+            <label class="entrada historia-linea" [class.con-error]="falta('para')">
+              <span class="prefijo">Para</span>
+              <input formControlName="para" placeholder="saber cuándo me llega sin tener que llamar a soporte" />
+            </label>
+          }
+        </section>
+
+        <!-- ─── Lo demás se define En planeación ─── -->
+        @if (completo()) {
+          <!-- ─── Criterios ─── -->
+          <section class="tarjeta seccion formulario" [class.con-falta]="falta('criterios')">
+            <div>
+              <h2>Criterios de aceptación</h2>
+              <p class="ayuda">El Analista los usa para aceptar o devolver la historia.</p>
+            </div>
+            <app-lista-editable [(items)]="criterios" placeholder="Agregar criterio de aceptación…" />
+            @if (falta('criterios')) {
+              <small class="mensaje-campo">Agrega al menos un criterio.</small>
+            }
+          </section>
+
+          <!-- ─── Diseño ─── -->
+          <section class="tarjeta seccion formulario">
+            <div>
+              <h2>Diseño</h2>
+              <p class="ayuda">Cómo debe verse. Lo usan quienes hagan los tickets de Web y App.</p>
+            </div>
+            <label class="campo">
+              <span>Diseño en Figma <small class="pista">· el enlace al frame o página exacta</small></span>
+              <div class="entrada">
+                <i class="bi bi-link-45deg icono-campo"></i>
+                <input formControlName="figmaUrl" placeholder="figma.com/design/…/Portal-movil?node-id=12-40" />
+              </div>
+            </label>
+            @if (enlaceFigma(); as url) {
+              <div class="figma">
+                <span class="figma-icono"><i class="bi bi-vector-pen"></i></span>
+                <div>
+                  <strong>Diseño en Figma</strong>
+                  <small>{{ url }}</small>
+                </div>
+                <a class="boton boton-secundario" [href]="url" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Abrir en Figma</a>
+              </div>
+            }
+            <div class="capturas">
+              <span>Cómo debe quedar <small class="pista">· capturas o imágenes exportadas</small></span>
+              <button type="button" class="agregar-captura" disabled title="Próximamente: subir imágenes">
+                <i class="bi bi-plus-lg"></i> Agregar
+              </button>
+            </div>
+            <label class="interruptor aprobado">
+              <input type="checkbox" formControlName="disenoAprobado" />
+              <span class="riel" aria-hidden="true"></span>
+              <span>
+                <strong>El cliente ya aprobó este diseño</strong>
+                <small>Si lo activas, se registra quién y cuándo. Cambiar el diseño después lo marca como Cambio de alcance.</small>
+              </span>
+            </label>
+          </section>
+        }
+
+        @if (error()) {
+          <p class="error" role="alert">{{ error() }}</p>
+        }
+        <div class="pie-formulario">
+          @if (guardada(); as g) {
+            <a class="boton boton-secundario" [routerLink]="['/proyectos', id(), 'historias', g.id]">Cancelar</a>
+            <button type="submit" class="boton boton-primario" [disabled]="enviando() || cargando()">
+              {{ enviando() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
+          } @else {
+            <a class="boton boton-secundario" [routerLink]="['/proyectos', id(), 'fases']">Cancelar</a>
+            <button type="submit" class="boton boton-primario" [disabled]="enviando() || cargando()">
+              {{ enviando() ? 'Creando…' : 'Crear historia' }}
+            </button>
+          }
+        </div>
+      </form>
+
+      <aside class="lateral">
+        <!-- ─── Detalles ─── -->
+        <section class="tarjeta seccion formulario" [formGroup]="form">
+          <h2>Detalles</h2>
+          <label class="campo">
+            <span>Responsable <b>*</b> <small class="pista">· Analista o Líder</small></span>
+            <select formControlName="analistaId" [class.con-error]="invalido('analistaId')">
+              <option [ngValue]="null" disabled>Elige…</option>
+              @for (a of p.analistas; track a.id) {
+                <option [ngValue]="a.id">{{ a.nombreCompleto }}{{ a.esAnalista ? '' : ' (Líder)' }}</option>
+              }
+            </select>
+          </label>
+          <label class="campo">
+            <span>Prioridad</span>
+            <select formControlName="prioridad">
+              <option value="ALTA">Alta</option>
+              <option value="MEDIA">Media</option>
+              <option value="BAJA">Baja</option>
+            </select>
+          </label>
+          @if (completo()) {
+            <div class="campo">
+              <span>Estimación (puntos)</span>
+              <div class="puntos" role="group" aria-label="Estimación en puntos">
+                @for (n of puntosEscala; track n) {
+                  <button type="button" [class.elegido]="form.controls.puntos.value === n"
+                          [attr.aria-pressed]="form.controls.puntos.value === n" (click)="elegirPuntos(n)">{{ n }}</button>
+                }
+              </div>
+            </div>
+            <div class="campo">
+              <span>Repositorios</span>
+              <div class="modulos" [class.con-error]="falta('modulos')">
+                @for (m of faseElegida()?.modulos ?? []; track m.id) {
+                  <button type="button" class="modulo" [class.apagado]="!moduloIds().includes(m.id)"
+                          [attr.aria-pressed]="moduloIds().includes(m.id)" (click)="alternarModulo(m.id)">
+                    <app-chip-modulo [texto]="m.nombre" [icono]="m.icono" [title]="m.largo" [tono]="moduloIds().includes(m.id) ? m.tono : null" />
+                  </button>
+                }
+              </div>
+              <small class="pista">Solo los repositorios de la Fase {{ faseElegida()?.numero }}.</small>
+            </div>
+          }
+        </section>
+
+        <!-- ─── Resumen ─── -->
+        <section class="tarjeta seccion resumen">
+          <h2>Resumen</h2>
+          <dl>
+            <div><dt>ID</dt><dd>{{ guardada()?.codigo ?? p.codigo }}</dd></div>
+            <div><dt>Estado</dt><dd><app-etiqueta-estado [etiqueta]="etiqueta()" /></dd></div>
+            <div><dt>Fase</dt><dd>{{ faseElegida()?.titulo ?? '—' }}</dd></div>
+            @if (completo()) {
+              <div><dt>Criterios</dt><dd>{{ criterios().length }}</dd></div>
+            }
+          </dl>
+          <p class="nota">
+            <i class="bi bi-info-circle"></i>
+            {{ completo() ? 'Siguiente: marcarla como Lista. Después el Líder crea sus Actividades.'
+              : 'Siguiente: en su detalle, Iniciar planeación para definirla completa.' }}
+          </p>
+        </section>
+      </aside>
+    </div>
+  }
+}

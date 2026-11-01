@@ -1,0 +1,169 @@
+<div class="cf-overlay" (click)="onOverlayClick($event)">
+  <div class="cf-modal" role="dialog" aria-modal="true" aria-labelledby="cf-title">
+
+    <!-- Encabezado -->
+    <div class="cf-header">
+      <div class="cf-header-icon" aria-hidden="true">
+        <i class="bi bi-layers"></i>
+      </div>
+      <div class="cf-header-text">
+        <h2 class="cf-title" id="cf-title">Nueva fase</h2>
+        <p class="cf-subtitle">
+          Registra la información inicial de la fase. Después de crearla podrás asignar un analista responsable.
+        </p>
+      </div>
+      <button class="cf-close" type="button" (click)="cerrar.emit()" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Error global -->
+    @if (errorMsg()) {
+      <div class="cf-error-banner" role="alert">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <!-- Formulario -->
+    <form class="cf-body" [formGroup]="form" (ngSubmit)="submit()">
+
+      <!-- Título -->
+      <div class="cf-field">
+        <label class="cf-label" for="cf-titulo">
+          Título <span class="cf-req" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="cf-titulo"
+          type="text"
+          class="cf-input"
+          [class.cf-input--err]="titulo.invalid && titulo.touched"
+          formControlName="titulo"
+          placeholder="Ej. Fase de autenticación"
+          maxlength="150"
+          autocomplete="off"
+        />
+        <div class="cf-row-hint">
+          @if (titulo.invalid && titulo.touched) {
+            <span class="cf-hint cf-hint--err">
+              @if (titulo.hasError('required')) { El título es obligatorio. }
+              @else if (titulo.hasError('maxlength')) { Máximo 150 caracteres. }
+            </span>
+          } @else {
+            <span></span>
+          }
+          <span class="cf-counter">{{ titulo.value?.length ?? 0 }}/150</span>
+        </div>
+      </div>
+
+      <!-- Descripción -->
+      <div class="cf-field">
+        <label class="cf-label" for="cf-desc">
+          Descripción <span class="cf-req" aria-hidden="true">*</span>
+        </label>
+        <textarea
+          id="cf-desc"
+          class="cf-textarea"
+          [class.cf-input--err]="descripcion.invalid && descripcion.touched"
+          formControlName="descripcion"
+          placeholder="Describe el objetivo general de la fase"
+          rows="4"
+          maxlength="1000"
+        ></textarea>
+        <div class="cf-row-hint">
+          @if (descripcion.invalid && descripcion.touched) {
+            <span class="cf-hint cf-hint--err">
+              @if (descripcion.hasError('required')) { La descripción es obligatoria. }
+              @else if (descripcion.hasError('maxlength')) { Máximo 1000 caracteres. }
+            </span>
+          } @else {
+            <span></span>
+          }
+          <span class="cf-counter">{{ descripcion.value?.length ?? 0 }}/1000</span>
+        </div>
+      </div>
+
+      <!-- Prioridad -->
+      <div class="cf-field">
+        <label class="cf-label" for="cf-prio">
+          Prioridad <span class="cf-req" aria-hidden="true">*</span>
+        </label>
+        <div class="cf-select-wrap">
+          <select
+            id="cf-prio"
+            class="cf-select"
+            [class.cf-input--err]="prioridadId.invalid && prioridadId.touched"
+            formControlName="prioridadId"
+          >
+            <option [ngValue]="null" disabled>Selecciona una prioridad</option>
+            @for (p of prioridades(); track p.id) {
+              <option [ngValue]="p.id">{{ p.nombre }}</option>
+            }
+          </select>
+          <i class="bi bi-chevron-down cf-select-icon" aria-hidden="true"></i>
+        </div>
+        @if (prioridadId.invalid && prioridadId.touched) {
+          <span class="cf-hint cf-hint--err">La prioridad es obligatoria.</span>
+        }
+      </div>
+
+      <!-- Fechas -->
+      <div class="cf-dates-row">
+        <div class="cf-field">
+          <label class="cf-label" for="cf-finicio">
+            Fecha inicio estimada <span class="cf-req" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="cf-finicio"
+            type="date"
+            class="cf-input"
+            [class.cf-input--err]="fechaInicio.invalid && fechaInicio.touched"
+            formControlName="fechaInicioEstimada"
+          />
+          @if (fechaInicio.invalid && fechaInicio.touched) {
+            <span class="cf-hint cf-hint--err">La fecha de inicio es obligatoria.</span>
+          }
+        </div>
+
+        <div class="cf-field">
+          <label class="cf-label" for="cf-ffin">
+            Fecha fin estimada <span class="cf-req" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="cf-ffin"
+            type="date"
+            class="cf-input"
+            [class.cf-input--err]="(fechaFin.invalid || form.hasError('fechaFinAnterior')) && fechaFin.touched"
+            formControlName="fechaFinEstimada"
+          />
+          @if (fechaFin.invalid && fechaFin.touched && fechaFin.hasError('required')) {
+            <span class="cf-hint cf-hint--err">La fecha de fin es obligatoria.</span>
+          } @else if (form.hasError('fechaFinAnterior') && fechaFin.touched) {
+            <span class="cf-hint cf-hint--err">No puede ser anterior a la fecha de inicio.</span>
+          }
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="cf-footer">
+        <button type="button" class="cf-btn cf-btn--ghost" (click)="cerrar.emit()">
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="cf-btn cf-btn--primary"
+          [disabled]="form.invalid || enviando()"
+        >
+          @if (enviando()) {
+            <span class="cf-spinner" aria-hidden="true"></span>
+            Creando...
+          } @else {
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            Crear fase
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

@@ -1,0 +1,131 @@
+<div [formGroup]="form">
+
+  <!-- ═══ Información general ═══════════════════════════════════════════════ -->
+  <section class="form-card">
+    <div class="card-header">
+      <i class="bi bi-file-text-fill card-icon"></i>
+      <h2 class="card-title">Información general</h2>
+    </div>
+
+    <!-- nombre -->
+    <div class="form-field" [class.field-error]="hasError('nombre')">
+      <label class="form-label">
+        Nombre del proyecto <span class="required">*</span>
+      </label>
+      <input
+        class="form-input"
+        type="text"
+        formControlName="nombre"
+        placeholder="Ej. Portal de Clientes"
+        autocomplete="off"
+      />
+      @if (hasError('nombre')) {
+        <p class="error-msg">
+          <i class="bi bi-exclamation-circle"></i> El nombre del proyecto es obligatorio.
+        </p>
+      }
+    </div>
+
+    <!-- cliente -->
+    <div class="form-field">
+      <label class="form-label">Cliente</label>
+      <input
+        class="form-input"
+        type="text"
+        formControlName="cliente"
+        placeholder="Ej. Acme Corp"
+        autocomplete="off"
+      />
+    </div>
+
+    <!-- descripcion -->
+    <div class="form-field mb-0">
+      <label class="form-label">Descripción</label>
+      <textarea
+        class="form-input"
+        formControlName="descripcion"
+        rows="4"
+        placeholder="Describe brevemente el alcance del proyecto..."
+      ></textarea>
+    </div>
+  </section>
+
+  <!-- ═══ Tipo, estado y prioridad ══════════════════════════════════════════ -->
+  <section class="form-card">
+    <div class="card-header">
+      <i class="bi bi-flag-fill card-icon"></i>
+      <h2 class="card-title">Tipo, estado y prioridad</h2>
+    </div>
+
+    <div class="form-row-3 mb-0">
+
+      <!-- tipoProyectoId -->
+      <div class="form-field mb-0" [class.field-error]="hasError('tipoProyectoId')">
+        <label class="form-label">
+          Tipo de proyecto <span class="required">*</span>
+        </label>
+        <select class="form-input" formControlName="tipoProyectoId">
+          @if (cargandoCatalogos) {
+            <option value="">Cargando...</option>
+          } @else {
+            <option value="">Selecciona un tipo</option>
+            @for (t of tiposProyecto; track t.id) {
+              <option [value]="t.id">{{ t.nombre }}</option>
+            }
+          }
+        </select>
+        @if (hasError('tipoProyectoId')) {
+          <p class="error-msg">
+            <i class="bi bi-exclamation-circle"></i> Obligatorio.
+          </p>
+        }
+      </div>
+
+      <!-- estadoProyectoId -->
+      <div class="form-field mb-0" [class.field-error]="hasError('estadoProyectoId')">
+        <label class="form-label">
+          Estado <span class="required">*</span>
+        </label>
+        <select class="form-input" formControlName="estadoProyectoId">
+          @if (cargandoCatalogos) {
+            <option value="">Cargando...</option>
+          } @else {
+            <option value="">Selecciona un estado</option>
+            @for (e of estadosProyecto; track e.id) {
+              <option [value]="e.id">{{ e.nombre }}</option>
+            }
+          }
+        </select>
+        @if (hasError('estadoProyectoId')) {
+          <p class="error-msg">
+            <i class="bi bi-exclamation-circle"></i> Obligatorio.
+          </p>
+        }
+      </div>
+
+      <!-- prioridadProyectoId -->
+      <div class="form-field mb-0" [class.field-error]="hasError('prioridadProyectoId')">
+        <label class="form-label">
+          Prioridad <span class="required">*</span>
+        </label>
+        <select class="form-input" formControlName="prioridadProyectoId">
+          @if (cargandoCatalogos) {
+            <option value="">Cargando...</option>
+          } @else {
+            <option value="">Selecciona una prioridad</option>
+            @for (p of prioridadesProyecto; track p.id) {
+              <option [value]="p.id">{{ p.nombre }}</option>
+            }
+          }
+        </select>
+        @if (hasError('prioridadProyectoId')) {
+          <p class="error-msg">
+            <i class="bi bi-exclamation-circle"></i> Obligatorio.
+          </p>
+        }
+      </div>
+
+    </div>
+  </section>
+
+</div>

@@ -1,0 +1,284 @@
+// Menú solo con íconos: al contraerlo o en pantallas medianas.
+@mixin menu-contraido {
+  grid-template-columns: 76px 1fr;
+
+  .lateral { padding-inline: 0.75rem; }
+
+  .texto,
+  .contador,
+  .datos { display: none; }
+
+  .marca {
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-inline: 0;
+  }
+
+  nav a {
+    justify-content: center;
+    i { font-size: 1.2rem; }
+  }
+
+  .seccion { margin: 1rem 0 0.25rem; height: 1px; padding: 0; background: var(--borde); }
+  .persona { flex-direction: column; padding: 0.5rem; border: 0; }
+}
+
+:host {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+  transition: grid-template-columns 0.2s;
+}
+
+:host(.contraido) { @include menu-contraido; }
+
+// ─── Menú lateral ────────────────────────────────────────────────────────────
+.lateral {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 1.25rem 1rem;
+  border-right: 1px solid var(--borde);
+  background: var(--blanco);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.5rem 1.5rem;
+
+  strong {
+    overflow: hidden;
+    color: var(--tinta);
+    font-size: 1.05rem;
+    white-space: nowrap;
+  }
+}
+
+.contraer {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto-suave);
+  cursor: pointer;
+
+  &:hover { background: var(--fondo); color: var(--tinta); }
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--morado);
+  color: var(--sobre-color);
+  font-size: 1.1rem;
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    color: var(--tinta);
+    font-weight: 500;
+    text-decoration: none;
+
+    i {
+      color: var(--texto-suave);
+      font-size: 1.05rem;
+    }
+
+    &:hover { background: var(--fondo); }
+
+    &.activo {
+      background: var(--morado-suave);
+      color: var(--morado);
+
+      i { color: var(--morado); }
+    }
+  }
+}
+
+.seccion {
+  margin: 1.25rem 0 0.4rem;
+  padding: 0 0.75rem;
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  &:first-child { margin-top: 0; }
+}
+
+.contador {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--morado);
+  color: var(--sobre-color);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: auto;
+  padding: 0.75rem;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+
+  strong {
+    display: block;
+    color: var(--tinta);
+    font-size: 0.92rem;
+  }
+
+  small {
+    color: var(--texto-suave);
+    font-size: 0.8rem;
+  }
+}
+
+.datos {
+  flex: 1;
+  min-width: 0;
+
+  strong,
+  small {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  small { display: block; }
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--morado);
+  color: var(--sobre-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.salir {
+  border: 0;
+  background: none;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+  cursor: pointer;
+
+  &:hover { color: var(--tinta); }
+}
+
+// ─── Barra superior ──────────────────────────────────────────────────────────
+.principal {
+  min-width: 0;
+}
+
+.superior {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 2rem;
+  border-bottom: 1px solid var(--borde);
+  background: var(--blanco);
+}
+
+.selector,
+.buscar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+
+  i { color: var(--texto-suave); }
+}
+
+.selector select {
+  padding: 0.6rem 0.25rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.buscar {
+  flex: 0 1 420px;
+  background: var(--fondo-pagina);
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.6rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+  }
+}
+
+.tema {
+  margin-left: auto;
+}
+
+.campana {
+  border: 0;
+  background: none;
+  color: var(--texto-suave);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.contenido {
+  padding: 2rem 2rem 4rem;
+}
+
+@media (max-width: 1100px) {
+  :host { @include menu-contraido; }
+
+  // En pantallas medianas siempre va contraído.
+  .contraer { display: none; }
+}
+
+@media (max-width: 640px) {
+  :host { grid-template-columns: 1fr; }
+  .lateral { display: none; }
+  .superior { flex-wrap: wrap; padding: 0.75rem 1rem; }
+  .buscar { display: none; }
+  .contenido { padding: 1.25rem 1rem 3rem; }
+}

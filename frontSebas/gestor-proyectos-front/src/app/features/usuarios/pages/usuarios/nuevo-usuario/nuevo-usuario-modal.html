@@ -1,0 +1,124 @@
+<app-modal titulo="Nuevo usuario" subtitulo="La cuenta queda lista para entrar; no se envían invitaciones."
+           (cerrar)="cerrar.emit()">
+  <form id="form-nuevo-usuario" class="formulario" [formGroup]="form" (ngSubmit)="crear()" novalidate>
+    <p class="seccion">Datos de acceso</p>
+
+    <div class="fila">
+      <label class="campo">
+        <span>Nombre <b>*</b></span>
+        <input formControlName="nombre" placeholder="Ana" autocomplete="off" [class.con-error]="invalido('nombre')" />
+        @if (invalido('nombre')) {
+          <small class="mensaje-campo">Escribe su nombre.</small>
+        }
+      </label>
+      <label class="campo">
+        <span>Apellidos</span>
+        <input formControlName="apellidos" placeholder="López Hernández" autocomplete="off" />
+      </label>
+    </div>
+
+    <label class="campo">
+      <span>Correo electrónico <b>*</b></span>
+      <input type="email" formControlName="correo" placeholder="nombre@equipo.mx" autocomplete="off"
+             [class.con-error]="invalido('correo')" />
+      @if (invalido('correo')) {
+        <small class="mensaje-campo">Escribe un correo válido.</small>
+      } @else {
+        <small class="pista">Será su usuario para iniciar sesión.</small>
+      }
+    </label>
+
+    <div class="fila">
+      <label class="campo">
+        <span>Contraseña temporal <b>*</b></span>
+        <div class="entrada" [class.con-error]="invalido('password')">
+          <input [type]="mostrarPassword() ? 'text' : 'password'" formControlName="password" autocomplete="new-password" />
+          <button type="button" class="en-campo" (click)="generar()"><i class="bi bi-arrow-repeat"></i> Generar</button>
+        </div>
+        @if (invalido('password')) {
+          <small class="mensaje-campo">Al menos {{ largoMinimo }} caracteres.</small>
+        }
+      </label>
+      <label class="campo">
+        <span>Confirmar contraseña <b>*</b></span>
+        <div class="entrada" [class.con-error]="noCoinciden() || invalido('confirmar')">
+          <input [type]="mostrarPassword() ? 'text' : 'password'" formControlName="confirmar" autocomplete="new-password" />
+          <button type="button" class="en-campo ojo" (click)="mostrarPassword.set(!mostrarPassword())"
+                  [title]="mostrarPassword() ? 'Ocultar' : 'Mostrar'">
+            <i class="bi" [class.bi-eye]="!mostrarPassword()" [class.bi-eye-slash]="mostrarPassword()"></i>
+            <span class="solo-lectores">{{ mostrarPassword() ? 'Ocultar' : 'Mostrar' }} contraseña</span>
+          </button>
+        </div>
+        @if (noCoinciden()) {
+          <small class="mensaje-campo">Las contraseñas no coinciden.</small>
+        }
+      </label>
+    </div>
+
+    <label class="interruptor">
+      <input type="checkbox" formControlName="cambiarPassword" />
+      <span class="riel" aria-hidden="true"></span>
+      <span>
+        <strong>Pedir cambio de contraseña al primer inicio</strong>
+        <small>Recomendado: tú no conocerás su contraseña final.</small>
+      </span>
+    </label>
+
+    <p class="seccion">Roles · <span>puede tener varios</span></p>
+    <div class="roles" [class.con-error]="invalido('roles')">
+      @for (rol of roles(); track rol.codigo) {
+        <label class="rol" [class.elegido]="rolesElegidos().includes(rol.codigo)">
+          <input type="checkbox" [checked]="rolesElegidos().includes(rol.codigo)"
+                 (change)="alternarRol(rol.codigo, $any($event.target).checked)" />
+          <span>
+            <strong>{{ rol.nombre }}</strong>
+            <small>{{ rol.descripcion }}</small>
+          </span>
+        </label>
+      }
+    </div>
+    @if (invalido('roles')) {
+      <small class="mensaje-campo">Elige al menos un rol.</small>
+    }
+
+    <p class="seccion">Proyectos</p>
+    <div class="proyectos">
+      @for (proyecto of proyectosElegidos(); track proyecto.id) {
+        <span class="chip">
+          {{ proyecto.nombre }}
+          <button type="button" (click)="quitarProyecto(proyecto.id)" title="Quitar">
+            <i class="bi bi-x-lg"></i>
+            <span class="solo-lectores">Quitar {{ proyecto.nombre }}</span>
+          </button>
+        </span>
+      }
+      @if (proyectosLibres().length) {
+        <select (change)="agregarProyecto($any($event.target).value); $any($event.target).value = ''"
+                aria-label="Agregar proyecto">
+          <option value="">Agregar proyecto…</option>
+          @for (proyecto of proyectosLibres(); track proyecto.id) {
+            <option [value]="proyecto.id">{{ proyecto.nombre }}</option>
+          }
+        </select>
+      }
+    </div>
+
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+  </form>
+
+  <div pie class="pie-modal" [formGroup]="form">
+    <label class="interruptor">
+      <input type="checkbox" formControlName="activo" />
+      <span class="riel" aria-hidden="true"></span>
+      <span><strong>Usuario activo</strong></span>
+    </label>
+    <div class="botones">
+      <button type="button" class="boton boton-secundario" (click)="cerrar.emit()">Cancelar</button>
+      <button type="submit" form="form-nuevo-usuario" class="boton boton-primario" [disabled]="enviando()">
+        {{ enviando() ? 'Creando…' : 'Crear usuario' }}
+      </button>
+    </div>
+  </div>
+</app-modal>

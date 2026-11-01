@@ -1,0 +1,190 @@
+@use '../../../../../styles/detalle';
+
+.intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  p {
+    flex: 1;
+    min-width: 260px;
+    margin: 0;
+    color: var(--texto-suave);
+  }
+}
+
+// ─── Tabla de módulos ────────────────────────────────────────────────────────
+.lista { padding: 0; overflow: hidden; }
+
+// relative: el texto para lectores de pantalla de las acciones no estira la página.
+.tabla { position: relative; overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  padding: 0.75rem 1rem;
+  background: var(--fondo-pagina);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &:first-child { padding-left: 1.5rem; }
+}
+
+td {
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--borde);
+  color: var(--tinta);
+  white-space: nowrap;
+  vertical-align: middle;
+
+  &:first-child { padding-left: 1.5rem; }
+}
+
+.modulo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  strong { display: block; }
+  small { color: var(--tono-texto); font-weight: 500; }
+}
+
+.icono {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--tono-fondo);
+  color: var(--tono-solido);
+  font-size: 1.05rem;
+}
+
+.bugs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--rojo-suave);
+  color: var(--rojo);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tecnologia {
+  max-width: 220px;
+  overflow: hidden;
+  color: var(--texto);
+  text-overflow: ellipsis;
+}
+
+.repo {
+  color: var(--morado);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.rama {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+}
+
+.suave { color: var(--texto-suave); }
+
+.punto {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 0.3rem;
+  border-radius: 50%;
+  background: var(--tono-solido);
+}
+
+.build {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--tono-fondo);
+  color: var(--tono-texto);
+  font-size: 0.85rem;
+}
+
+.conteos { color: var(--texto); font-variant-numeric: tabular-nums; }
+
+.acciones { text-align: right; }
+
+.icono-boton {
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto-suave);
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--fondo); color: var(--tinta); }
+  &.peligro:hover:not(:disabled) { color: var(--rojo); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+.vacio {
+  padding: 2rem;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+// ─── Formulario ──────────────────────────────────────────────────────────────
+.tipos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.5rem;
+}
+
+.tipo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  color: var(--tinta);
+  cursor: pointer;
+
+  input { position: absolute; opacity: 0; pointer-events: none; }
+
+  &.elegido {
+    border-color: var(--morado);
+    background: var(--morado-suave);
+    color: var(--morado);
+  }
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.8rem;
+}
+
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}

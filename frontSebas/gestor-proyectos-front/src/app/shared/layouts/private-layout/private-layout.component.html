@@ -1,0 +1,20 @@
+<div class="layout-wrapper" [class.sidebar-collapsed]="sidebarCollapsed()" [class.mobile-sidebar-open]="mobileOpen()">
+
+  @if (mobileOpen()) {
+    <div class="mobile-overlay" (click)="closeMobileSidebar()"></div>
+  }
+
+  <app-sidebar [collapsed]="sidebarCollapsed()" [mobileOpen]="mobileOpen()" />
+
+  <div class="layout-main">
+    <app-header (toggleSidebar)="onToggleSidebar()" />
+
+    <main class="layout-content">
+      <router-outlet />
+    </main>
+  </div>
+
+</div>
+
+<app-spinner />
+<app-toast />

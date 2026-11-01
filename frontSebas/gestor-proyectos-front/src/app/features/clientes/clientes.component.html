@@ -1,0 +1,213 @@
+<div class="feature-page">
+
+  <!-- ─── Page header ──────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <div class="page-header-icon">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div>
+        <h1 class="page-title">Clientes</h1>
+        <p class="page-subtitle">Gestión de clientes del sistema</p>
+      </div>
+    </div>
+    <button class="c-btn-primary" (click)="abrirModalCrear()">
+      <i class="bi bi-plus-lg"></i> Nuevo Cliente
+    </button>
+  </div>
+
+  <!-- ─── Card principal ───────────────────────────────────────────────────── -->
+  <div class="c-card">
+
+    <!-- Estados: cargando -->
+    @if (loading()) {
+      <div class="estado-vacio">
+        <div class="spinner-ring"></div>
+        <p class="estado-texto">Cargando clientes...</p>
+      </div>
+    }
+
+    <!-- Estados: error -->
+    @if (!loading() && error()) {
+      <div class="estado-vacio">
+        <i class="bi bi-wifi-off estado-icon text-danger"></i>
+        <p class="estado-texto">{{ error() }}</p>
+        <button class="btn-reintentar" (click)="cargarClientes()">
+          <i class="bi bi-arrow-clockwise"></i> Reintentar
+        </button>
+      </div>
+    }
+
+    <!-- Tabla -->
+    @if (!loading() && !error()) {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Empresa</th>
+              <th scope="col">Email</th>
+              <th scope="col">Teléfono</th>
+              <th scope="col">Estado</th>
+              <th scope="col" class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (clientes().length === 0) {
+              <tr>
+                <td colspan="7" class="text-center py-5 text-muted">
+                  <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                  No hay clientes registrados
+                </td>
+              </tr>
+            }
+            @for (c of clientes(); track c.id; let i = $index) {
+              <tr>
+                <td class="text-muted c-idx">{{ i + 1 }}</td>
+                <td>
+                  <span class="c-nombre">{{ c.nombre }}</span>
+                </td>
+                <td class="text-muted">{{ c.empresa || '—' }}</td>
+                <td class="text-muted">{{ c.email }}</td>
+                <td class="text-muted">{{ c.telefono || '—' }}</td>
+                <td>
+                  <span class="c-estado-badge" [class.activo]="c.estado" [class.inactivo]="!c.estado">
+                    <span class="c-dot"></span>
+                    {{ c.estado ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <div class="d-flex gap-1 justify-content-end">
+                    <button
+                      class="btn btn-outline-secondary btn-sm btn-accion"
+                      title="Editar"
+                      (click)="abrirModalEditar(c)"
+                    >
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button
+                      class="btn btn-outline-danger btn-sm btn-accion"
+                      title="Eliminar"
+                      (click)="eliminar(c.id)"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pie de card -->
+      <div class="c-card-footer">
+        <small class="text-muted">
+          {{ clientes().length }} {{ clientes().length === 1 ? 'cliente' : 'clientes' }} en el sistema
+        </small>
+      </div>
+    }
+
+  </div>
+</div>
+
+<!-- ─── Modal crear / editar ─────────────────────────────────────────────────── -->
+@if (mostrarModal()) {
+  <div class="u-backdrop" (click)="cerrarModal()"></div>
+  <div class="u-panel" role="dialog" aria-modal="true">
+
+    <div class="u-panel-head">
+      <h3 class="u-panel-title">
+        <i class="bi" [class.bi-person-plus-fill]="!modoEdicion()" [class.bi-pencil-square]="modoEdicion()"></i>
+        {{ modoEdicion() ? 'Editar cliente' : 'Nuevo cliente' }}
+      </h3>
+      <button class="u-btn-close" type="button" (click)="cerrarModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="u-panel-body">
+      <form [formGroup]="form" (ngSubmit)="guardar()">
+
+        <div class="u-form-row">
+          <div class="u-form-field">
+            <label class="u-label">Nombre <span class="u-required">*</span></label>
+            <input
+              class="u-input"
+              [class.u-input-invalid]="form.controls.nombre.invalid && form.controls.nombre.touched"
+              type="text"
+              formControlName="nombre"
+              placeholder="Ej. Juan García"
+            >
+            @if (form.controls.nombre.invalid && form.controls.nombre.touched) {
+              <span class="u-error">El nombre es obligatorio.</span>
+            }
+          </div>
+          <div class="u-form-field">
+            <label class="u-label">Empresa</label>
+            <input
+              class="u-input"
+              type="text"
+              formControlName="empresa"
+              placeholder="Ej. Acme S.A."
+            >
+          </div>
+        </div>
+
+        <div class="u-form-row">
+          <div class="u-form-field">
+            <label class="u-label">Email <span class="u-required">*</span></label>
+            <input
+              class="u-input"
+              [class.u-input-invalid]="form.controls.email.invalid && form.controls.email.touched"
+              type="email"
+              formControlName="email"
+              placeholder="correo@ejemplo.com"
+            >
+            @if (form.controls.email.errors?.['required'] && form.controls.email.touched) {
+              <span class="u-error">El email es obligatorio.</span>
+            }
+            @if (form.controls.email.errors?.['email'] && form.controls.email.touched) {
+              <span class="u-error">Ingresa un email válido.</span>
+            }
+          </div>
+          <div class="u-form-field">
+            <label class="u-label">Teléfono</label>
+            <input
+              class="u-input"
+              type="text"
+              formControlName="telefono"
+              placeholder="Ej. +52 55 1234 5678"
+            >
+          </div>
+        </div>
+
+        @if (modoEdicion()) {
+          <div class="u-form-field">
+            <label class="u-label">Estado</label>
+            <select class="u-input" formControlName="estado">
+              <option [ngValue]="true">Activo</option>
+              <option [ngValue]="false">Inactivo</option>
+            </select>
+          </div>
+        }
+
+        <div class="u-panel-foot">
+          <button type="button" class="u-btn-cancel" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button type="submit" class="u-btn-save" [disabled]="guardando() || form.invalid">
+            @if (guardando()) {
+              <span class="u-spinner"></span> Guardando...
+            } @else {
+              {{ modoEdicion() ? 'Actualizar' : 'Crear cliente' }}
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+}

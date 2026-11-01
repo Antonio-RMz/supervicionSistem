@@ -1,0 +1,99 @@
+.extras-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// ─── Cabecera de sección ──────────────────────────────────────────────────────
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.section-icon {
+  font-size: 1.4rem;
+  color: #4361ee;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #14172b;
+  margin: 0 0 0.15rem;
+}
+
+.section-desc {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+// ─── Grid de extras ───────────────────────────────────────────────────────────
+.extras-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+
+.extra-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #f0f2f5;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 1.35rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &.coming-soon { opacity: 0.7; }
+}
+
+.extra-card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #eef0ff;
+  color: #4361ee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+
+.extra-card-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #14172b;
+  margin: 0 0 0.2rem;
+}
+
+.extra-card-desc {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.coming-soon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  align-self: flex-start;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+
+  i { font-size: 0.65rem; }
+}

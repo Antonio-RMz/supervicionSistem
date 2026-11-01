@@ -1,0 +1,231 @@
+<nav class="migas" aria-label="Ruta">
+  <a routerLink="/proyectos">Proyectos</a>
+  <i class="bi bi-chevron-right"></i>
+  <a [routerLink]="['/proyectos', id()]">{{ proyectoNombre() }}</a>
+  <i class="bi bi-chevron-right"></i>
+  <span>Mantenimiento</span>
+</nav>
+
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else if (mantenimiento(); as m) {
+  <header class="encabezado">
+    <div>
+      <div class="titulo">
+        <i class="bi bi-wrench icono-titulo"></i>
+        <h1>Mantenimiento</h1>
+        <span class="tipo-fila">Permanente</span>
+      </div>
+      <p>
+        Correcciones en producción y trabajo técnico que no pertenece a ninguna fase. Nunca se cierra.
+        En producción hoy: {{ m.enProduccion ?? 'nada todavía' }}.
+      </p>
+    </div>
+    @if (preparacion(); as p) {
+      <div class="botones-encabezado">
+        @if (p.puedeCrear) {
+          <button type="button" class="boton boton-secundario" (click)="creandoTicket.set(true)">
+            <i class="bi bi-plus-lg"></i> Nuevo ticket
+          </button>
+        }
+        @if (p.puedeReportar) {
+          <button type="button" class="boton boton-peligro-suave" (click)="reportandoFalla.set(true)">
+            <i class="bi bi-exclamation-triangle"></i> Reportar falla en producción
+          </button>
+        }
+      </div>
+    }
+  </header>
+
+  <section class="metricas">
+    @for (x of m.metricas; track x.titulo) {
+      <article class="tarjeta metrica">
+        <span>{{ x.titulo }}</span>
+        <strong [class.rojo]="x.alerta">{{ x.valor }}</strong>
+        <small>{{ x.detalle }}</small>
+      </article>
+    }
+  </section>
+
+  <div class="columnas">
+    <div class="principal">
+      <!-- ─── Urgente · va por hotfix ─── -->
+      <section class="tarjeta bloque urgente">
+        <div class="bloque-cabecera">
+          <h2>Urgente · va por hotfix</h2>
+          <span class="rama"><i class="bi bi-git"></i> main → hotfix/…</span>
+        </div>
+        <p class="pista">Crítica y Alta. La rama sale de main y se publica en un parche sin esperar a la fase.</p>
+        <ul class="filas">
+          @for (t of m.urgentes; track t.id) {
+            <ng-container *ngTemplateOutlet="fila; context: { $implicit: t }" />
+          } @empty {
+            <li class="vacio">Nada urgente en producción.</li>
+          }
+        </ul>
+      </section>
+
+      <!-- ─── Siguiente parche ─── -->
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Siguiente parche · {{ m.siguienteParche }}</h2>
+          <span class="pastilla tono-verde">{{ m.listos.length }} {{ m.listos.length === 1 ? 'listo' : 'listos' }}</span>
+        </div>
+        <p class="pista">Lo que ya pasó QA y saldrá en el próximo parche.</p>
+        <ul class="filas">
+          @for (t of m.listos; track t.id) {
+            <ng-container *ngTemplateOutlet="fila; context: { $implicit: t }" />
+          } @empty {
+            <li class="vacio">Aún no hay hotfix aprobados.</li>
+          }
+          @for (t of m.urgentes; track t.id) {
+            @if (t.severidad?.texto !== 'Por confirmar') {
+              <li class="espera"><i class="bi bi-circle"></i> {{ t.codigo }} entrará si se aprueba antes de publicar</li>
+            }
+          }
+        </ul>
+      </section>
+
+      <!-- ─── Mantenimiento normal ─── -->
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Mantenimiento normal · {{ m.conLaFase }}</h2>
+          <span class="rama clara"><i class="bi bi-git"></i> develop</span>
+        </div>
+        <p class="pista">Media y Baja, tareas técnicas y deuda. Se trabaja desde develop y sale en el release de la fase.</p>
+        <ul class="filas">
+          @for (t of m.normales; track t.id) {
+            <ng-container *ngTemplateOutlet="fila; context: { $implicit: t }" />
+          } @empty {
+            <li class="vacio">Sin trabajo de mantenimiento pendiente.</li>
+          }
+        </ul>
+      </section>
+    </div>
+
+    <aside class="lateral">
+      <!-- ─── Acciones ─── -->
+      <section class="tarjeta bloque acciones" [class.activo]="m.puedePublicar">
+        <div class="bloque-cabecera">
+          <h2>Acciones</h2>
+          @if (m.puedePublicar) {
+            <span class="pastilla tono-morado">Líder</span>
+          }
+        </div>
+        <p class="pista">Publica el parche cuando haya algo aprobado. No espera a ninguna fase.</p>
+        @if (m.puedePublicar) {
+          <div class="botones-panel">
+            <button type="button" class="boton {{ m.listos.length ? 'boton-primario' : 'bloqueado' }}"
+                    [disabled]="!m.listos.length || publicando()" (click)="confirmando.set(true)">
+              <i class="bi bi-rocket-takeoff"></i> Publicar parche {{ m.siguienteParche }}
+            </button>
+          </div>
+        } @else {
+          <p class="sin-botones"><i class="bi bi-eye"></i> El parche lo publica el Líder del proyecto.</p>
+        }
+        <ul class="revisiones">
+          <li class="revision">
+            <i class="bi" [class.bi-check-circle-fill]="m.listos.length" [class.ok]="m.listos.length"
+               [class.bi-circle]="!m.listos.length" [class.info]="!m.listos.length"></i>
+            {{ m.listos.length === 1 ? '1 bug aprobado en QA' : m.listos.length + ' bugs aprobados en QA' }}
+          </li>
+          @for (t of m.urgentes; track t.id) {
+            @if (t.severidad?.texto !== 'Por confirmar') {
+              <li class="revision"><i class="bi bi-circle info"></i> {{ t.codigo }} sigue {{ t.etiqueta.texto.toLowerCase() }} (opcional)</li>
+            }
+          }
+          <li class="revision"><i class="bi bi-check-circle-fill ok"></i> Después se regresa a develop solo</li>
+        </ul>
+      </section>
+
+      <!-- ─── Cómo se decide la ruta ─── -->
+      <section class="tarjeta bloque">
+        <h2>Cómo se decide la ruta</h2>
+        <div class="ruta">
+          <div class="severidades">
+            <i class="bi bi-lightning-charge-fill rojo"></i>
+            <span class="pastilla tono-rojo">Crítica</span>
+            <span class="pastilla tono-naranja">Alta</span>
+          </div>
+          <strong>Hotfix desde main → parche {{ m.siguienteParche }}</strong>
+        </div>
+        <div class="ruta">
+          <div class="severidades">
+            <i class="bi bi-clock"></i>
+            <span class="pastilla tono-ambar">Media</span>
+            <span class="pastilla tono-gris">Baja</span>
+          </div>
+          <strong>Desde develop → siguiente fase</strong>
+        </div>
+        <p class="pista">El Líder fija la severidad al confirmar el bug y puede cambiarla.</p>
+      </section>
+
+      <!-- ─── Parches publicados ─── -->
+      <section class="tarjeta bloque">
+        <h2>Parches publicados</h2>
+        <ul class="parches">
+          @for (p of m.parches; track p.version) {
+            <li>
+              <i class="bi bi-tag"></i>
+              <span class="nombre">{{ p.version }} · {{ p.fecha }}</span>
+              <span class="detalle">{{ p.bugs }}</span>
+            </li>
+          } @empty {
+            <li class="pista">Aún no se ha publicado ningún parche.</li>
+          }
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  @if (confirmando()) {
+    <app-modal [titulo]="'Publicar parche ' + m.siguienteParche"
+               subtitulo="Merge a main, tag, despliegue a producción y regreso a develop en un paso." (cerrar)="confirmando.set(false)">
+      <p class="texto-modal">Salen juntos los hotfix aprobados del proyecto:</p>
+      <ul class="revisiones">
+        @for (t of m.listos; track t.id) {
+          <li class="revision"><i class="bi bi-check-circle-fill ok"></i> {{ t.codigo }} · {{ t.titulo }}</li>
+        }
+      </ul>
+      <p class="pista">Después, un Analista verifica en producción que la falla desapareció.</p>
+      <div pie class="botones">
+        <button type="button" class="boton boton-secundario" (click)="confirmando.set(false)">Cancelar</button>
+        <button type="button" class="boton boton-primario" [disabled]="publicando()" (click)="publicar()">
+          <i class="bi bi-rocket-takeoff"></i> {{ publicando() ? 'Publicando…' : 'Publicar ' + m.siguienteParche }}
+        </button>
+      </div>
+    </app-modal>
+  }
+}
+
+@if (creandoTicket() && preparacion(); as p) {
+  <app-nuevo-ticket-modal [proyectoId]="+id()" [preparacion]="p" (cerrar)="creandoTicket.set(false)"
+                          (creado)="ticketCreado($event)" />
+}
+
+@if (reportandoFalla() && preparacion(); as p) {
+  <app-reportar-falla-modal [proyectoId]="+id()" [preparacion]="p" (cerrar)="reportandoFalla.set(false)"
+                            (reportado)="fallaReportada($event)" />
+}
+
+<ng-template #fila let-t>
+  <li>
+    <app-tipo-ticket [tipo]="t.tipo" />
+    <span class="codigo">{{ t.codigo }}</span>
+    <div class="nombre">
+      <a class="enlace-titulo" [routerLink]="['/proyectos', id(), 'tickets', t.id]">{{ t.titulo }}</a>
+      @if (t.rama) {
+        <div><span class="rama"><i class="bi bi-git"></i> {{ t.rama }}</span></div>
+      }
+    </div>
+    @if (t.severidad; as s) {
+      <span class="pastilla tono-{{ s.tono }}">{{ s.texto }}</span>
+    }
+    <app-etiqueta-estado [etiqueta]="t.etiqueta" />
+    @if (t.responsable; as r) {
+      <app-avatar [iniciales]="r.iniciales" [tono]="r.tono" class="chico" [title]="r.nombre" />
+    }
+  </li>
+</ng-template>

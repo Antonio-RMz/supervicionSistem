@@ -1,0 +1,287 @@
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else if (historia(); as h) {
+  <nav class="migas" aria-label="Ruta">
+    <a [routerLink]="['/proyectos', h.proyectoId, 'fases']">{{ h.proyectoNombre }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <a [routerLink]="['/proyectos', h.proyectoId, 'fases', h.faseId]">{{ h.faseTitulo }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <span>{{ h.codigo }}</span>
+  </nav>
+
+  @if (vista() === 'arbol') {
+    <!-- ─── Vista árbol: su fase con historias y tickets conectados, con este elegido ─── -->
+    <header class="encabezado">
+      <div class="titulo">
+        <app-tipo-ticket tipo="HIST" />
+        <h1>{{ h.codigo }} · {{ h.titulo }}</h1>
+        <app-etiqueta-estado [etiqueta]="h.etiqueta" />
+      </div>
+      <app-cambio-vista [arbol]="true" />
+    </header>
+    <app-arbol-fase [proyectoId]="h.proyectoId" [faseId]="h.faseId" [historiaId]="h.id" />
+  } @else {
+    <div class="columnas">
+      <div class="principal">
+        <header class="encabezado">
+          <div>
+            <div class="titulo">
+              <app-tipo-ticket tipo="HIST" />
+              <h1>{{ h.codigo }} · {{ h.titulo }}</h1>
+              <app-etiqueta-estado [etiqueta]="h.etiqueta" />
+            </div>
+            <p>{{ h.faseTitulo }}</p>
+          </div>
+          <app-cambio-vista />
+        </header>
+
+        <!-- ─── La historia ─── -->
+        <section class="tarjeta bloque">
+          <h2>La historia</h2>
+          <dl class="historia">
+            <div><dt>Como</dt><dd>{{ h.como || '—' }}</dd></div>
+            <div><dt>Quiero</dt><dd>{{ h.quiero || '—' }}</dd></div>
+            <div><dt>Para</dt><dd>{{ h.para || '—' }}</dd></div>
+          </dl>
+        </section>
+
+        <!-- ─── Diseño ─── -->
+        <section class="tarjeta bloque">
+          <h2>Diseño</h2>
+          @if (h.figmaUrl) {
+            <div class="figma">
+              <i class="bi bi-hash"></i>
+              <span>{{ h.disenoDeFase ? 'Diseño de la fase' : 'Diseño en Figma' }}</span>
+              <a class="boton boton-secundario chico" [href]="h.figmaUrl" target="_blank" rel="noopener">
+                <i class="bi bi-box-arrow-up-right"></i> Abrir en Figma
+              </a>
+            </div>
+          } @else {
+            <p class="pista">Sin diseño en Figma todavía.</p>
+          }
+          @if (h.disenoAprobado) {
+            <p class="aprobado"><i class="bi bi-check-lg"></i> {{ h.disenoAprobado }}</p>
+          }
+          <app-imagenes-historia [proyectoId]="h.proyectoId" [historiaId]="h.id" [imagenes]="h.imagenes"
+                                 [puedeAdjuntar]="h.puedeAdjuntar" (cambio)="recargar()" />
+        </section>
+
+        <!-- ─── Criterios de aceptación ─── -->
+        <section class="tarjeta bloque">
+          <div class="bloque-cabecera">
+            <h2>Criterios de aceptación</h2>
+            <span class="detalle">{{ h.criteriosVerificados }} de {{ h.criterios.length }} verificados</span>
+          </div>
+          @if (h.puedeVerificarCriterios) {
+            <p class="pista">Marca cada criterio cuando lo compruebes en staging.</p>
+          }
+          <ul class="filas">
+            @for (c of h.criterios; track c.id) {
+              <li class="criterio">
+                <label>
+                  <input type="checkbox" [checked]="c.verificado" [disabled]="!h.puedeVerificarCriterios || enviando() !== null"
+                         (change)="verificar(c.id, $any($event.target).checked)" />
+                  <span class="nombre">{{ c.descripcion }}</span>
+                </label>
+                @if (c.tickets.length) {
+                  <span class="pastilla tono-morado">{{ c.tickets.join(' · ') }}</span>
+                }
+              </li>
+            } @empty {
+              <li class="vacio">Aún no tiene criterios de aceptación.</li>
+            }
+          </ul>
+        </section>
+
+        <!-- ─── Tickets de trabajo ─── -->
+        <section class="tarjeta bloque">
+          <div class="bloque-cabecera">
+            <h2>Tickets de trabajo · {{ h.tickets.length }}</h2>
+            <div class="botones-cabecera">
+              @if (h.puedeCrearTicket) {
+                <a class="boton boton-secundario" [routerLink]="['/proyectos', h.proyectoId, 'historias', h.id, 'importar-tickets']">
+                  <i class="bi bi-braces"></i> Importar JSON</a>
+                <a class="boton boton-suave" [routerLink]="['/proyectos', h.proyectoId, 'tickets', 'nuevo']"
+                   [queryParams]="{ historia: h.id }"><i class="bi bi-plus-lg"></i> Nuevo ticket</a>
+              } @else if (h.tickets.length) {
+                <a class="boton boton-secundario" [routerLink]="['/proyectos', h.proyectoId, 'historias', h.id, 'importar-tickets']"
+                   [queryParams]="{ ver: 'copiar' }"><i class="bi bi-copy"></i> JSON de tickets</a>
+              }
+            </div>
+          </div>
+          <p class="pista">Los crea el Líder (Actividad, Bug o Mejora). El Desarrollador divide el suyo en subtareas desde el ticket.</p>
+          <ul class="filas">
+            @for (t of h.tickets; track t.id) {
+              <li class="ticket">
+                <app-tipo-ticket [tipo]="t.tipo" />
+                <span class="codigo">{{ t.codigo }}</span>
+                <a class="nombre enlace-titulo" [routerLink]="['/proyectos', h.proyectoId, 'tickets', t.id]">{{ t.titulo }}</a>
+                @if (t.modulo; as m) {
+                  <app-chip-modulo [texto]="m.corto" [icono]="m.icono" [tono]="m.tono" />
+                }
+                <app-etiqueta-estado [etiqueta]="t.estado" />
+                @if (t.responsable; as r) {
+                  <app-avatar [iniciales]="r.iniciales" tono="verde" class="chico" [title]="r.nombre" />
+                }
+              </li>
+            } @empty {
+              <li class="vacio">Aún no tiene tickets.</li>
+            }
+          </ul>
+        </section>
+
+        <!-- ─── Comentarios ─── -->
+        <section class="tarjeta bloque">
+          <h2>Comentarios · {{ h.comentarios.length }}</h2>
+          <ul class="comentarios">
+            @for (c of h.comentarios; track $index) {
+              <li>
+                <app-avatar [iniciales]="c.iniciales" [tono]="c.tono" class="chico" />
+                <div>
+                  <p><strong>{{ c.usuario }}</strong> <small>{{ c.cuando }}</small></p>
+                  <p class="texto">{{ c.texto }}</p>
+                </div>
+              </li>
+            }
+          </ul>
+          <form class="comentar" (submit)="$event.preventDefault(); comentar()">
+            <input class="campo-comentario" type="text" maxlength="2000" placeholder="Escribe un comentario…"
+                   [value]="comentario()" (input)="comentario.set($any($event.target).value)" />
+            <button type="submit" class="boton boton-secundario" [disabled]="!comentario().trim() || enviando() !== null">
+              {{ enviando() === 'comentario' ? 'Enviando…' : 'Comentar' }}
+            </button>
+          </form>
+        </section>
+      </div>
+
+      <aside class="lateral">
+        <!-- ─── Acciones: arriba de la columna derecha, al nivel del título ─── -->
+        <div class="tarjeta lado-acciones">
+          <div class="acciones-cabecera">
+            <h2>Acciones</h2>
+            @if (panel(); as p) {
+              @if (h.meToca ? 'Te toca a ti' : h.actor) {
+                <span class="pastilla" [class]="h.meToca ? 'tono-morado' : 'tono-gris'" [title]="p.descripcion">{{ h.meToca ? 'Te toca a ti' : h.actor }}</span>
+              }
+            }
+          </div>
+          <div class="fila-acciones">
+            @if (panel(); as p) {
+              @if (botones().length) {
+                  @for (b of botones(); track b.accion) {
+                    <button type="button" class="boton {{ b.habilitado ? b.clase : 'bloqueado' }}"
+                            [disabled]="!b.habilitado || enviando() !== null" [title]="b.impedimentos.join('. ')"
+                            (click)="presionar(b)">
+                      <i class="bi {{ b.habilitado ? b.icono : 'bi-lock' }}"></i>
+                      {{ enviando() === b.accion ? 'Un momento…' : b.texto }}
+                    </button>
+                  }
+              } @else if (avanzaSola()) {
+                <p class="sin-botones"><i class="bi bi-arrow-repeat"></i> Sin botones: avanza sola</p>
+              }
+            }
+            @if (h.puedeEditar) {
+              <a class="boton boton-secundario" [routerLink]="['/proyectos', h.proyectoId, 'historias', h.id, 'editar']">
+                <i class="bi bi-pencil"></i> Editar</a>
+            }
+            @if (h.puedeEliminar) {
+              <button type="button" class="boton boton-peligro-suave" [disabled]="enviando() !== null"
+                      (click)="eliminando.set(true)"><i class="bi bi-trash"></i> Eliminar</button>
+            }
+          </div>
+          @if (panel(); as p) {
+            @if (p.revisiones.length) {
+              <ul class="revisiones">
+                @for (r of p.revisiones; track $index) {
+                  <li class="revision">
+                    <i class="bi" [class.bi-check-circle-fill]="r.estado === 'ok'" [class.ok]="r.estado === 'ok'"
+                       [class.bi-x-circle]="r.estado === 'falta'" [class.falta]="r.estado === 'falta'"
+                       [class.bi-circle]="r.estado === 'info'" [class.info]="r.estado === 'info'"></i>
+                    <span>{{ r.texto }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          }
+        </div>
+
+        <!-- ─── Flujo: de inicio a fin, en cuál va ─── -->
+        @if (pasos().length) {
+          <app-flujo [pasos]="pasos()" [fuera]="fuera()" />
+        }
+
+        <section class="tarjeta bloque">
+          <h2>Pertenece a</h2>
+          <a class="pertenece" [routerLink]="['/proyectos', h.proyectoId, 'fases', h.faseId]">
+            <span class="tipo-fila">FASE</span>
+            <span>
+              <strong>{{ h.faseTitulo }}</strong>
+              <small>{{ h.faseEtiqueta.texto }}@if (h.faseFechas) { · {{ h.faseFechas }}}</small>
+            </span>
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </section>
+
+        <section class="tarjeta bloque">
+          <h2>Detalles</h2>
+          <dl class="datos">
+            <div><dt>Analista</dt><dd>{{ h.analistaNombre }}</dd></div>
+            <div><dt>Prioridad</dt><dd><span class="pastilla tono-{{ h.prioridad.tono }}">{{ h.prioridad.texto }}</span></dd></div>
+            <div><dt>Estimación</dt><dd>{{ h.puntos ? h.puntos + ' puntos' : '—' }}</dd></div>
+            <div>
+              <dt>Repositorios</dt>
+              <dd class="chips">
+                @for (m of h.modulos; track m.corto) {
+                  <app-chip-modulo [texto]="m.corto" [icono]="m.icono" [tono]="m.tono" />
+                } @empty {
+                  —
+                }
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="tarjeta bloque">
+          <h2>Historial de estados</h2>
+          <ul class="historial">
+            @for (c of h.historial; track $index) {
+              <li>
+                <span class="punto tono-{{ c.tono }}"></span>
+                <div>
+                  <strong>{{ c.texto }}</strong>
+                  <small>{{ c.detalle }}</small>
+                </div>
+              </li>
+            } @empty {
+              <li class="vacio">Sin cambios registrados.</li>
+            }
+          </ul>
+        </section>
+
+      </aside>
+    </div>
+  }
+
+  @if (eliminando()) {
+    <app-modal [titulo]="'Eliminar ' + h.codigo" subtitulo="Aún no se inicia, así que se puede borrar del todo."
+               (cerrar)="eliminando.set(false)">
+      <p class="confirmar-texto">
+        Se borran la historia «{{ h.titulo }}», sus criterios, imágenes y comentarios. No se puede deshacer.
+        Si solo quieres sacarla del plan, usa Descartar: se puede reabrir.
+      </p>
+      <div pie>
+        <button type="button" class="boton boton-secundario" (click)="eliminando.set(false)">Cancelar</button>
+        <button type="button" class="boton boton-peligro" [disabled]="enviando() === 'eliminar'" (click)="eliminar()">
+          <i class="bi bi-trash"></i> {{ enviando() === 'eliminar' ? 'Eliminando…' : 'Eliminar historia' }}
+        </button>
+      </div>
+    </app-modal>
+  }
+
+  @if (confirmando(); as accion) {
+    <app-confirmacion-historia-modal [accion]="accion" [historia]="h" [enviando]="enviando() === accion"
+                                     (confirmar)="ejecutar(accion, $event)" (cancelar)="confirmando.set(null)" />
+  }
+}

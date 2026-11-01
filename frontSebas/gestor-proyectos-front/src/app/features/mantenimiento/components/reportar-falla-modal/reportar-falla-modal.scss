@@ -1,0 +1,143 @@
+.modulo-version { align-items: start; }
+
+.modulos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.modulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+  color: var(--tinta);
+  cursor: pointer;
+
+  &.elegido {
+    border: 2px solid var(--morado);
+    background: var(--morado-suave);
+    color: var(--morado);
+  }
+}
+
+.version {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  background: var(--fondo-pagina);
+  color: var(--tinta);
+}
+
+// ─── Severidad: radio en tarjeta, con la ruta que tomará ─────────────────────
+.severidades {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.severidad {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--blanco);
+  text-align: left;
+  cursor: pointer;
+
+  strong { color: var(--tono-texto); }
+
+  small {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--texto-suave);
+  }
+
+  .radio {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 0.2rem;
+    border: 2px solid var(--borde-fuerte);
+    border-radius: 50%;
+  }
+
+  &.elegida {
+    border: 2px solid var(--tono-texto);
+    background: var(--tono-fondo);
+
+    .radio {
+      border: 5px solid var(--tono-texto);
+    }
+  }
+}
+
+.ruta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 6px;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.72rem;
+  font-weight: 600;
+
+  &.hotfix {
+    background: var(--rojo-suave);
+    color: var(--rojo);
+  }
+}
+
+.subir {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px dashed var(--borde);
+  border-radius: 10px;
+  background: var(--fondo-pagina);
+  color: var(--texto-suave);
+  font: inherit;
+  cursor: not-allowed;
+}
+
+// "Irá por hotfix" en rojo; "Irá con la siguiente fase" en gris.
+.destino {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  background: var(--fondo-pagina);
+
+  > i { color: var(--texto-suave); }
+
+  strong { color: var(--tinta); }
+
+  p {
+    margin: 0.2rem 0 0;
+    color: var(--texto-suave);
+    font-size: 0.9rem;
+  }
+
+  &.hotfix {
+    background: var(--rojo-suave);
+
+    > i,
+    strong { color: var(--rojo); }
+  }
+}
+
+@media (max-width: 640px) {
+  .severidades { grid-template-columns: 1fr; }
+}

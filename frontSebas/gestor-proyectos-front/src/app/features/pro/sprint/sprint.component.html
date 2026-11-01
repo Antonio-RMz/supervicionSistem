@@ -1,0 +1,58 @@
+<div class="feature-page sprint-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <button class="btn-regresar" (click)="volver()">
+        <i class="bi bi-chevron-left"></i> Regresar
+      </button>
+      <div>
+        <h1 class="page-title">Sprint Planning</h1>
+        <p class="page-subtitle">Vista de solo lectura · Tablero kanban actual</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kanban board -->
+  <div class="kanban-board">
+    @for (col of columnas(); track col.id) {
+      <div class="kanban-col">
+        <!-- Cabecera de columna -->
+        <div class="col-header" [class]="col.colorClass">
+          <div class="col-header-left">
+            <i class="bi" [class]="col.icon"></i>
+            <span class="col-label">{{ col.label }}</span>
+          </div>
+          <div class="col-badges">
+            <span class="col-count">{{ col.cards.length }}</span>
+            <span class="col-pts" title="Story points">
+              <i class="bi bi-diamond-fill"></i> {{ totalPuntos(col) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Tarjetas -->
+        <div class="col-cards">
+          @for (card of col.cards; track card.id) {
+            <div class="kanban-card">
+              <div class="card-top">
+                <span class="card-codigo">{{ card.codigo }}</span>
+                <span class="card-pts"><i class="bi bi-diamond-fill"></i> {{ card.puntos }}</span>
+              </div>
+              <p class="card-titulo">{{ card.titulo }}</p>
+              <div class="card-assignee">
+                <span class="avatar-sm" [style.background]="card.color">{{ card.assignee }}</span>
+              </div>
+            </div>
+          } @empty {
+            <div class="col-empty">
+              <i class="bi bi-inbox"></i>
+              <span>Sin ítems</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+</div>

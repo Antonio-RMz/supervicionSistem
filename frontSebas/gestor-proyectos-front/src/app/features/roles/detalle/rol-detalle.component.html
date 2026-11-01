@@ -1,0 +1,187 @@
+<!-- ─── Loading ──────────────────────────────────────────────────────────────── -->
+@if (cargandoRol()) {
+  <div class="rd-state-center">
+    <div class="spinner-ring"></div>
+    <p class="rd-state-text">Cargando rol...</p>
+  </div>
+}
+
+<!-- ─── Contenido ─────────────────────────────────────────────────────────────── -->
+@if (!cargandoRol() && rol(); as r) {
+  <div class="feature-page">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <a routerLink="/roles" class="rd-btn-back" title="Volver a Roles">
+          <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="page-header-icon">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <div>
+          <h1 class="page-title">{{ r.nombreRol }}</h1>
+          <p class="page-subtitle">{{ r.DescripcionRol }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card con tabs -->
+    <div class="card rd-card">
+
+      <!-- Nav de tabs -->
+      <div class="rd-tab-nav">
+        <button
+          class="rd-tab-btn"
+          [class.rd-tab-btn--active]="tabActiva() === 'info'"
+          (click)="cambiarTab('info')"
+        >
+          <i class="bi bi-info-circle"></i>
+          Información del Rol
+        </button>
+        <button
+          class="rd-tab-btn"
+          [class.rd-tab-btn--active]="tabActiva() === 'permisos'"
+          (click)="cambiarTab('permisos')"
+        >
+          <i class="bi bi-key-fill"></i>
+          Permisos Asignados
+          <span class="rd-tab-count">{{ conteoActivos() }}</span>
+        </button>
+      </div>
+
+      <!-- ── Tab: Información ──────────────────────────────────────────────── -->
+      @if (tabActiva() === 'info') {
+        <div class="rd-tab-body">
+          <div class="rd-info-grid">
+            <div class="rd-info-item">
+              <span class="rd-info-label">ID</span>
+              <span class="rd-info-value">{{ r.id }}</span>
+            </div>
+            <div class="rd-info-item">
+              <span class="rd-info-label">Nombre del Rol</span>
+              <span class="rd-info-value rd-nombre">{{ r.nombreRol }}</span>
+            </div>
+            <div class="rd-info-item rd-info-item--full">
+              <span class="rd-info-label">Descripción</span>
+              <span class="rd-info-value">{{ r.DescripcionRol }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ── Tab: Permisos ─────────────────────────────────────────────────── -->
+      @if (tabActiva() === 'permisos') {
+        <div class="rd-tab-body">
+
+          @if (cargandoPermisos()) {
+            <div class="rd-state-center">
+              <div class="spinner-ring"></div>
+              <p class="rd-state-text">Cargando permisos...</p>
+            </div>
+          }
+
+          @if (!cargandoPermisos() && errorPermisos()) {
+            <div class="rd-state-center">
+              <i class="bi bi-wifi-off rd-state-icon text-danger"></i>
+              <p class="rd-state-text">{{ errorPermisos() }}</p>
+              <button class="btn-reintentar" (click)="reintentarPermisos()">
+                <i class="bi bi-arrow-clockwise me-1"></i> Reintentar
+              </button>
+            </div>
+          }
+
+          @if (!cargandoPermisos() && !errorPermisos()) {
+            <!-- Barra de herramientas -->
+            <div class="rd-permisos-toolbar">
+              <div class="rd-search-wrap">
+                <i class="bi bi-search rd-search-icon"></i>
+                <input
+                  class="rd-search-input"
+                  type="text"
+                  placeholder="Buscar por nombre o path..."
+                  [value]="busquedaPermiso()"
+                  (input)="onBusqueda($event)"
+                >
+              </div>
+
+              <div class="rd-toolbar-right">
+                @if (hayCambios()) {
+                  <span class="rd-cambios-hint">
+                    <i class="bi bi-pencil-fill"></i>
+                    {{ pendienteAgregar().size + pendienteQuitar().size }} cambio(s)
+                  </span>
+                }
+                <button
+                  class="rd-btn-guardar"
+                  [disabled]="!hayCambios() || guardando()"
+                  (click)="guardar()"
+                >
+                  @if (guardando()) {
+                    <span class="rd-spinner"></span> Guardando...
+                  } @else {
+                    <i class="bi bi-floppy"></i> Guardar cambios
+                  }
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla -->
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Nombre del Permiso</th>
+                    <th scope="col">Descripción</th>
+                    <th scope="col">Método HTTP</th>
+                    <th scope="col">Path</th>
+                    <th scope="col" class="text-center">Activo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (permisosFiltrados().length === 0) {
+                    <tr>
+                      <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                        @if (busquedaPermiso()) {
+                          Sin resultados para "<strong>{{ busquedaPermiso() }}</strong>"
+                        } @else {
+                          No hay permisos registrados
+                        }
+                      </td>
+                    </tr>
+                  }
+                  @for (p of permisosFiltrados(); track p.id; let i = $index) {
+                    <tr>
+                      <td class="text-muted" style="width: 36px;">{{ i + 1 }}</td>
+                      <td class="rd-permiso-nombre">{{ p.nombre }}</td>
+                      <td class="text-muted">{{ p.descripcion }}</td>
+                      <td>
+                        <span [class]="'rd-method rd-method--' + p.metodoHttp.toLowerCase()">
+                          {{ p.metodoHttp }}
+                        </span>
+                      </td>
+                      <td><code class="rd-path">{{ p.path }}</code></td>
+                      <td class="text-center">
+                        <label class="rd-check-wrap">
+                          <input
+                            type="checkbox"
+                            class="rd-check"
+                            [checked]="estaActivo(p)"
+                            (change)="togglePermiso(p)"
+                          >
+                        </label>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  </div>
+}

@@ -1,0 +1,96 @@
+<header class="app-header">
+
+  <div class="header-left">
+    <button class="btn-toggle" type="button" (click)="onToggleSidebar()" title="Alternar menú">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <nav class="topbar-breadcrumb d-none d-md-flex" aria-label="Navegación">
+      @if (breadcrumb.items().length > 0) {
+        @for (item of breadcrumb.items(); track item.label; let last = $last; let first = $first) {
+          @if (!first) {
+            <i class="bi bi-chevron-right bc-sep" aria-hidden="true"></i>
+          }
+          @if (!last && item.routerLink) {
+            <a [routerLink]="item.routerLink" class="bc-link">{{ item.label }}</a>
+          } @else {
+            <span [class]="last ? 'bc-current' : 'bc-link'">{{ item.label }}</span>
+          }
+        }
+      } @else {
+        <a [routerLink]="'/dashboard'" class="bc-link" title="Inicio">
+          <i class="bi bi-house-fill" aria-hidden="true"></i>
+        </a>
+      }
+    </nav>
+  </div>
+
+  <div class="header-right">
+
+    <!-- ── Campana de notificaciones ──────────────────────────────────────── -->
+    <button
+      class="header-action"
+      type="button"
+      title="Notificaciones"
+      [class.active]="notifPanelOpen()"
+      (click)="toggleNotifPanel()"
+    >
+      <i class="bi bi-bell"></i>
+      @if (hayNoLeidas()) {
+        <span class="badge-dot"></span>
+      }
+    </button>
+
+    <div class="header-divider"></div>
+
+    <!-- ── Dropdown de usuario ─────────────────────────────────────────────── -->
+    @if (session.usuario(); as user) {
+      <div class="user-dropdown" [class.open]="dropdownOpen()">
+
+        <button
+          class="user-btn"
+          type="button"
+          [attr.aria-expanded]="dropdownOpen()"
+          aria-haspopup="true"
+          (click)="toggleDropdown($event)"
+        >
+          <div class="user-avatar">{{ iniciales() }}</div>
+          <div class="user-info d-none d-sm-block">
+            <span class="user-name">{{ user.nombre }} {{ user.apellido }}</span>
+            <span class="user-role">{{ user.rol }}</span>
+          </div>
+          <i class="bi bi-chevron-down chevron d-none d-sm-block"
+             [class.chevron-up]="dropdownOpen()"></i>
+        </button>
+
+        @if (dropdownOpen()) {
+          <ul class="dropdown-panel" role="menu" (click)="dropdownOpen.set(false)">
+
+            <li class="dp-header" role="presentation">
+              <div class="dp-user-name">{{ user.nombre }} {{ user.apellido }}</div>
+              <div class="dp-user-email">{{ user.email }}</div>
+            </li>
+
+            <li class="dp-divider" role="presentation"></li>
+
+            <li role="presentation">
+              <button class="dp-item dp-item-danger" type="button" role="menuitem" (click)="onLogout()">
+                <i class="bi bi-box-arrow-right"></i> Salir
+              </button>
+            </li>
+
+          </ul>
+        }
+
+      </div>
+    }
+  </div>
+
+</header>
+
+<!-- ── Panel de notificaciones (position: fixed, fuera del flujo) ─────────── -->
+<app-notificaciones-panel
+  [open]="notifPanelOpen()"
+  [notificaciones]="notificaciones()"
+  (cerrar)="notifPanelOpen.set(false)"
+/>

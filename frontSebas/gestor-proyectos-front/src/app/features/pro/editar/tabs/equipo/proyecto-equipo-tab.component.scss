@@ -1,0 +1,134 @@
+.equipo-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// ─── Cabecera de sección ──────────────────────────────────────────────────────
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.section-icon {
+  font-size: 1.4rem;
+  color: #4361ee;
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #14172b;
+  margin: 0 0 0.15rem;
+}
+
+.section-desc {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.btn-add-member {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 9px;
+  border: none;
+  background: #4361ee;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 0.45;
+
+  i { font-size: 0.85rem; }
+}
+
+// ─── Tabla ────────────────────────────────────────────────────────────────────
+.members-table-wrap {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #f0f2f5;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.members-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead tr {
+    background: #fafbff;
+    border-bottom: 1.5px solid #f0f2f5;
+  }
+
+  th {
+    padding: 0.75rem 1.25rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+
+    &.col-actions { text-align: right; }
+  }
+}
+
+// ─── Estado vacío ────────────────────────────────────────────────────────────
+.empty-row td { padding: 0; }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  color: #d1d5db;
+}
+
+.empty-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+}
+
+.empty-desc {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  margin: 0;
+  max-width: 380px;
+  line-height: 1.6;
+}
+
+.coming-soon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  margin-top: 0.25rem;
+
+  i { font-size: 0.7rem; }
+}

@@ -1,0 +1,412 @@
+// ─── Tabla ───────────────────────────────────────────────────────────────────
+.usuario-nombre {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #14172b;
+}
+
+.badge-pass-temp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 0.1rem 0.5rem;
+  border-radius: 20px;
+  margin-top: 0.2rem;
+
+  i { font-size: 0.62rem; }
+}
+
+.rol-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.22rem 0.65rem;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+
+  &.badge-admin    { background: #ede9fe; color: #5b21b6; }
+  &.badge-analista { background: #dbeafe; color: #1e40af; }
+  &.badge-lider    { background: #fef3c7; color: #92400e; }
+  &.badge-dev      { background: #d1fae5; color: #065f46; }
+  &.badge-tester   { background: #fce7f3; color: #9d174d; }
+  &.badge-default  { background: #f3f4f6; color: #6b7280; }
+}
+
+.btn-accion {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  font-size: 0.8rem;
+}
+
+// ─── Estados vacíos / cargando ────────────────────────────────────────────────
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+}
+
+.estado-icon  { font-size: 2.5rem; }
+.estado-texto { font-size: 0.9rem; color: #6c757d; margin: 0; }
+
+.spinner-ring {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e9ecef;
+  border-top-color: #4361ee;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.btn-reintentar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #4361ee;
+  background: transparent;
+  color: #4361ee;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+
+  &:hover { background: #4361ee; color: #fff; }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// =============================================================================
+// MODAL — clases con prefijo "u-" para evitar colisiones con Bootstrap 5.
+//
+// Bootstrap define:
+//   .modal-dialog   { pointer-events: none }   ← cierra el modal en cada click
+//   .modal-backdrop { z-index: 1050 }
+//   .modal-header / .modal-body / .modal-footer con bordes y padding propios
+//
+// Al usar "u-" ninguna regla global de Bootstrap aplica a estos elementos.
+// =============================================================================
+
+// ─── Backdrop ─────────────────────────────────────────────────────────────────
+.u-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  cursor: default;
+  animation: u-fade-in 0.15s ease;
+}
+
+@keyframes u-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ─── Panel principal (crear / editar) ────────────────────────────────────────
+.u-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 1001;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22);
+  animation: u-appear 0.18s ease;
+}
+
+.u-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.75rem 0;
+}
+
+.u-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #14172b;
+  margin: 0;
+  i { color: #4361ee; }
+}
+
+.u-btn-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: #f3f4f6;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 0.82rem;
+
+  &:hover { background: #e5e7eb; color: #374151; }
+}
+
+.u-panel-body { padding: 1.5rem 1.75rem 1.75rem; }
+
+.u-panel-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+// ─── Confirm dialog ───────────────────────────────────────────────────────────
+.u-confirm {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 380px;
+  z-index: 1001;
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: u-appear 0.18s ease;
+}
+
+.u-confirm-icon {
+  font-size: 2.2rem;
+  color: #f59e0b;
+  margin-bottom: 1rem;
+
+  &--warn { color: #f59e0b; }
+}
+.u-confirm-title { font-size: 1.05rem; font-weight: 700; color: #14172b; margin: 0 0 0.4rem; }
+.u-confirm-text  { font-size: 0.85rem; color: #6c757d; margin: 0 0 1.5rem; }
+
+.u-confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+@keyframes u-appear {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 10px)); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+// ─── Formulario ──────────────────────────────────────────────────────────────
+.u-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.u-form-field { margin-bottom: 1.1rem; }
+
+.u-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.4rem;
+}
+
+.u-required { color: #e63946; }
+
+.u-input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  color: #14172b;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.18s, background 0.18s;
+  box-sizing: border-box;
+  font-family: inherit;
+
+  &:focus {
+    border-color: #4361ee;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+  }
+
+  &::placeholder { color: #c4c9d4; }
+}
+
+select.u-input { cursor: pointer; }
+
+// ─── Contraseña temporal ─────────────────────────────────────────────────────
+.u-pass-box {
+  border: 1.5px solid #fde68a;
+  background: #fffbeb;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.u-pass-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 0.5rem;
+
+  i { font-size: 0.72rem; }
+}
+
+.u-pass-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.u-pass-value {
+  flex: 1;
+  font-family: 'Courier New', monospace;
+  font-size: 0.88rem;
+  color: #14172b;
+  background: #fff;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  word-break: break-all;
+  letter-spacing: 0.5px;
+}
+
+.u-pass-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 7px;
+  border: 1.5px solid #f59e0b;
+  background: #fff;
+  color: #92400e;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+
+  i { font-size: 0.78rem; }
+
+  &:hover {
+    background: #fef3c7;
+  }
+}
+
+// ─── Hint informativo ─────────────────────────────────────────────────────────
+.u-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #6b7280;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0;
+  line-height: 1.5;
+
+  i { font-size: 0.8rem; color: #4361ee; flex-shrink: 0; margin-top: 0.05rem; }
+}
+
+// ─── Botones compartidos ──────────────────────────────────────────────────────
+.u-btn-cancel {
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { background: #f3f4f6; }
+}
+
+.u-btn-deactivate {
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #d97706; }
+}
+
+.u-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.4rem;
+  border-radius: 8px;
+  border: none;
+  background: #4361ee;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+
+  &:hover:not(:disabled) { background: #3451d1; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.u-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 576px) {
+  .u-form-row { grid-template-columns: 1fr; }
+
+  .u-panel,
+  .u-confirm {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    max-height: 90dvh;
+    border-radius: 18px 18px 0 0;
+  }
+}

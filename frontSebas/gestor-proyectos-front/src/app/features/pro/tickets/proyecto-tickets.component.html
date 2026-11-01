@@ -1,0 +1,299 @@
+<!-- ─── Loading inicial ──────────────────────────────────────────────────────── -->
+@if (loadingInit()) {
+  <div class="tc-init-center">
+    <div class="tc-spinner-ring"></div>
+    <p class="tc-init-text">Cargando tickets...</p>
+  </div>
+}
+
+<!-- ─── Error ───────────────────────────────────────────────────────────────── -->
+@if (!loadingInit() && error()) {
+  <div class="tc-init-center">
+    <i class="bi bi-wifi-off tc-error-icon text-danger"></i>
+    <p class="tc-init-text">{{ error() }}</p>
+    <a routerLink="/pro" class="tc-btn-outline">
+      <i class="bi bi-chevron-left"></i> Volver a proyectos
+    </a>
+  </div>
+}
+
+<!-- ─── Página principal ──────────────────────────────────────────────────────── -->
+@if (!loadingInit() && !error() && proyecto(); as p) {
+  <div class="tc-page">
+
+    <!-- ════ ENCABEZADO DEL MÓDULO ══════════════════════════════════════════════ -->
+    <div class="tc-page-header">
+
+      <!-- Izquierda: icono + título + descripción contextual -->
+      <div class="tc-ph-info">
+        <div class="tc-ph-icon" [style.background]="nivelIconoBg()" [style.color]="nivelIconoColor()">
+          <i [class]="nivelIcono()"></i>
+        </div>
+        <div class="tc-ph-text">
+          <h2 class="tc-ph-title">{{ nivelTitulo() }}</h2>
+          <p class="tc-ph-desc">{{ nivelDescripcion() }}</p>
+        </div>
+      </div>
+
+      <!-- Derecha: navegación + acciones -->
+      <div class="tc-ph-actions">
+
+        @if (nivelActual() !== 'fases') {
+          <button class="tc-btn-volver" (click)="volverContextual()">
+            <i class="bi bi-arrow-left"></i>
+            {{ backLabel() }}
+          </button>
+          <span class="tc-ph-sep"></span>
+        }
+
+        <!-- Ordenar -->
+        <div class="tc-dropdown-wrap">
+          <button class="tc-filtro-btn" (click)="toggleDropdownOrden($event)">
+            <i class="bi bi-sort-down-alt"></i>
+            {{ sortLabel() }}
+            <i class="bi bi-chevron-down tc-filtro-chevron" [class.open]="dropdownOrdenOpen()"></i>
+          </button>
+          @if (dropdownOrdenOpen()) {
+            <ul class="tc-dropdown-panel tc-dropdown-panel-right" (click)="$event.stopPropagation()">
+              @for (opt of ordenOpciones; track opt.value) {
+                <li>
+                  <button class="tc-dropdown-opt" [class.selected]="ordenarPor() === opt.value"
+                          (click)="setOrden(opt.value)">
+                    <i class="bi bi-check2" [class.visible]="ordenarPor() === opt.value"></i>
+                    {{ opt.label }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- Crear ticket -->
+        <div class="tc-crear-wrap">
+          <button class="tc-btn-crear" (click)="toggleCrear($event)">
+            <i class="bi bi-plus-lg"></i>
+            Crear ticket
+            <i class="bi bi-chevron-down tc-crear-chevron" [class.open]="crearMenuOpen()"></i>
+          </button>
+          @if (crearMenuOpen()) {
+            <ul class="tc-crear-menu" (click)="$event.stopPropagation()">
+              @for (op of opcionesCrearActuales(); track op.tipo) {
+                <li>
+                  <button class="tc-crear-item" (click)="crearTicket(op.tipo)">
+                    <span class="tc-crear-dot" [style.background]="op.color"></span>
+                    <i class="bi" [class]="op.icon" [style.color]="op.color"></i>
+                    {{ op.label }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ════ CONTENIDO JERÁRQUICO ════════════════════════════════════════════ -->
+    <div class="tc-content">
+
+      <!-- Skeleton de carga -->
+      @if (loadingGrid()) {
+        <div class="tc-grid">
+          @for (i of skeletons; track i) {
+            <div class="tc-card-skeleton">
+              <div class="sk-top"></div>
+              <div class="sk-title"></div>
+              <div class="sk-desc"></div>
+              <div class="sk-badges"></div>
+              <div class="sk-footer"></div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (!loadingGrid()) {
+        <div class="tc-nivel" [class]="animClass()">
+
+          <!-- ── Estado vacío ──────────────────────────────────────────────── -->
+          @if (tarjetasActuales().length === 0) {
+            <div class="tc-empty-state">
+              <div class="tc-empty-icon-wrap">
+                @if (nivelActual() === 'fases')      { <i class="bi bi-layers"></i> }
+                @if (nivelActual() === 'historias')  { <i class="bi bi-journal-text"></i> }
+                @if (nivelActual() === 'actividades'){ <i class="bi bi-check2-square"></i> }
+              </div>
+              @if (nivelActual() === 'fases') {
+                <h3>Sin fases</h3>
+                <p>Este proyecto no tiene fases definidas.</p>
+              }
+              @if (nivelActual() === 'historias') {
+                <h3>Sin historias</h3>
+                <p>Esta fase no tiene historias de usuario.</p>
+                <button class="tc-btn-outline" (click)="volverAFases()">
+                  <i class="bi bi-arrow-left"></i> Volver
+                </button>
+              }
+              @if (nivelActual() === 'actividades') {
+                <h3>Sin tickets</h3>
+                <p>Esta historia no tiene tickets asignados.</p>
+                <button class="tc-btn-outline" (click)="volverAHistorias()">
+                  <i class="bi bi-arrow-left"></i> Volver
+                </button>
+              }
+            </div>
+          }
+
+          <!-- ── Grid de tarjetas ──────────────────────────────────────────── -->
+          @if (tarjetasActuales().length > 0) {
+            <div class="tc-grid">
+              @for (ticket of tarjetasActuales(); track ticket.id) {
+                <article
+                  class="tc-card"
+                  [class.tc-card--fase]="ticket.tipo?.codigo === 'FASE'"
+                >
+                  <app-ticket-ribbon [tipo]="ticket.tipo?.codigo ?? ''" />
+
+                  <!-- Folio + menú contextual -->
+                  <div class="tc-card-top">
+                    <span class="tc-card-folio">{{ ticket.folio }}</span>
+                    <div class="tc-card-menu-wrap" (click)="$event.stopPropagation()">
+                      <button class="tc-menu-btn" [class.open]="menuAbiertoId === ticket.id"
+                              (click)="toggleMenu(ticket.id, $event)" title="Acciones">
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      @if (menuAbiertoId === ticket.id) {
+                        <ul class="tc-menu-panel" role="menu">
+                          <li role="presentation">
+                            <button class="tc-menu-item" role="menuitem" (click)="verDetalle(ticket)">
+                              <i class="bi bi-eye"></i> Ver detalle
+                            </button>
+                          </li>
+                          <li class="tc-menu-sep" role="presentation"></li>
+                          <li role="presentation">
+                            <button class="tc-menu-item" role="menuitem"
+                                    (click)="copiarEnlace(ticket.folio, $event)">
+                              <i class="bi bi-link-45deg"></i> Copiar enlace
+                            </button>
+                          </li>
+                          <li role="presentation">
+                            <button class="tc-menu-item tc-menu-item--danger" role="menuitem"
+                                    (click)="verDetalle(ticket)">
+                              <i class="bi bi-trash3"></i> Eliminar
+                            </button>
+                          </li>
+                        </ul>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Título -->
+                  <h3 class="tc-card-title">{{ ticket.titulo }}</h3>
+
+                  <!-- Descripción corta -->
+                  @if (ticket.descripcionCorta) {
+                    <p class="tc-card-desc">{{ ticket.descripcionCorta }}</p>
+                  }
+
+                  <!-- Padre / módulo -->
+                  @if (ticket.folioTicketPadre) {
+                    <div class="tc-card-parent">
+                      <i class="bi bi-diagram-2" aria-hidden="true"></i>
+                      <span class="tc-parent-folio">{{ ticket.folioTicketPadre }}</span>
+                      @if (ticket.tituloTicketPadre) {
+                        <span class="tc-parent-sep">•</span>
+                        <span class="tc-parent-title">{{ ticket.tituloTicketPadre }}</span>
+                      }
+                    </div>
+                  }
+
+                  <!-- Estado y prioridad -->
+                  <div class="tc-card-badges">
+                    @if (ticket.estado) {
+                      <span class="tc-estado-badge" [class]="estadoCss(ticket.estado.nombre)">
+                        {{ ticket.estado.nombre }}
+                      </span>
+                    }
+                    @if (ticket.prioridad) {
+                      <span class="tc-prio-badge" [class]="prioridadCss(ticket.prioridad.nombre)">
+                        <i class="bi" [class]="prioridadIcon(ticket.prioridad.nombre)" aria-hidden="true"></i>
+                        {{ ticket.prioridad.nombre }}
+                      </span>
+                    }
+                  </div>
+
+                  <div class="tc-card-sep"></div>
+
+                  <!-- Responsable y fecha -->
+                  <div class="tc-card-footer">
+                    @if (ticket.responsable) {
+                      <div class="tc-responsable">
+                        <div class="tc-avatar" [style.background]="avatarColor(ticket.responsable.id)">
+                          {{ ticket.responsable.iniciales }}
+                        </div>
+                        <span class="tc-responsable-nombre">{{ ticket.responsable.nombre }}</span>
+                      </div>
+                    } @else {
+                      <span class="tc-sin-asignar">Sin asignar</span>
+                    }
+                    @if (ticket.fechaVencimiento) {
+                      <span class="tc-fecha" [class.tc-fecha--vencida]="estaVencido(ticket)">
+                        <i class="bi bi-calendar3" aria-hidden="true"></i>
+                        {{ formatFecha(ticket.fechaVencimiento) }}
+                      </span>
+                    }
+                  </div>
+
+                  <!-- Progreso -->
+                  <div class="tc-card-prog">
+                    <div class="tc-prog-track">
+                      <div class="tc-prog-fill"
+                           [class]="progresoCssByEstado(ticket)"
+                           [style.width.%]="inferirProgreso(ticket)"></div>
+                    </div>
+                    <span class="tc-prog-pct">{{ inferirProgreso(ticket) }}%</span>
+                  </div>
+
+                  <!-- Botones de acción -->
+                  <div class="tc-card-actions" (click)="$event.stopPropagation()">
+                    @if (esNavegable(ticket.tipo?.codigo)) {
+                      <button class="tc-action-btn tc-action-btn--explore"
+                              (click)="explorar(ticket)">
+                        <i class="bi bi-folder2-open"></i> Explorar
+                      </button>
+                    }
+                    <button class="tc-action-btn tc-action-btn--detail"
+                            (click)="verDetalle(ticket)">
+                      <i class="bi bi-eye"></i> Ver detalle
+                    </button>
+                  </div>
+
+                </article>
+              }
+            </div>
+          }
+
+        </div>
+      }
+
+    </div>
+
+  </div>
+
+  <!-- ════ MODALES ════════════════════════════════════════════════════════════ -->
+  @if (modalCrearFaseOpen()) {
+    <app-crear-fase-modal
+      [proyectoId]="proyectoId"
+      (faseCreadaEvent)="onFaseCreada($event)"
+      (cerrar)="modalCrearFaseOpen.set(false)"
+    />
+  }
+
+  @if (modalCrearHistoriaOpen()) {
+    <app-crear-historia-modal
+      [proyectoId]="proyectoId"
+      [faseId]="faseSeleccionada()?.id ?? null"
+      (historiaCreada)="onHistoriaCreada()"
+      (cerrar)="modalCrearHistoriaOpen.set(false)"
+    />
+  }
+}

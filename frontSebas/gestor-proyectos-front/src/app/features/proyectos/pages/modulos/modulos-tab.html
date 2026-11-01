@@ -1,0 +1,159 @@
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else if (modulos(); as ms) {
+  <div class="intro">
+    <p>Cada repositorio es una parte del sistema con su tecnología, URL y ambientes. Puede haber varios del mismo tipo (ej. un microservicio por API). Los tickets se asignan a un repositorio.</p>
+    @if (ms.puedeGestionar) {
+      <button type="button" class="boton boton-primario" [disabled]="enviando()" (click)="abrirAgregar()">
+        <i class="bi bi-plus-lg"></i> Agregar repositorio
+      </button>
+    }
+  </div>
+
+  @if (ms.modulos.length) {
+    <section class="tarjeta lista">
+      <div class="tabla">
+        <table>
+          <thead>
+            <tr>
+              <th>Repositorio</th>
+              <th>Tecnología</th>
+              <th>URL</th>
+              @for (a of ms.modulos[0].ambientes; track a.nombre) {
+                <th>{{ a.nombre }}</th>
+              }
+              <th>Último build</th>
+              <th title="Por hacer · En progreso · En QA">Tickets abiertos</th>
+              <th>Responsable</th>
+              @if (ms.puedeGestionar) {
+                <th><span class="solo-lectores">Acciones</span></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of ms.modulos; track m.id) {
+              <tr>
+                <td>
+                  <div class="modulo">
+                    <span class="icono tono-{{ m.info.tono }}"><i class="bi {{ m.info.icono }}"></i></span>
+                    <div>
+                      <strong>{{ m.nombre }}</strong>
+                      <small class="tono-{{ m.info.tono }}">{{ m.info.largo }}</small>
+                    </div>
+                    @if (m.bugsProduccion) {
+                      <span class="bugs" [title]="m.bugsProduccion + (m.bugsProduccion === 1 ? ' bug en producción' : ' bugs en producción') + ' (Mantenimiento)'">
+                        <i class="bi bi-bug"></i> {{ m.bugsProduccion }}
+                      </span>
+                    }
+                  </div>
+                </td>
+                <td class="tecnologia">{{ m.tecnologias.join(' · ') || '—' }}</td>
+                <td>
+                  @if (m.repositorioUrl) {
+                    <a class="repo" [href]="m.repositorioUrl" target="_blank" rel="noopener">{{ m.repositorio }}</a>
+                  } @else {
+                    <span class="suave">{{ m.repositorio ?? 'Sin repositorio' }}</span>
+                  }
+                  <span class="rama">{{ m.ramaBase }}</span>
+                </td>
+                @for (a of m.ambientes; track a.nombre) {
+                  <td [title]="a.texto"><span class="punto tono-{{ a.tono }}"></span> {{ a.version ?? '—' }}</td>
+                }
+                <td>
+                  @if (m.build; as b) {
+                    <span class="build tono-{{ b.tono }}">
+                      <i class="bi" [class.bi-check-lg]="b.tono === 'verde'" [class.bi-x-lg]="b.tono === 'rojo'"
+                         [class.bi-arrow-repeat]="b.tono === 'ambar'"></i>
+                      {{ b.texto }}
+                    </span>
+                  } @else {
+                    <span class="suave">Sin CI</span>
+                  }
+                </td>
+                <td class="conteos" title="Por hacer · En progreso · En QA">
+                  {{ m.porHacer }} · {{ m.enProgreso }} · {{ m.enQa }}
+                </td>
+                <td>{{ m.responsable?.nombre ?? 'Sin asignar' }}</td>
+                @if (ms.puedeGestionar) {
+                  <td class="acciones">
+                    <button type="button" class="icono-boton" (click)="abrirEditar(m)" title="Editar {{ m.nombre }}">
+                      <i class="bi bi-pencil"></i><span class="solo-lectores">Editar {{ m.nombre }}</span>
+                    </button>
+                    <button type="button" class="icono-boton peligro" [disabled]="m.conTrabajo || enviando()"
+                            [title]="m.conTrabajo ? 'Ya tiene tickets, fases o PR: no se puede quitar' : 'Quitar ' + m.nombre"
+                            (click)="quitar(m)">
+                      <i class="bi bi-trash"></i><span class="solo-lectores">Quitar {{ m.nombre }}</span>
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  } @else {
+    <p class="vacio tarjeta">El proyecto aún no tiene repositorios.</p>
+  }
+
+  @if (editando(); as e) {
+    <app-modal [titulo]="e.id === null ? 'Agregar repositorio' : 'Editar ' + e.datos.nombre"
+               subtitulo="Una parte del sistema con su propia tecnología y su URL." (cerrar)="editando.set(null)">
+      <form id="form-modulo" class="formulario" (submit)="$event.preventDefault(); guardar()" novalidate>
+        <div class="campo">
+          <span>Tipo <b>*</b></span>
+          <div class="tipos" role="radiogroup" aria-label="Tipo de repositorio">
+            @for (t of tipos; track t.tipo) {
+              <label class="tipo" [class.elegido]="e.datos.tipo === t.tipo">
+                <input type="radio" name="tipo" [checked]="e.datos.tipo === t.tipo" (change)="cambiar('tipo', t.tipo)" />
+                <i class="bi {{ t.info.icono }}"></i> {{ t.info.largo }}
+              </label>
+            }
+          </div>
+        </div>
+        <label class="campo">
+          <span>Nombre <b>*</b></span>
+          <input type="text" maxlength="60" placeholder="Ej. portal-api" [value]="e.datos.nombre"
+                 [class.con-error]="intentado() && !e.datos.nombre.trim()" (input)="cambiar('nombre', $any($event.target).value)" />
+          @if (intentado() && !e.datos.nombre.trim()) {
+            <small class="mensaje-campo">Escribe el nombre del repositorio.</small>
+          }
+        </label>
+        <label class="campo">
+          <span>Tecnología</span>
+          <input type="text" maxlength="80" placeholder="Ej. Java 21 · Spring Boot 3 · MySQL 8" [value]="e.datos.tecnologia"
+                 (input)="cambiar('tecnologia', $any($event.target).value)" />
+          <small class="pista">Separa con · o comas; cada una se ve como etiqueta.</small>
+        </label>
+        <div class="fila">
+          <label class="campo">
+            <span>URL</span>
+            <input type="text" maxlength="200" placeholder="github.com/equipo/portal-api" [value]="e.datos.repositorio"
+                   (input)="cambiar('repositorio', $any($event.target).value)" />
+          </label>
+          <label class="campo">
+            <span>Rama base</span>
+            <input type="text" maxlength="60" [value]="e.datos.ramaBase" (input)="cambiar('ramaBase', $any($event.target).value)" />
+          </label>
+        </div>
+        <label class="campo">
+          <span>Responsable técnico</span>
+          <select (change)="cambiar('responsableId', $any($event.target).value ? +$any($event.target).value : null)">
+            <option value="" [selected]="e.datos.responsableId === null">Sin asignar</option>
+            @for (p of personas(); track p.id) {
+              <option [value]="p.id" [selected]="p.id === e.datos.responsableId">{{ p.nombre }}</option>
+            }
+          </select>
+        </label>
+      </form>
+      <div pie class="botones">
+        <button type="button" class="boton boton-secundario" (click)="editando.set(null)">Cancelar</button>
+        <button type="submit" form="form-modulo" class="boton boton-primario" [disabled]="enviando()">
+          {{ enviando() ? 'Guardando…' : e.id === null ? 'Agregar repositorio' : 'Guardar' }}
+        </button>
+      </div>
+    </app-modal>
+  }
+}

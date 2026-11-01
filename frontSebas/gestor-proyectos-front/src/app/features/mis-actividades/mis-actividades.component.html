@@ -1,0 +1,266 @@
+<div class="ma-page">
+
+  <!-- ── Encabezado ───────────────────────────────────────────────────────────── -->
+  <div class="ma-header">
+    <div class="ma-header-icon">
+      <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
+    </div>
+    <div class="ma-header-text">
+      <h1 class="ma-titulo">Mis actividades</h1>
+      <p class="ma-subtitulo">Visualiza los tickets en los que tienes acciones pendientes</p>
+    </div>
+  </div>
+
+  <!-- ── Filtros (solo si hay datos cargados) ──────────────────────────────────── -->
+  @if (!cargando() && !hayError() && grupos().length > 0) {
+    <div class="ma-filtros">
+
+      <!-- Búsqueda -->
+      <div class="ma-search-wrap">
+        <i class="bi bi-search ma-search-icon" aria-hidden="true"></i>
+        <input
+          class="ma-search-input"
+          type="search"
+          placeholder="Buscar por folio, título o descripción..."
+          [value]="busqueda()"
+          (input)="onBusqueda($event)"
+          aria-label="Buscar tickets"
+        />
+      </div>
+
+      <!-- Tipo -->
+      @if (opcTipos().length > 1) {
+        <div class="ma-select-wrap">
+          <i class="bi bi-tag ma-select-icon" aria-hidden="true"></i>
+          <select class="ma-select" aria-label="Filtrar por tipo" (change)="onFiltroTipo($event)">
+            <option value="">Todos los tipos</option>
+            @for (o of opcTipos(); track o.codigo) {
+              <option [value]="o.codigo" [selected]="filtroTipo() === o.codigo">{{ o.nombre }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <!-- Estado -->
+      @if (opcEstados().length > 1) {
+        <div class="ma-select-wrap">
+          <i class="bi bi-circle-half ma-select-icon" aria-hidden="true"></i>
+          <select class="ma-select" aria-label="Filtrar por estado" (change)="onFiltroEstado($event)">
+            <option value="">Todos los estados</option>
+            @for (o of opcEstados(); track o.codigo) {
+              <option [value]="o.codigo" [selected]="filtroEstado() === o.codigo">{{ o.nombre }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <!-- Prioridad -->
+      @if (opcPrioridades().length > 1) {
+        <div class="ma-select-wrap">
+          <i class="bi bi-flag ma-select-icon" aria-hidden="true"></i>
+          <select class="ma-select" aria-label="Filtrar por prioridad" (change)="onFiltroPrioridad($event)">
+            <option value="">Todas las prioridades</option>
+            @for (o of opcPrioridades(); track o.codigo) {
+              <option [value]="o.codigo" [selected]="filtroPrioridad() === o.codigo">{{ o.nombre }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <!-- Limpiar filtros -->
+      @if (hayFiltros()) {
+        <button class="ma-btn-limpiar" type="button" (click)="limpiarFiltros()">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+          Limpiar
+        </button>
+      }
+
+    </div>
+  }
+
+  <!-- ── Estado: cargando (skeletons) ─────────────────────────────────────────── -->
+  @if (cargando()) {
+    <div class="ma-skeleton-page" aria-busy="true" aria-label="Cargando actividades">
+
+      @for (g of [1, 2]; track g) {
+        <div class="ma-skeleton-grupo">
+          <div class="ma-skeleton-grupo-header">
+            <div class="ma-sk ma-sk--titulo"></div>
+            <div class="ma-sk ma-sk--pill"></div>
+          </div>
+          <div class="ma-grid">
+            @for (c of [1, 2, 3, 4]; track c) {
+              <div class="ma-sk-card">
+                <div class="ma-sk ma-sk--ribbon"></div>
+                <div class="ma-sk ma-sk--folio"></div>
+                <div class="ma-sk ma-sk--h2"></div>
+                <div class="ma-sk ma-sk--h2 ma-sk--short"></div>
+                <div class="ma-sk ma-sk--desc"></div>
+                <div class="ma-sk ma-sk--desc ma-sk--short"></div>
+                <div class="ma-sk-badges">
+                  <div class="ma-sk ma-sk--badge"></div>
+                  <div class="ma-sk ma-sk--badge"></div>
+                </div>
+                <div class="ma-sk ma-sk--sep"></div>
+                <div class="ma-sk ma-sk--footer"></div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ── Estado: error ─────────────────────────────────────────────────────────── -->
+  @if (!cargando() && hayError()) {
+    <div class="ma-empty">
+      <i class="bi bi-wifi-off ma-empty-icon" aria-hidden="true"></i>
+      <p class="ma-empty-titulo">No se pudieron cargar tus actividades</p>
+      <p class="ma-empty-sub">Verifica tu conexión e inténtalo de nuevo.</p>
+      <button class="ma-btn-primary" type="button" (click)="reintentar()">
+        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+        Reintentar
+      </button>
+    </div>
+  }
+
+  <!-- ── Estado: sin actividades ───────────────────────────────────────────────── -->
+  @if (!cargando() && !hayError() && grupos().length === 0) {
+    <div class="ma-empty">
+      <i class="bi bi-lightning ma-empty-icon" aria-hidden="true"></i>
+      <p class="ma-empty-titulo">No tienes actividades pendientes</p>
+      <p class="ma-empty-sub">No tienes actividades pendientes por el momento.</p>
+    </div>
+  }
+
+  <!-- ── Estado: sin resultados con filtros activos ────────────────────────────── -->
+  @if (!cargando() && !hayError() && grupos().length > 0 && gruposFiltrados().length === 0) {
+    <div class="ma-empty">
+      <i class="bi bi-funnel ma-empty-icon" aria-hidden="true"></i>
+      <p class="ma-empty-titulo">Sin resultados</p>
+      <p class="ma-empty-sub">No tienes actividades pendientes con los filtros seleccionados.</p>
+      <button class="ma-btn-outline" type="button" (click)="limpiarFiltros()">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        Quitar filtros
+      </button>
+    </div>
+  }
+
+  <!-- ── Estado: datos cargados ────────────────────────────────────────────────── -->
+  @if (!cargando() && !hayError() && gruposFiltrados().length > 0) {
+    <div class="ma-grupos">
+
+      @for (grupo of gruposFiltrados(); track grupo.proyectoId) {
+        <section class="ma-grupo">
+
+          <!-- Encabezado del proyecto -->
+          <div class="ma-grupo-header">
+            <button
+              class="ma-grupo-toggle"
+              type="button"
+              [attr.aria-expanded]="!estaColapsado(grupo.proyectoId)"
+              [attr.aria-controls]="'grupo-' + grupo.proyectoId"
+              (click)="toggleColapsado(grupo.proyectoId)"
+            >
+              <i
+                class="bi"
+                [class.bi-chevron-down]="!estaColapsado(grupo.proyectoId)"
+                [class.bi-chevron-right]="estaColapsado(grupo.proyectoId)"
+                aria-hidden="true"
+              ></i>
+            </button>
+
+            <span class="ma-grupo-icon">
+              <i class="bi bi-folder2-open" aria-hidden="true"></i>
+            </span>
+
+            <h2 class="ma-grupo-nombre">{{ grupo.nombreProyecto }}</h2>
+
+            <span class="ma-grupo-count">
+              {{ grupo.tickets.length }}&nbsp;ticket{{ grupo.tickets.length !== 1 ? 's' : '' }}
+            </span>
+
+            <div class="ma-grupo-line" aria-hidden="true"></div>
+          </div>
+
+          <!-- Grid de cards -->
+          @if (!estaColapsado(grupo.proyectoId)) {
+            <div
+              class="ma-grid"
+              role="list"
+              [id]="'grupo-' + grupo.proyectoId"
+            >
+              @for (ticket of grupo.tickets; track ticket.id) {
+                <article class="ma-card" role="listitem">
+
+                  <!-- Ribbon de tipo -->
+                  <app-ticket-ribbon [tipo]="ticket.tipo.codigo" />
+
+                  <!-- Folio + tipo nombre -->
+                  <div class="ma-card__top">
+                    <span class="ma-card__folio">{{ ticket.folio }}</span>
+                    <span class="ma-card__tipo-nombre">{{ ticket.tipo.nombre }}</span>
+                  </div>
+
+                  <!-- Título -->
+                  <h3 class="ma-card__titulo">{{ ticket.titulo }}</h3>
+
+                  <!-- Descripción -->
+                  @if (ticket.descripcion) {
+                    <p class="ma-card__desc">{{ ticket.descripcion }}</p>
+                  } @else {
+                    <p class="ma-card__desc ma-card__desc--vacia">Sin descripción</p>
+                  }
+
+                  <!-- Badges: estado + prioridad -->
+                  <div class="ma-card__badges">
+                    <app-estado-badge [estado]="ticket.estado.codigo" size="sm" />
+                    @if (ticket.prioridad) {
+                      <span class="prio-badge" [class]="prioCss(ticket.prioridad)">
+                        {{ ticket.prioridad.nombre }}
+                      </span>
+                    }
+                  </div>
+
+                  <!-- Responsable -->
+                  <div class="ma-card__resp">
+                    <span
+                      class="ma-card__resp-avatar"
+                      [class.sin-asignar]="!ticket.usuarioResponsable"
+                    >
+                      {{ inicialesResponsable(ticket.usuarioResponsable) }}
+                    </span>
+                    <span class="ma-card__resp-nombre">
+                      {{ nombreResponsable(ticket.usuarioResponsable) }}
+                    </span>
+                  </div>
+
+                  <!-- Footer: fecha + botón Ver ticket -->
+                  <div class="ma-card__footer">
+                    <span class="ma-fecha" [class]="fechaCss(ticket)">
+                      <i class="bi bi-calendar3" aria-hidden="true"></i>
+                      {{ formatFecha(ticket) }}
+                    </span>
+                    <button
+                      class="ma-card__btn"
+                      type="button"
+                      (click)="verTicket(ticket.folio)"
+                    >
+                      Ver ticket
+                      <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                    </button>
+                  </div>
+
+                </article>
+              }
+            </div>
+          }
+
+        </section>
+      }
+
+    </div>
+  }
+
+</div>

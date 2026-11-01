@@ -1,0 +1,57 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+h1 { font-size: 1.9rem; }
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.saludo {
+  margin: 0.3rem 0 0;
+  color: var(--texto-suave);
+}
+
+.recargando {
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+// ─── Métricas ────────────────────────────────────────────────────────────────
+.metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.metrica {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem 1.5rem;
+
+  span { color: var(--texto-suave); }
+
+  strong {
+    color: var(--tinta);
+    font-size: 2.1rem;
+    line-height: 1.1;
+  }
+
+  small { color: var(--texto-suave); }
+
+  .alerta { color: var(--rojo); }
+}
+
+.vacio {
+  padding: 2rem;
+  color: var(--texto-suave);
+  text-align: center;
+}

@@ -1,0 +1,209 @@
+@use '../../../../../styles/detalle';
+
+.intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  p {
+    flex: 1;
+    min-width: 260px;
+    margin: 0;
+    color: var(--texto-suave);
+  }
+}
+
+// ─── Tabla de miembros ───────────────────────────────────────────────────────
+// Sin overflow para que el menú de cada fila no se recorte; en pantallas chicas se desplaza de lado.
+.tabla { overflow: visible; }
+
+@media (max-width: 760px) {
+  .tabla { overflow-x: auto; }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  padding: 0.85rem 1.25rem;
+  background: var(--fondo-pagina);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid var(--borde);
+  vertical-align: middle;
+}
+
+.miembro {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+
+  strong {
+    display: block;
+    color: var(--tinta);
+    font-weight: 600;
+  }
+
+  small { color: var(--texto-suave); }
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.modulos {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 1.1rem;
+
+  i { color: var(--tono-solido); }
+}
+
+.vacio-celda { color: var(--texto-suave); }
+
+.carga {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 150px;
+  color: var(--tinta);
+  font-size: 0.92rem;
+}
+
+.barra {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--fondo);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--tono-solido);
+  }
+}
+
+.le-toca {
+  color: var(--tinta);
+  font-weight: 500;
+}
+
+.acciones {
+  position: relative;
+  width: 1%;
+  text-align: right;
+}
+
+.mas {
+  padding: 0.3rem 0.5rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto-suave);
+  cursor: pointer;
+
+  &:hover { background: var(--fondo); }
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% - 0.6rem);
+  right: 1rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+  padding: 0.35rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--tinta);
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover:not(:disabled) { background: var(--fondo); }
+    &:disabled { color: var(--texto-suave); cursor: not-allowed; }
+    &.peligro:not(:disabled) { color: var(--rojo); }
+  }
+}
+
+.alerta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.85rem 1.1rem;
+  border-radius: 10px;
+  background: var(--naranja-suave);
+  color: var(--naranja-texto);
+}
+
+// ─── Lateral ─────────────────────────────────────────────────────────────────
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  small {
+    display: block;
+    color: var(--texto-suave);
+  }
+
+  i { font-size: 1.1rem; }
+  .ok { color: var(--verde); }
+  .aviso-ambar { color: var(--naranja); }
+  .falta { color: var(--rojo); }
+  .detalle.naranja { color: var(--naranja); }
+}
+
+.enlace {
+  color: var(--morado);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}

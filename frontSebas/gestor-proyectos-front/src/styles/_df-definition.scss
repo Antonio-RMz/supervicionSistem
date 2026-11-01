@@ -1,0 +1,417 @@
+// ─── Definición Funcional (df-*) ──────────────────────────────────────────────
+// Estilos movidos al global para reducir el bundle del componente.
+// Las clases df-* son prefijo único, sin riesgo de colisión.
+
+$primary:   #4361ee;
+$white:     #ffffff;
+$text:      #14172b;
+$muted:     #6c757d;
+$muted-lt:  #9ca3af;
+$border:    #e5e7eb;
+$border-lt: #f0f2f5;
+$surface:   #f8f9fb;
+$radius-sm: 9px;
+
+@keyframes df-spin { to { transform: rotate(360deg); } }
+
+// ─── Aviso solo lectura ───────────────────────────────────────────────────────
+.df-readonly-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #3b82f6;
+  border-radius: $radius-sm;
+}
+
+.df-readonly-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #dbeafe;
+  border-radius: 7px;
+  flex-shrink: 0;
+  i { font-size: 0.95rem; color: #2563eb; }
+}
+
+.df-readonly-title { display: block; font-size: 0.85rem; font-weight: 700; color: #1e40af; margin-bottom: 0.15rem; }
+.df-readonly-text  { font-size: 0.77rem; color: #1d4ed8; margin: 0; line-height: 1.5; }
+
+// ─── Loading / error ──────────────────────────────────────────────────────────
+.df-def-cargando {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.5rem 0.25rem;
+  font-size: 0.84rem;
+  color: $muted;
+}
+
+.df-def-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(67, 97, 238, .25);
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: df-spin .65s linear infinite;
+  flex-shrink: 0;
+}
+
+.df-def-error {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: $radius-sm;
+  font-size: 0.82rem;
+  color: #dc2626;
+  margin-bottom: 0.5rem;
+  > i    { flex-shrink: 0; }
+  > span { flex: 1; }
+}
+
+.df-section-empty-msg { font-size: 0.84rem; color: $muted-lt; margin: 0.25rem 0 0; line-height: 1.6; padding: 0.1rem 0; }
+
+// ─── Historias vacías ─────────────────────────────────────────────────────────
+.df-historias-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 2rem 1rem;
+}
+
+.df-historias-icon { font-size: 2rem; color: #d1d5db; margin-bottom: 0.25rem; }
+.df-historias-msg  { font-size: 0.85rem; font-weight: 600; color: $muted; margin: 0; }
+.df-historias-hint { font-size: 0.77rem; color: $muted-lt; margin: 0; max-width: 340px; line-height: 1.5; }
+
+// ─── Card encabezado ──────────────────────────────────────────────────────────
+.df-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+
+.df-no-mb     { margin-bottom: 0; }
+.df-card-desc { font-size: 0.74rem; color: $muted-lt; margin: 0.18rem 0 0; line-height: 1.45; }
+
+.df-textarea-static {
+  background: $surface;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.83rem;
+  color: #374151;
+  line-height: 1.7;
+  min-height: 68px;
+}
+
+// ─── Alcance grid ─────────────────────────────────────────────────────────────
+.df-alcance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; margin-top: 0.65rem; }
+
+.df-alcance-col { border-radius: $radius-sm; padding: 0.65rem 0.8rem; border: 1px solid; }
+.df-alcance-col--in  { background: #f0fdf4; border-color: #bbf7d0; }
+.df-alcance-col--out { background: #fef2f2; border-color: #fecaca; }
+
+.df-alcance-header {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  .df-alcance-col--in  & { color: #059669; i { color: #059669; } }
+  .df-alcance-col--out & { color: #b91c1c; i { color: #b91c1c; } }
+}
+
+.df-alcance-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.38rem;
+    font-size: 0.77rem;
+    line-height: 1.45;
+    i { font-size: 0.78rem; flex-shrink: 0; margin-top: 0.08rem; }
+  }
+
+  .df-alcance-col--in  & li { color: #065f46; i { color: #10b981; } }
+  .df-alcance-col--out & li { color: #7f1d1d; i { color: #ef4444; } }
+}
+
+.df-table-mt   { margin-top: 0.6rem; }
+.df-col-prio   { width: 90px; }
+.df-col-estado { width: 110px; }
+
+// ─── Badges ───────────────────────────────────────────────────────────────────
+.df-badge {
+  display: inline-block;
+  padding: 0.14rem 0.48rem;
+  border-radius: 20px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+  &.df-badge--ok      { background: #d1fae5; color: #065f46; }
+  &.df-badge--pending { background: #fef3c7; color: #92400e; }
+  &.df-badge--info    { background: #dbeafe; color: #1e40af; }
+}
+
+// ─── Criterios de aceptación ──────────────────────────────────────────────────
+.df-criterios-list { list-style: none; margin: 0.6rem 0 0; padding: 0; display: flex; flex-direction: column; }
+
+.df-criterio-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.48rem 0;
+  border-bottom: 1px solid $border-lt;
+  font-size: 0.81rem;
+  color: $text;
+  line-height: 1.45;
+  &:last-child { border-bottom: none; }
+}
+
+.df-checkbox {
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.07rem;
+  &.df-checkbox--checked { background: $primary; border: 2px solid $primary; i { font-size: 0.6rem; color: $white; } }
+  &.df-checkbox--empty   { border: 2px solid $border; background: $white; }
+}
+
+// ─── Círculo de progreso ──────────────────────────────────────────────────────
+.df-progress-wrap  { position: relative; width: 80px; height: 80px; margin: 0.6rem auto 0.85rem; }
+.df-progress-svg   { width: 80px; height: 80px; }
+
+.df-progress-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.df-progress-pct    { font-size: 1.1rem; font-weight: 800; color: $primary; line-height: 1; }
+.df-progress-sublbl { font-size: 0.54rem; font-weight: 700; color: $muted-lt; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.1rem; }
+
+.df-progress-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $muted;
+  margin: 0;
+}
+
+.df-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  &.df-status-dot--progress { background: #f59e0b; }
+  &.df-status-dot--done     { background: #10b981; }
+}
+
+// ─── Checklist ────────────────────────────────────────────────────────────────
+.df-cl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+.df-cl-item {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0.36rem 0;
+  border-bottom: 1px solid $border-lt;
+  &:last-child { border-bottom: none; }
+}
+
+.df-cl-icon {
+  font-size: 0.84rem;
+  flex-shrink: 0;
+  &.df-cl-icon--done    { color: #10b981; }
+  &.df-cl-icon--pending { color: #d1d5db; }
+}
+
+.df-cl-label {
+  flex: 1;
+  font-size: 0.75rem;
+  color: $text;
+  line-height: 1.3;
+  &.df-cl-label--pending { color: $muted; }
+}
+
+.df-cl-pill {
+  display: inline-block;
+  padding: 0.1rem 0.38rem;
+  border-radius: 20px;
+  font-size: 0.61rem;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  &.df-cl-pill--done    { background: #d1fae5; color: #065f46; }
+  &.df-cl-pill--pending { background: #f3f4f6; color: #9ca3af; }
+}
+
+// ─── Info DL (información registrada) ─────────────────────────────────────────
+.df-info-dl  { margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+.df-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.32rem 0;
+  border-bottom: 1px solid $border-lt;
+  &:last-child { border-bottom: none; }
+  dt { font-size: 0.74rem; color: $muted; font-weight: 500; }
+  dd { margin: 0; font-size: 0.8rem; font-weight: 700; color: $text; min-width: 18px; text-align: right; }
+}
+
+// ─── Alerta siguiente paso ────────────────────────────────────────────────────
+.df-next-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.42rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: $radius-sm;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  margin-bottom: 0.6rem;
+  i { flex-shrink: 0; font-size: 0.78rem; margin-top: 0.06rem; }
+  &.df-next-alert--pending { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; i { color: #d97706; } }
+  &.df-next-alert--success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #065f46;  i { color: #10b981; } }
+}
+
+// ─── Responsable ──────────────────────────────────────────────────────────────
+.df-resp-row { display: flex; align-items: center; gap: 0.6rem; }
+
+.df-resp-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: $white;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.df-resp-info { display: flex; flex-direction: column; gap: 0.06rem; flex: 1; min-width: 0; }
+.df-resp-name { font-size: 0.81rem; font-weight: 700; color: $text; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.df-resp-role { font-size: 0.71rem; color: $muted; }
+.df-resp-date { display: flex; align-items: center; gap: 0.2rem; font-size: 0.67rem; color: $muted-lt; i { font-size: 0.6rem; } }
+
+// ─── Botones definición funcional ─────────────────────────────────────────────
+.df-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  padding: 0.38rem 0.8rem;
+  border-radius: 7px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  white-space: nowrap;
+  line-height: 1;
+  cursor: not-allowed;
+  i { font-size: 0.7rem; }
+
+  &.df-btn--ghost   { background: $surface; color: $muted; border: 1.5px solid $border; opacity: .7; }
+  &.df-btn--primary { background: $primary; color: $white; box-shadow: 0 2px 8px rgba(67, 97, 238, .22); opacity: .6; }
+  &.df-btn--block   { width: 100%; }
+}
+
+.df-btn--primary:not(:disabled) {
+  opacity: 1;
+  cursor: pointer;
+  &:hover { background: #3451d1; box-shadow: 0 4px 14px rgba(67, 97, 238, .38); }
+}
+
+.df-btn--ghost:not(:disabled) {
+  opacity: 1;
+  cursor: pointer;
+  &:hover { background: $border; }
+}
+
+.df-btn--send {
+  background: $primary;
+  color: $white;
+  box-shadow: 0 2px 8px rgba(67, 97, 238, .3);
+  opacity: 1;
+  &:disabled { background: #e5e7eb; color: #9ca3af; box-shadow: none; opacity: 1; }
+}
+
+// ─── Estado check ─────────────────────────────────────────────────────────────
+.df-estado-check-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.6rem; }
+.df-estado-check-pct    { font-size: 0.75rem; font-weight: 600; color: $muted; white-space: nowrap; flex-shrink: 0; }
+
+.df-estado-check-bar-wrap { height: 5px; background: $border-lt; border-radius: 10px; overflow: hidden; margin-bottom: 0.85rem; }
+.df-estado-check-bar      { height: 100%; background: $primary; border-radius: 10px; }
+
+.df-estado-check-items { display: flex; align-items: center; flex-wrap: wrap; gap: 0.35rem 1.5rem; }
+
+.df-estado-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  i { font-size: 0.82rem; flex-shrink: 0; }
+  &.df-estado-item--done    { color: #059669; i { color: #10b981; } }
+  &.df-estado-item--pending { color: $muted-lt; i { color: #d1d5db; } }
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .df-alcance-grid { grid-template-columns: 1fr; }
+}
+
+// ─── Badges de tipo y prioridad (compartidos con ticket-detalle) ──────────────
+%ticket-badge-base {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tipo-badge-sm { @extend %ticket-badge-base; gap: 0.25rem; padding: 0.14rem 0.45rem; border-radius: 5px; font-size: 0.68rem; }
+.tipo-badge    { @extend %ticket-badge-base; gap: 0.28rem; padding: 0.16rem 0.5rem;  border-radius: 5px; font-size: 0.7rem; i { font-size: 0.6rem; } }
+
+.prio-badge {
+  display: inline-block;
+  padding: 0.16rem 0.5rem;
+  border-radius: 20px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  white-space: nowrap;
+  &.prio-alta  { background: #fee2e2; color: #b91c1c; }
+  &.prio-media { background: #fef3c7; color: #92400e; }
+  &.prio-baja  { background: #d1fae5; color: #065f46; }
+}

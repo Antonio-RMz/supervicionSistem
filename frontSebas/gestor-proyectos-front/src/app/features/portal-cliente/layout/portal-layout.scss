@@ -1,0 +1,153 @@
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.75rem 1.75rem;
+  background: var(--blanco);
+  border-bottom: 1px solid var(--borde);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+
+  strong {
+    display: block;
+    color: var(--tinta);
+    font-size: 1.05rem;
+  }
+
+  small {
+    color: var(--texto-suave);
+    font-size: 0.8rem;
+  }
+}
+
+.logo {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--morado);
+  color: var(--sobre-color);
+  font-size: 1.1rem;
+}
+
+.menu {
+  display: flex;
+  gap: 0.35rem;
+
+  a {
+    white-space: nowrap;
+    padding: 0.5rem 0.9rem;
+    border-radius: 9px;
+    color: var(--tinta);
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover { background: var(--fondo); }
+
+    &.activo {
+      background: var(--morado-suave);
+      color: var(--morado);
+    }
+  }
+}
+
+.derecha {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-left: auto;
+}
+
+.selector select {
+  padding: 0.55rem 2rem 0.55rem 0.9rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+  color: var(--tinta);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.persona {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  white-space: nowrap;
+
+  strong {
+    display: block;
+    color: var(--tinta);
+    font-size: 0.95rem;
+  }
+
+  small {
+    color: var(--texto-suave);
+    font-size: 0.8rem;
+  }
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #475569;
+  color: var(--sobre-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.salir {
+  border: 0;
+  background: none;
+  color: var(--texto-suave);
+  font-size: 1.15rem;
+  cursor: pointer;
+  padding: 0.25rem;
+
+  &:hover { color: var(--tinta); }
+}
+
+.contenido {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2.5rem 1.75rem 4rem;
+}
+
+@media (max-width: 1100px) {
+  .datos { display: none; }
+}
+
+@media (max-width: 900px) {
+  .barra {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .menu {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .datos,
+  .selector {
+    display: none;
+  }
+
+  .contenido {
+    padding: 1.5rem 1rem 3rem;
+  }
+}

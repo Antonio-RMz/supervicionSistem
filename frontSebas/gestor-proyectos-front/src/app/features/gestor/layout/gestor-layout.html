@@ -1,0 +1,81 @@
+<aside class="lateral">
+  <div class="marca">
+    <span class="logo"><i class="bi bi-bar-chart-steps"></i></span>
+    <strong class="texto">Gestor de Proyectos</strong>
+    <button type="button" class="contraer" (click)="alternarMenu()" [attr.aria-expanded]="!contraido()"
+            [title]="contraido() ? 'Mostrar el menú' : 'Contraer el menú'">
+      <i class="bi" [class.bi-chevron-double-left]="!contraido()" [class.bi-chevron-double-right]="contraido()"></i>
+      <span class="solo-lectores">{{ contraido() ? 'Mostrar el menú' : 'Contraer el menú' }}</span>
+    </button>
+  </div>
+
+  <nav aria-label="Menú principal">
+    <p class="seccion"><span class="texto">General</span></p>
+    <a routerLink="/dashboard" routerLinkActive="activo" title="Dashboard"><i class="bi bi-house"></i> <span class="texto">Dashboard</span></a>
+    <a routerLink="/mis-tickets" routerLinkActive="activo" title="Mis tickets">
+      <i class="bi bi-list-ul"></i> <span class="texto">Mis tickets</span>
+      @if (store.pendientesMios()) {
+        <span class="contador">{{ store.pendientesMios() }}</span>
+      }
+    </a>
+    <a routerLink="/tablero" routerLinkActive="activo" title="Tablero"><i class="bi bi-kanban"></i> <span class="texto">Tablero</span></a>
+    <a routerLink="/fases" routerLinkActive="activo" title="Fases"><i class="bi bi-flag"></i> <span class="texto">Fases</span></a>
+    <a routerLink="/historias" routerLinkActive="activo" title="Historias"><i class="bi bi-journal-text"></i> <span class="texto">Historias</span></a>
+    <a routerLink="/proyectos" routerLinkActive="activo" title="Proyectos"><i class="bi bi-folder"></i> <span class="texto">Proyectos</span></a>
+
+    <!-- Usuarios y roles y Clientes: solo el Admin -->
+    @if (esAdmin()) {
+      <p class="seccion"><span class="texto">Administración</span></p>
+      <a routerLink="/usuarios" routerLinkActive="activo" title="Usuarios y roles"><i class="bi bi-people"></i> <span class="texto">Usuarios y roles</span></a>
+      <a routerLink="/clientes" routerLinkActive="activo" title="Clientes"><i class="bi bi-buildings"></i> <span class="texto">Clientes</span></a>
+    }
+  </nav>
+
+  <div class="persona">
+    <span class="avatar">{{ iniciales() }}</span>
+    <div class="datos">
+      <strong>{{ usuario()?.nombreCompleto }}</strong>
+      <small>{{ roles() }}</small>
+    </div>
+    <button type="button" class="salir" (click)="salir()" title="Cerrar sesión">
+      <i class="bi bi-box-arrow-right"></i>
+      <span class="solo-lectores">Cerrar sesión</span>
+    </button>
+  </div>
+</aside>
+
+<div class="principal">
+  <header class="superior">
+    <label class="selector">
+      <i class="bi bi-folder"></i>
+      <span class="solo-lectores">Proyecto</span>
+      <select (change)="cambiarProyecto($any($event.target).value)" [disabled]="!store.proyectos().length">
+        @for (proyecto of store.proyectos(); track proyecto.id) {
+          <option [value]="proyecto.id" [selected]="proyecto.id === store.actual()?.id">{{ proyecto.nombre }}</option>
+        } @empty {
+          <option>Sin proyectos</option>
+        }
+      </select>
+    </label>
+
+    <label class="buscar">
+      <i class="bi bi-search"></i>
+      <span class="solo-lectores">Buscar</span>
+      <input type="search" placeholder="Buscar tickets, historias, personas…" disabled title="Próximamente" />
+    </label>
+
+    <app-boton-tema class="tema" />
+
+    <button type="button" class="campana" title="Notificaciones (próximamente)">
+      <i class="bi bi-bell"></i>
+      <span class="solo-lectores">Notificaciones</span>
+    </button>
+  </header>
+
+  <main class="contenido">
+    <router-outlet />
+  </main>
+</div>
+
+<!-- Los avisos flotantes del resultado de cada acción -->
+<app-avisos />

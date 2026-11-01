@@ -1,0 +1,71 @@
+@if (open()) {
+
+  <!-- ─── Backdrop ─────────────────────────────────────────────────────────── -->
+  <div
+    class="notif-backdrop"
+    role="presentation"
+    (click)="cerrar.emit()"
+  ></div>
+
+  <!-- ─── Panel lateral ───────────────────────────────────────────────────── -->
+  <aside class="notif-panel" role="complementary" aria-label="Notificaciones">
+
+    <!-- Header -->
+    <div class="notif-header">
+      <h2 class="notif-title">
+        <i class="bi bi-bell-fill notif-title-icon"></i>
+        Notificaciones
+      </h2>
+      <button
+        class="notif-close-btn"
+        type="button"
+        title="Cerrar"
+        (click)="cerrar.emit()"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Lista -->
+    <ul class="notif-list">
+      @for (notif of notificaciones(); track notif.id) {
+        <li class="notif-item" [class.notif-unread]="!notif.leida">
+
+          <div class="notif-icon-wrap" [class]="colorPorTipo(notif.tipo)">
+            <i class="bi" [class]="iconoPorTipo(notif.tipo)"></i>
+          </div>
+
+          <div class="notif-content">
+            <div class="notif-item-header">
+              <span class="notif-item-title">{{ notif.titulo }}</span>
+              @if (!notif.leida) {
+                <span class="notif-unread-dot" title="No leída"></span>
+              }
+            </div>
+            <p class="notif-desc">{{ notif.descripcion }}</p>
+            <span class="notif-time">
+              <i class="bi bi-clock"></i> {{ notif.fechaRelativa }}
+            </span>
+          </div>
+
+        </li>
+      }
+
+      @if (notificaciones().length === 0) {
+        <li class="notif-empty">
+          <i class="bi bi-bell-slash notif-empty-icon"></i>
+          <p>Sin notificaciones por el momento.</p>
+        </li>
+      }
+    </ul>
+
+    <!-- Footer -->
+    <div class="notif-footer">
+      <button class="notif-mark-all-btn" type="button">
+        <i class="bi bi-check2-all"></i> Marcar todas como leídas
+      </button>
+    </div>
+
+  </aside>
+
+}

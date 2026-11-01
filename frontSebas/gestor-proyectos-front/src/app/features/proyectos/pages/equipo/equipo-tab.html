@@ -1,0 +1,206 @@
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else if (equipo(); as e) {
+  <div class="intro">
+    <p>Quién trabaja en este proyecto, con qué rol y cuánta carga tiene. Los roles salen de cada usuario; aquí se ve cómo se usan en el proyecto.</p>
+    @if (e.puedeGestionar) {
+      <button type="button" class="boton boton-primario" [disabled]="enviando()" (click)="abrirAgregar()">
+        <i class="bi bi-plus-lg"></i> Agregar miembro
+      </button>
+    }
+  </div>
+
+  <div class="columnas">
+    <div class="principal">
+      <div class="tarjeta tabla">
+        <table>
+          <thead>
+            <tr>
+              <th>Miembro</th>
+              <th>Roles</th>
+              <th>Repositorios</th>
+              <th>Carga</th>
+              <th>Le toca</th>
+              @if (e.puedeGestionar) {
+                <th><span class="solo-lectores">Acciones</span></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of e.miembros; track m.id) {
+              <tr>
+                <td>
+                  <a class="miembro" [routerLink]="esAdmin() ? ['/usuarios', m.id] : null">
+                    <app-avatar [iniciales]="m.iniciales" [tono]="m.tono" />
+                    <span>
+                      <strong>{{ m.nombreCompleto }}</strong>
+                      <small>{{ m.actividad }}</small>
+                    </span>
+                  </a>
+                </td>
+                <td>
+                  <div class="roles">
+                    @for (r of m.roles; track r.texto) {
+                      <span class="pastilla tono-{{ r.tono }}">{{ r.texto }}</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <div class="modulos">
+                    @for (mod of m.modulos; track mod.corto) {
+                      <i class="bi {{ mod.icono }} tono-{{ mod.tono }}" [title]="mod.largo"></i>
+                    } @empty {
+                      <span class="vacio-celda">—</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <div class="carga">
+                    <span>{{ m.cargaTexto }}</span>
+                    <span class="barra"><span class="tono-{{ m.cargaTono }}" [style.width.%]="m.cargaPorcentaje"></span></span>
+                  </div>
+                </td>
+                <td class="le-toca">{{ m.leToca }}</td>
+                @if (e.puedeGestionar) {
+                  <td class="acciones">
+                    <button type="button" class="mas" (click)="alternarMenu(m.id, $event)"
+                            [attr.aria-expanded]="menuAbierto() === m.id" title="Acciones">
+                      <i class="bi bi-three-dots"></i>
+                      <span class="solo-lectores">Acciones de {{ m.nombreCompleto }}</span>
+                    </button>
+                    @if (menuAbierto() === m.id) {
+                      <div class="menu" role="menu" (click)="$event.stopPropagation()">
+                        <button type="button" role="menuitem" [disabled]="!m.ticketsAbiertos" (click)="abrirReasignar(m)">
+                          <i class="bi bi-arrow-left-right"></i> Reasignar tickets
+                        </button>
+                        <button type="button" role="menuitem" class="peligro" [disabled]="m.esLider || enviando()"
+                                [title]="m.esLider ? 'El Líder se cambia al editar el proyecto' : ''" (click)="quitar(m)">
+                          <i class="bi bi-person-dash"></i> Quitar del proyecto
+                        </button>
+                      </div>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @for (a of e.alertas; track a) {
+        <p class="alerta"><i class="bi bi-exclamation-triangle"></i> {{ a }}</p>
+      }
+    </div>
+
+    <aside class="lateral">
+      <section class="tarjeta bloque">
+        <h2>Cobertura de roles</h2>
+        <ul class="lista">
+          @for (c of e.cobertura; track c.rol) {
+            <li>
+              <i class="bi" [class.bi-check-circle-fill]="c.estado === 'ok'" [class.ok]="c.estado === 'ok'"
+                 [class.bi-exclamation-circle-fill]="c.estado === 'aviso'" [class.aviso-ambar]="c.estado === 'aviso'"
+                 [class.bi-x-circle-fill]="c.estado === 'falta'" [class.falta]="c.estado === 'falta'"></i>
+              <span class="nombre">{{ c.rol }}</span>
+              <span class="detalle" [class.naranja]="c.estado === 'aviso'" [class.rojo]="c.estado === 'falta'">{{ c.quien }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Permisos extra en este proyecto</h2>
+          @if (esAdmin()) {
+            <a class="enlace" routerLink="/usuarios">Gestionar</a>
+          }
+        </div>
+        <ul class="lista">
+          @for (p of e.permisos; track p.permiso + p.usuarioId) {
+            <li>
+              <span class="nombre">{{ p.permiso }}<small>{{ p.usuario }}</small></span>
+              <span class="pastilla tono-{{ p.etiqueta.tono }}">{{ p.etiqueta.texto }}</span>
+            </li>
+          } @empty {
+            <li class="pista">Nadie tiene permisos distintos a los de sus roles en este proyecto.</li>
+          }
+        </ul>
+      </section>
+
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Reglas del proyecto</h2>
+          @if (e.puedeGestionar) {
+            <a class="enlace" [routerLink]="['/proyectos', store.resumen()?.id, 'editar']">Editar</a>
+          }
+        </div>
+        <dl class="datos">
+          @for (r of e.reglas; track r.nombre) {
+            <div><dt>{{ r.nombre }}</dt><dd>{{ r.valor }}</dd></div>
+          }
+        </dl>
+      </section>
+    </aside>
+  </div>
+
+  @if (agregando()) {
+    <app-modal titulo="Agregar miembro" subtitulo="Personas del equipo con cuenta activa que aún no están en el proyecto." (cerrar)="agregando.set(false)">
+      <form id="form-agregar" class="formulario" (submit)="$event.preventDefault(); agregar()" novalidate>
+        <label class="campo">
+          <span>Persona <b>*</b></span>
+          <select (change)="elegido.set(numero($any($event.target).value))">
+            <option value="">Elige a alguien</option>
+            @for (c of candidatos(); track c.id) {
+              <option [value]="c.id">{{ c.nombreCompleto }} · {{ c.roles }}</option>
+            }
+          </select>
+          @if (!candidatos().length) {
+            <small class="pista">Todas las personas del equipo ya están en el proyecto.</small>
+          } @else {
+            <small class="pista">Sus roles salen de su usuario; se cambian en Usuarios y roles.</small>
+          }
+        </label>
+      </form>
+      <div pie class="botones">
+        <button type="button" class="boton boton-secundario" (click)="agregando.set(false)">Cancelar</button>
+        <button type="submit" form="form-agregar" class="boton boton-primario" [disabled]="elegido() === null || enviando()">
+          <i class="bi bi-plus-lg"></i> {{ enviando() ? 'Agregando…' : 'Agregar' }}
+        </button>
+      </div>
+    </app-modal>
+  }
+
+  @if (reasignando(); as m) {
+    <app-modal [titulo]="'Reasignar tickets de ' + m.nombre" [subtitulo]="m.cargaTexto + '. Solo cambian de manos los que no se han terminado; cada uno queda con un comentario.'" (cerrar)="reasignando.set(null)">
+      <form id="form-reasignar" class="formulario" (submit)="$event.preventDefault(); reasignar()" novalidate>
+        <label class="campo">
+          <span>Lo que trabaja pasa a</span>
+          <select (change)="responsableNuevo.set(numero($any($event.target).value))">
+            <option value="">No cambiar</option>
+            @for (o of otros(); track o.id) {
+              <option [value]="o.id">{{ o.nombreCompleto }} · {{ o.cargaTexto }}</option>
+            }
+          </select>
+        </label>
+        <label class="campo">
+          <span>Los hotfix que prueba pasan a</span>
+          <select (change)="testerNuevo.set(numero($any($event.target).value))">
+            <option value="">No cambiar</option>
+            @for (o of otros(); track o.id) {
+              <option [value]="o.id">{{ o.nombreCompleto }}</option>
+            }
+          </select>
+        </label>
+      </form>
+      <div pie class="botones">
+        <button type="button" class="boton boton-secundario" (click)="reasignando.set(null)">Cancelar</button>
+        <button type="submit" form="form-reasignar" class="boton boton-primario"
+                [disabled]="(responsableNuevo() === null && testerNuevo() === null) || enviando()">
+          <i class="bi bi-arrow-left-right"></i> {{ enviando() ? 'Reasignando…' : 'Reasignar' }}
+        </button>
+      </div>
+    </app-modal>
+  }
+}

@@ -1,0 +1,55 @@
+<nav class="sidebar" [class.collapsed]="collapsed()" [class.mobile-open]="mobileOpen()">
+
+  <div class="sidebar-brand">
+    <span class="sidebar-brand-icon">
+      <i class="bi bi-kanban-fill"></i>
+    </span>
+    <span class="sidebar-brand-text">Gestor de Proyectos</span>
+  </div>
+
+  <ul class="sidebar-nav">
+    @for (item of navItems(); track $index) {
+      @if (isSeparator(item)) {
+
+        <li class="sidebar-section-label">
+          <span>{{ item.label }}</span>
+        </li>
+
+      } @else if (isProyectosItem(item)) {
+
+        <!-- Ítem "Proyectos" con navegación contextual tipo Jira:
+             · En subrepositorio con proyecto activo  → va al detalle /pro/:id
+             · En /pro/:id con proyecto activo   → sale al listado /pro
+             · Sin proyecto activo               → va al listado /pro          -->
+        <li class="sidebar-item">
+          <a
+            class="sidebar-link"
+            [class.active]="isProActive()"
+            (click)="onClickProyectos()"
+            [title]="collapsed() ? item.label : ''"
+          >
+            <i class="bi {{ item.icon }} sidebar-icon"></i>
+            <span class="sidebar-label">{{ item.label }}</span>
+          </a>
+        </li>
+
+      } @else {
+
+        <li class="sidebar-item">
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            class="sidebar-link"
+            [title]="collapsed() ? item.label : ''"
+          >
+            <i class="bi {{ item.icon }} sidebar-icon"></i>
+            <span class="sidebar-label">{{ item.label }}</span>
+          </a>
+        </li>
+
+      }
+    }
+  </ul>
+
+
+</nav>

@@ -1,0 +1,493 @@
+<!-- ─── Loading ──────────────────────────────────────────────────────────────── -->
+@if (loading()) {
+  <div class="state-center">
+    <div class="spinner-ring"></div>
+    <p class="state-text">Cargando proyecto...</p>
+  </div>
+}
+
+<!-- ─── Error ───────────────────────────────────────────────────────────────── -->
+@if (!loading() && error()) {
+  <div class="state-center">
+    <i class="bi bi-wifi-off state-icon text-danger"></i>
+    <p class="state-text">{{ error() }}</p>
+    <a routerLink="/pro" class="btn-volver-link">
+      <i class="bi bi-chevron-left"></i> Volver a proyectos
+    </a>
+  </div>
+}
+
+<!-- ─── Detalle ──────────────────────────────────────────────────────────────── -->
+@if (!loading() && !error() && proyecto(); as p) {
+  <div class="detalle-page">
+
+    <!-- ── Tarjeta principal ──────────────────────────────────────────────── -->
+    <div class="proyecto-card">
+      <div class="pcard-top">
+        <div class="pcard-identity">
+          <div class="proyecto-avatar" [style.background]="p.color" aria-hidden="true">
+            {{ p.iniciales }}
+          </div>
+          <div class="pcard-info">
+            <h1 class="pcard-nombre">{{ p.nombre }}</h1>
+            @if (detalle()?.descripcion ?? p.descripcion) {
+              <p class="pcard-desc">{{ detalle()?.descripcion ?? p.descripcion }}</p>
+            }
+            <div class="pcard-badges">
+              <app-estado-badge [estado]="detalle()?.estado?.codigo ?? p.estado" />
+              @if (detalle()?.categoria ?? p.categoria) {
+                <span class="badge-cat">{{ detalle()?.categoria ?? p.categoria }}</span>
+              }
+              <span class="badge-rol" [class]="rolColorClass()">
+                <i class="bi bi-person-fill" aria-hidden="true"></i> {{ rolLabel() }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pcard-progreso-wrap">
+          <div class="progreso-top">
+            <span class="progreso-lbl">Progreso global</span>
+            <span class="progreso-pct">{{ detalle()?.progresoPorcentaje ?? p.progreso }}%</span>
+          </div>
+          <div class="progreso-track" role="progressbar"
+               [attr.aria-valuenow]="detalle()?.progresoPorcentaje ?? p.progreso"
+               aria-valuemin="0" aria-valuemax="100">
+            <div class="progreso-fill"
+                 [style.width.%]="detalle()?.progresoPorcentaje ?? p.progreso"
+                 [style.background]="p.color"></div>
+          </div>
+        </div>
+
+        <div class="pcard-actions">
+          <button class="btn-ver-tickets" (click)="irATickets(null)">
+            <i class="bi bi-kanban" aria-hidden="true"></i> Ver tickets
+          </button>
+          @if (puedeEditar()) {
+            <button class="btn-editar-proyecto" (click)="irAEditar()">
+              <i class="bi bi-pencil-square" aria-hidden="true"></i> Editar proyecto
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Metadata strip -->
+      <div class="pcard-bottom">
+        @if (detalle()?.cliente) {
+          <div class="meta-item">
+            <i class="bi bi-building" aria-hidden="true"></i>
+            <span class="meta-lbl">Cliente</span>
+            <span class="meta-val">{{ detalle()!.cliente!.nombre }}</span>
+          </div>
+        }
+        <div class="meta-item">
+          <i class="bi bi-calendar3" aria-hidden="true"></i>
+          <span class="meta-lbl">Inicio</span>
+          <span class="meta-val" [class.meta-placeholder]="!detalle()?.fechaInicio">
+            {{ detalle()?.fechaInicio ?? 'Por definir' }}
+          </span>
+        </div>
+        <div class="meta-item">
+          <i class="bi bi-calendar-check" aria-hidden="true"></i>
+          <span class="meta-lbl">Entrega</span>
+          <span class="meta-val" [class.meta-placeholder]="!detalle()?.fechaFinEstimada">
+            {{ detalle()?.fechaFinEstimada ?? 'Por definir' }}
+          </span>
+        </div>
+        <div class="meta-item">
+          <i class="bi bi-people" aria-hidden="true"></i>
+          <span class="meta-lbl">Equipo</span>
+          <button class="btn-meta-link" (click)="irAEquipo()">
+            {{ detalle()?.equipo?.length ?? p.usuarios }} miembros
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Barra de pestañas ──────────────────────────────────────────────── -->
+    <div class="tabs-bar" role="tablist">
+      @for (tab of tabs; track tab.id) {
+        <button
+          class="tab-btn"
+          role="tab"
+          [class.active]="tabActual() === tab.id"
+          [attr.aria-selected]="tabActual() === tab.id"
+          (click)="tabActual.set(tab.id)"
+        >
+          <i class="bi {{ tab.icon }}" aria-hidden="true"></i>
+          {{ tab.label }}
+        </button>
+      }
+    </div>
+
+    <!-- ── Contenido de pestañas ──────────────────────────────────────────── -->
+    @switch (tabActual()) {
+
+      <!-- ══ RESUMEN ══════════════════════════════════════════════════════════ -->
+      @case ('resumen') {
+        <div class="resumen-grid">
+
+          <!-- ─── Fila 1: Objetivo + Información General ──────────────────── -->
+
+          <!-- Objetivo del proyecto -->
+          <div class="rg-card rg-objetivo">
+            <div class="rg-card-head">
+              <div class="rg-head-ico" [style.background]="(proyecto()?.color ?? '#4361ee') + '1a'"
+                   [style.color]="proyecto()?.color ?? '#4361ee'" aria-hidden="true">
+                <i class="bi bi-bullseye"></i>
+              </div>
+              <h2 class="rg-title">Objetivo del proyecto</h2>
+            </div>
+            @if (detalle()?.objetivo) {
+              <p class="rg-body-text">{{ detalle()!.objetivo }}</p>
+            } @else {
+              <p class="rg-empty-text">Sin objetivo definido</p>
+            }
+            @if (detalle()?.descripcion) {
+              <div class="rg-section-sep">
+                <span class="rg-field-lbl">Descripción</span>
+                <p class="rg-body-text rg-body-text--sm">{{ detalle()!.descripcion }}</p>
+              </div>
+            }
+            @if (detalle()?.alcance) {
+              <div class="rg-section-sep">
+                <span class="rg-field-lbl">Alcance</span>
+                <p class="rg-body-text rg-body-text--sm">{{ detalle()!.alcance }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Información General -->
+          <div class="rg-card rg-info-gen">
+            <div class="rg-card-head">
+              <div class="rg-head-ico rg-head-ico--info" aria-hidden="true">
+                <i class="bi bi-info-circle"></i>
+              </div>
+              <h2 class="rg-title">Información General</h2>
+            </div>
+            <div class="info-grid">
+              @if (detalle()?.cliente) {
+                <div class="ig-item">
+                  <i class="bi bi-building ig-ico" aria-hidden="true"></i>
+                  <span class="ig-lbl">Cliente</span>
+                  <span class="ig-val">{{ detalle()!.cliente!.nombre }}</span>
+                </div>
+              }
+              @if (detalle()?.tipo) {
+                <div class="ig-item">
+                  <i class="bi bi-tag ig-ico" aria-hidden="true"></i>
+                  <span class="ig-lbl">Tipo</span>
+                  <span class="ig-val">{{ detalle()!.tipo!.nombre }}</span>
+                </div>
+              }
+              @if (detalle()?.prioridad) {
+                <div class="ig-item">
+                  <i class="bi bi-flag ig-ico" aria-hidden="true"></i>
+                  <span class="ig-lbl">Prioridad</span>
+                  <span class="ig-val">{{ detalle()!.prioridad!.nombre }}</span>
+                </div>
+              }
+              @if (detalle()?.estado) {
+                <div class="ig-item">
+                  <i class="bi bi-circle-half ig-ico" aria-hidden="true"></i>
+                  <span class="ig-lbl">Estado</span>
+                  <span class="ig-val ig-val--badge">
+                    <app-estado-badge [estado]="detalle()!.estado!.codigo" size="sm" />
+                  </span>
+                </div>
+              }
+              <div class="ig-item">
+                <i class="bi bi-calendar3 ig-ico" aria-hidden="true"></i>
+                <span class="ig-lbl">Inicio</span>
+                <span class="ig-val" [class.ig-val--muted]="!detalle()?.fechaInicio">
+                  {{ formatDate(detalle()?.fechaInicio) }}
+                </span>
+              </div>
+              <div class="ig-item">
+                <i class="bi bi-calendar-check ig-ico" aria-hidden="true"></i>
+                <span class="ig-lbl">Entrega</span>
+                <span class="ig-val" [class.ig-val--muted]="!detalle()?.fechaFinEstimada">
+                  {{ formatDate(detalle()?.fechaFinEstimada) }}
+                </span>
+              </div>
+              @if (detalle()?.fechaCreacion) {
+                <div class="ig-item">
+                  <i class="bi bi-clock ig-ico" aria-hidden="true"></i>
+                  <span class="ig-lbl">Creado</span>
+                  <span class="ig-val">{{ formatDate(detalle()!.fechaCreacion) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- ─── Fila 2: Integraciones + Equipo ─────────────────────────── -->
+
+          <!-- Integraciones -->
+          @if (detalle()?.githubRepoUrl || detalle()?.produccionUrl || detalle()?.qaUrl) {
+            <div class="rg-card rg-integraciones">
+              <div class="rg-card-head">
+                <div class="rg-head-ico rg-head-ico--link" aria-hidden="true">
+                  <i class="bi bi-link-45deg"></i>
+                </div>
+                <h2 class="rg-title">Integraciones</h2>
+              </div>
+              <div class="integ-row">
+                @if (detalle()?.githubRepoUrl) {
+                  <a class="integ-chip" [href]="detalle()!.githubRepoUrl!" target="_blank" rel="noopener noreferrer">
+                    <i class="bi bi-git integ-ico" aria-hidden="true"></i>
+                    <div class="integ-body">
+                      <span class="integ-name">Repositorio</span>
+                      <span class="integ-url">{{ detalle()!.githubRepoUrl }}</span>
+                    </div>
+                    <i class="bi bi-box-arrow-up-right integ-ext" aria-hidden="true"></i>
+                  </a>
+                }
+                @if (detalle()?.produccionUrl) {
+                  <a class="integ-chip" [href]="detalle()!.produccionUrl!" target="_blank" rel="noopener noreferrer">
+                    <i class="bi bi-globe2 integ-ico" aria-hidden="true"></i>
+                    <div class="integ-body">
+                      <span class="integ-name">Producción</span>
+                      <span class="integ-url">{{ detalle()!.produccionUrl }}</span>
+                    </div>
+                    <i class="bi bi-box-arrow-up-right integ-ext" aria-hidden="true"></i>
+                  </a>
+                }
+                @if (detalle()?.qaUrl) {
+                  <a class="integ-chip" [href]="detalle()!.qaUrl!" target="_blank" rel="noopener noreferrer">
+                    <i class="bi bi-bug integ-ico" aria-hidden="true"></i>
+                    <div class="integ-body">
+                      <span class="integ-name">QA / Staging</span>
+                      <span class="integ-url">{{ detalle()!.qaUrl }}</span>
+                    </div>
+                    <i class="bi bi-box-arrow-up-right integ-ext" aria-hidden="true"></i>
+                  </a>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Equipo -->
+          @if ((detalle()?.equipo?.length ?? 0) > 0) {
+            <div class="rg-card rg-equipo">
+              <div class="rg-card-head">
+                <div class="rg-head-ico rg-head-ico--equipo" aria-hidden="true">
+                  <i class="bi bi-people"></i>
+                </div>
+                <h2 class="rg-title">
+                  Equipo
+                  <span class="rg-count">{{ detalle()!.equipo.length }}</span>
+                </h2>
+              </div>
+              <ul class="equipo-list">
+                @for (m of detalle()!.equipo.slice(0, 5); track m.idUsuario) {
+                  <li class="equipo-item">
+                    <div class="equipo-avatar" aria-hidden="true">{{ m.iniciales }}</div>
+                    <div class="equipo-body">
+                      <span class="equipo-nombre">{{ m.nombreCompleto }}</span>
+                      <span class="equipo-rol">{{ m.nombreRol }}</span>
+                    </div>
+                  </li>
+                }
+              </ul>
+              @if (detalle()!.equipo.length > 5) {
+                <p class="equipo-more">+{{ detalle()!.equipo.length - 5 }} miembros más</p>
+              }
+            </div>
+          }
+
+          <!-- ─── Fila 3 (opcional): Documentos ──────────────────────────── -->
+          @if ((detalle()?.documentos?.length ?? 0) > 0) {
+            <div class="rg-card rg-documentos">
+              <div class="rg-card-head">
+                <div class="rg-head-ico rg-head-ico--docs" aria-hidden="true">
+                  <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <h2 class="rg-title">Documentos recientes</h2>
+                @if ((detalle()?.documentos?.length ?? 0) > 4) {
+                  <button class="rg-link-btn" (click)="tabActual.set('documentos')">
+                    Ver todos <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                  </button>
+                }
+              </div>
+              <ul class="docs-list docs-list--grid">
+                @for (doc of detalle()!.documentos.slice(0, 4); track doc.id) {
+                  <li class="doc-item">
+                    <i class="bi bi-file-earmark" aria-hidden="true"></i>
+                    <div class="doc-body">
+                      <span class="doc-nombre">{{ doc.nombre }}</span>
+                      <span class="doc-meta">
+                        {{ doc.extension.toUpperCase() }}
+                        @if (doc.folioTicket) { · {{ doc.folioTicket }} }
+                        · {{ doc.usuarioCarga?.nombreCompleto ?? 'Desconocido' }}
+                      </span>
+                    </div>
+                    <span class="doc-fecha">{{ doc.fechaCarga }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
+        </div>
+      }
+
+      <!-- ══ BUGS ══════════════════════════════════════════════════════════════ -->
+      @case ('bugs') {
+        <section class="tickets-section">
+          <div class="ts-header">
+            <h2 class="section-title no-margin">
+              <i class="bi bi-bug" aria-hidden="true"></i>
+              Bugs
+            </h2>
+            <div class="ts-controls">
+              <button class="btn-nuevo-ticket" (click)="irANuevoTicket()">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                Reportar Bug
+              </button>
+            </div>
+          </div>
+          <div class="tabla-wrap">
+            <table class="tickets-table">
+              <thead>
+                <tr>
+                  <th class="col-folio">Folio</th>
+                  <th class="col-titulo">Título</th>
+                  <th class="col-estado">Estado</th>
+                  <th class="col-prioridad">Prioridad</th>
+                  <th class="col-responsable">Responsable</th>
+                  <th class="col-fecha">Vencimiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (bugsFiltrados().length === 0) {
+                  <tr>
+                    <td colspan="6" class="tabla-empty">
+                      <i class="bi bi-bug" aria-hidden="true"></i>
+                      <span>No hay bugs registrados en este proyecto</span>
+                    </td>
+                  </tr>
+                }
+                @for (ticket of bugsFiltrados(); track ticket.id) {
+                  <tr class="ticket-row" (click)="irADetalleTicket(ticket)">
+                    <td class="col-folio">
+                      <a class="folio-link tipo-bug"
+                         [routerLink]="['/tickets', ticket.folio]"
+                         (click)="$event.stopPropagation()">
+                        {{ ticket.folio }}
+                      </a>
+                    </td>
+                    <td class="col-titulo">{{ ticket.titulo }}</td>
+                    <td class="col-estado">
+                      <span class="badge-estado" [class]="getEstadoClass(ticket.estado?.nombre ?? '')">
+                        {{ ticket.estado?.nombre ?? '' }}
+                      </span>
+                    </td>
+                    <td class="col-prioridad">
+                      <span class="badge-pri" [class]="getPrioridadClass(ticket.prioridad?.nombre ?? '')">
+                        {{ ticket.prioridad?.nombre ?? '—' }}
+                      </span>
+                    </td>
+                    <td class="col-responsable">
+                      <div class="responsable-wrap">
+                        <div class="resp-avatar" aria-hidden="true">
+                          {{ ticket.responsable?.iniciales ?? '?' }}
+                        </div>
+                        <span>{{ ticket.responsable?.nombreCompleto ?? 'Sin asignar' }}</span>
+                      </div>
+                    </td>
+                    <td class="col-fecha">{{ ticket.fechaVencimiento ?? ticket.fechaInicio ?? '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="ts-footer">
+            <span class="ts-count">{{ bugsFiltrados().length }} bugs</span>
+            <button class="btn-ver-todos-link" (click)="irATickets('BUG')">
+              Ver lista completa <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- ══ DOCUMENTOS ════════════════════════════════════════════════════════ -->
+      @case ('documentos') {
+        @if ((detalle()?.documentos?.length ?? 0) === 0) {
+          <div class="tab-placeholder">
+            <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+            <h3>Sin documentos</h3>
+            <p>No hay archivos adjuntos en este proyecto.</p>
+          </div>
+        } @else {
+          <section class="docs-section">
+            <div class="docs-header">
+              <h2 class="section-title no-margin">
+                <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                Documentos
+              </h2>
+            </div>
+            <ul class="docs-list">
+              @for (doc of detalle()!.documentos; track doc.id) {
+                <li class="doc-item">
+                  <i class="bi bi-file-earmark" aria-hidden="true"></i>
+                  <div class="doc-body">
+                    <span class="doc-nombre">{{ doc.nombre }}</span>
+                    <span class="doc-meta">
+                      {{ doc.extension.toUpperCase() }}
+                      @if (doc.folioTicket) { · {{ doc.folioTicket }} }
+                      · {{ doc.usuarioCarga?.nombreCompleto ?? 'Desconocido' }}
+                    </span>
+                  </div>
+                  <span class="doc-fecha">{{ doc.fechaCarga }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      }
+
+      <!-- ══ ACTIVIDAD ═════════════════════════════════════════════════════════ -->
+      @case ('actividad') {
+        @if (actividadReciente().length === 0) {
+          <div class="tab-placeholder">
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            <h3>Sin actividad reciente</h3>
+            <p>No hay eventos registrados para este proyecto.</p>
+          </div>
+        } @else {
+          <section class="actividad-section">
+            <div class="act-header">
+              <h2 class="section-title no-margin">
+                <i class="bi bi-clock-history" aria-hidden="true"></i>
+                Actividad reciente
+              </h2>
+            </div>
+            <ul class="act-list">
+              @for (a of actividadReciente(); track a.id) {
+                <li class="act-item">
+                  <div class="act-avatar" aria-hidden="true">
+                    {{ a.usuario?.iniciales ?? '?' }}
+                  </div>
+                  <div class="act-body">
+                    <p class="act-desc">
+                      <strong>{{ a.usuario?.nombreCompleto ?? 'Sistema' }}</strong>
+                      {{ a.descripcion }}
+                      @if (a.folioTicket) {
+                        <a class="act-folio-link" [routerLink]="['/tickets', a.folioTicket]">
+                          {{ a.folioTicket }}
+                        </a>
+                      }
+                    </p>
+                    <span class="act-fecha">{{ a.fechaActividad }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      }
+
+    }
+
+  </div>
+}

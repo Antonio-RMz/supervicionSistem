@@ -1,0 +1,359 @@
+<div class="ad-page">
+
+  @if (actividad(); as act) {
+
+    <!-- ── 2. Encabezado + Workflow ──────────────────────────────────────────── -->
+    <div class="ad-header-card">
+
+      <!-- Fila principal -->
+      <div class="ad-header-main">
+        <div class="ad-header-left">
+          <div class="ad-act-icono">
+            <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="ad-codigo">{{ act.codigo }}</div>
+            <h1 class="ad-titulo">{{ act.titulo }}</h1>
+            <p class="ad-subtitulo">
+              <i class="bi bi-layers" aria-hidden="true"></i>
+              {{ act.faseNombre }}
+            </p>
+          </div>
+        </div>
+        <app-estado-badge [estado]="act.estado" />
+      </div>
+
+      <!-- Divider + acciones (solo si hay algo que mostrar) -->
+      @if (transicionesDisponibles().length > 0 || act.prUrl) {
+        <div class="ad-header-divider"></div>
+        <div class="ad-workflow-bar">
+          <!-- Enlace al PR -->
+          @if (act.prUrl) {
+            <a [href]="act.prUrl" target="_blank" rel="noopener" class="pr-link-badge">
+              <i class="bi bi-git" aria-hidden="true"></i>
+              Ver Pull Request
+              <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+            </a>
+          }
+
+          <!-- Botones de transición -->
+          @for (t of transicionesDisponibles(); track t.accion) {
+            <button
+              class="btn-transicion"
+              [class]="'btn-' + t.variante"
+              (click)="iniciarTransicion(t)"
+              [disabled]="transicionPendiente() !== null"
+            >
+              @switch (t.variante) {
+                @case ('success') { <i class="bi bi-check-circle" aria-hidden="true"></i> }
+                @case ('danger')  { <i class="bi bi-x-circle"     aria-hidden="true"></i> }
+                @case ('warning') { <i class="bi bi-arrow-right-circle" aria-hidden="true"></i> }
+                @default          { <i class="bi bi-play-circle"   aria-hidden="true"></i> }
+              }
+              {{ t.accion }}
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Panel de confirmación -->
+      @if (transicionPendiente(); as t) {
+        <div class="conf-panel" [class]="'conf-' + t.variante" role="dialog" aria-label="Confirmar transición">
+          <div class="conf-header">
+            <div class="conf-title">
+              <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+              Confirmar: {{ t.accion }} → {{ estadoLabel(t.estadoDestino) }}
+            </div>
+            <button class="conf-close" (click)="cancelarTransicion()" aria-label="Cancelar">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          @if (t.requierePrUrl) {
+            <label class="conf-label" for="pr-url-input">
+              URL del Pull Request <span class="conf-req">*</span>
+            </label>
+            <input
+              id="pr-url-input"
+              class="conf-input"
+              type="url"
+              placeholder="https://github.com/org/repo/pull/…"
+              [value]="prUrlDraft()"
+              (input)="prUrlDraft.set($any($event.target).value)"
+            />
+          }
+
+          @if (t.requiereComentario) {
+            <label class="conf-label" for="motivo-input">
+              Motivo del rechazo <span class="conf-req">*</span>
+            </label>
+            <textarea
+              id="motivo-input"
+              class="conf-textarea"
+              rows="3"
+              placeholder="Describe el motivo del rechazo para que el equipo pueda corregirlo…"
+              [value]="motivoRechazo()"
+              (input)="motivoRechazo.set($any($event.target).value)"
+            ></textarea>
+          }
+
+          <div class="conf-actions">
+            <button class="conf-btn conf-btn-ghost" (click)="cancelarTransicion()">Cancelar</button>
+            <button
+              class="conf-btn"
+              [class]="'conf-btn-' + t.variante"
+              [disabled]="!puedeConfirmar()"
+              (click)="confirmarTransicion()"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ── 3. Tags ──────────────────────────────────────────────────────────── -->
+    <div class="ad-tags-row">
+      @for (tag of tags(); track tag) {
+        <span class="ad-tag">
+          {{ tag }}
+          @if (puedeEditar()) {
+            <button class="tag-remove" (click)="eliminarTag(tag)" [attr.aria-label]="'Eliminar tag ' + tag">
+              <i class="bi bi-x" aria-hidden="true"></i>
+            </button>
+          }
+        </span>
+      }
+      @if (puedeEditar()) {
+        @if (inputTagVisible()) {
+          <input
+            class="tag-input"
+            type="text"
+            placeholder="Nueva etiqueta…"
+            [value]="nuevoTag()"
+            (input)="nuevoTag.set($any($event.target).value)"
+            (keydown)="onTagKeydown($event)"
+            (blur)="agregarTag()"
+            autofocus
+          />
+        } @else {
+          <button class="ad-tag ad-tag-add" (click)="inputTagVisible.set(true)">
+            <i class="bi bi-plus" aria-hidden="true"></i> Agregar
+          </button>
+        }
+      }
+    </div>
+
+    <!-- ── 4. Descripción ───────────────────────────────────────────────────── -->
+    <section class="ad-card">
+      <div class="ad-card-header">
+        <div class="ad-card-title-row">
+          <i class="bi bi-file-text" aria-hidden="true"></i>
+          <h2 class="ad-card-title">Descripción</h2>
+        </div>
+        @if (puedeEditar() && !editandoDesc()) {
+          <button class="ad-btn-sm" (click)="iniciarEditDesc()">
+            <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+          </button>
+        }
+      </div>
+
+      @if (editandoDesc()) {
+        <textarea
+          class="ad-textarea"
+          rows="8"
+          [value]="descBorrador()"
+          (input)="descBorrador.set($any($event.target).value)"
+          placeholder="Documenta los criterios de aceptación, detalles técnicos y notas relevantes…"
+        ></textarea>
+        <div class="ad-edit-actions">
+          <button class="ad-btn ad-btn-primary" (click)="guardarDesc()">Guardar</button>
+          <button class="ad-btn ad-btn-ghost"   (click)="cancelarDesc()">Cancelar</button>
+        </div>
+      } @else {
+        @if (act.descripcion) {
+          <p class="ad-desc-text">{{ act.descripcion }}</p>
+        } @else {
+          <p class="ad-desc-empty">Sin descripción. {{ puedeEditar() ? 'Haz clic en "Editar" para agregar una.' : '' }}</p>
+        }
+      }
+    </section>
+
+    <!-- ── 5. Usuarios involucrados ─────────────────────────────────────────── -->
+    <section class="ad-card">
+      <div class="ad-card-header">
+        <div class="ad-card-title-row">
+          <i class="bi bi-people" aria-hidden="true"></i>
+          <h2 class="ad-card-title">Usuarios involucrados</h2>
+          <span class="ad-card-badge">{{ usuarios().length }}</span>
+        </div>
+      </div>
+
+      @if (usuarios().length > 0) {
+        <div class="usuarios-grid">
+          @for (u of usuarios(); track u.id) {
+            <div class="usuario-chip">
+              <div class="usuario-avatar" [style.background]="u.color" aria-hidden="true">
+                {{ u.iniciales }}
+              </div>
+              <div class="usuario-info">
+                <span class="usuario-nombre">{{ u.nombre }} {{ u.apellido }}</span>
+                <span class="usuario-rol">{{ rolLabel(u.rolProyecto) }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="ad-empty">Sin usuarios asignados a esta actividad.</p>
+      }
+    </section>
+
+    <!-- ── 6. Archivos relacionados ─────────────────────────────────────────── -->
+    <section class="ad-card">
+      <div class="ad-card-header">
+        <div class="ad-card-title-row">
+          <i class="bi bi-paperclip" aria-hidden="true"></i>
+          <h2 class="ad-card-title">Archivos relacionados</h2>
+          <span class="ad-card-badge">{{ archivos().length }}</span>
+        </div>
+        @if (puedeSubir()) {
+          <label class="ad-btn-sm" role="button" tabindex="0">
+            <i class="bi bi-upload" aria-hidden="true"></i> Subir archivo
+            <input type="file" class="sr-only" (change)="onFileSelected($event)" />
+          </label>
+        }
+      </div>
+
+      @if (archivos().length > 0) {
+        <table class="ad-table" aria-label="Archivos adjuntos">
+          <tbody>
+            @for (archivo of archivos(); track archivo.id) {
+              <tr class="ad-table-row">
+                <td class="td-archivo">
+                  <i class="bi ad-file-icon" [class]="iconoArchivo(archivo.extension)"
+                     [style.color]="colorArchivo(archivo.extension)" aria-hidden="true"></i>
+                  <span class="archivo-nombre">{{ archivo.nombre }}</span>
+                  <span class="archivo-ext">.{{ archivo.extension }}</span>
+                </td>
+                <td class="td-size">{{ archivo.tamanio }}</td>
+                <td class="td-actions">
+                  <button class="icon-btn" title="Descargar">
+                    <i class="bi bi-download" aria-hidden="true"></i>
+                  </button>
+                  @if (puedeEditar()) {
+                    <button class="icon-btn danger" title="Eliminar" (click)="eliminarArchivo(archivo.id)">
+                      <i class="bi bi-trash" aria-hidden="true"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="ad-empty">Sin archivos adjuntos.</p>
+      }
+    </section>
+
+    <!-- ── 7. Comentarios ───────────────────────────────────────────────────── -->
+    <section class="ad-card">
+      <div class="ad-card-header">
+        <div class="ad-card-title-row">
+          <i class="bi bi-chat-text" aria-hidden="true"></i>
+          <h2 class="ad-card-title">Comentarios</h2>
+          @if (comentarios().length > 0) {
+            <span class="ad-card-badge">{{ comentarios().length }}</span>
+          }
+        </div>
+      </div>
+
+      @if (comentarios().length > 0) {
+        <ul class="comentarios-lista" role="list">
+          @for (c of comentarios(); track c.id) {
+            <li class="comentario">
+              <div class="com-avatar" [style.background]="c.autorColor" aria-hidden="true">
+                {{ c.autorIniciales }}
+              </div>
+              <div class="com-body">
+                <div class="com-meta">
+                  <span class="com-autor">{{ c.autorNombre }}</span>
+                  <span class="com-fecha">{{ tiempoRelativo(c.fechaISO) }}</span>
+                </div>
+                <p class="com-texto">{{ c.texto }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (puedeCommentar()) {
+        <div class="nuevo-comentario">
+          <textarea
+            class="ad-textarea"
+            rows="3"
+            placeholder="Escribe un comentario… (Ctrl+Enter para enviar)"
+            [value]="textoComentario()"
+            (input)="textoComentario.set($any($event.target).value)"
+            (keydown)="onComentarioKeydown($event)"
+          ></textarea>
+          <div class="ad-edit-actions">
+            <button
+              class="ad-btn ad-btn-primary"
+              [disabled]="!textoComentario().trim()"
+              (click)="enviarComentario()"
+            >
+              <i class="bi bi-send" aria-hidden="true"></i> Comentar
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+
+    <!-- ── 8. Bitácora de estados ───────────────────────────────────────────── -->
+    @if (bitacora().length > 0) {
+      <section class="ad-card">
+        <div class="ad-card-header">
+          <div class="ad-card-title-row">
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            <h2 class="ad-card-title">Historial de estados</h2>
+            <span class="ad-card-badge">{{ bitacora().length }}</span>
+          </div>
+        </div>
+
+        <ol class="bitacora-timeline" aria-label="Historial de cambios de estado">
+          @for (entrada of bitacora(); track entrada.id; let last = $last) {
+            <li class="bita-entry" [class.bita-last]="last">
+              <div class="bita-avatar" [style.background]="entrada.usuarioColor" aria-hidden="true">
+                {{ entrada.usuarioIniciales }}
+              </div>
+              <div class="bita-line" [class.hidden]="last" aria-hidden="true"></div>
+              <div class="bita-body">
+                <div class="bita-transition">
+                  <span class="bita-estado bita-anterior">{{ estadoLabel(entrada.estadoAnterior) }}</span>
+                  <i class="bi bi-arrow-right bita-arrow" aria-hidden="true"></i>
+                  <span class="bita-estado bita-nuevo">{{ estadoLabel(entrada.estadoNuevo) }}</span>
+                </div>
+                <div class="bita-meta">
+                  <span class="bita-autor">{{ entrada.usuarioNombre }}</span>
+                  <span class="bita-fecha">{{ tiempoRelativo(entrada.fechaISO) }}</span>
+                </div>
+                @if (entrada.comentario) {
+                  <p class="bita-comentario">{{ entrada.comentario }}</p>
+                }
+              </div>
+            </li>
+          }
+        </ol>
+      </section>
+    }
+
+  } @else {
+    <!-- No encontrada -->
+    <div class="ad-not-found">
+      <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+      <p>Actividad no encontrada.</p>
+      <button class="bc-link" (click)="volverAFase()">← Volver a la fase</button>
+    </div>
+  }
+
+</div>

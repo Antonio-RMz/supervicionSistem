@@ -1,0 +1,109 @@
+<div class="fases-page">
+
+  <!-- ── Header de sección ──────────────────────────────────────────────────── -->
+  <div class="section-header">
+    <div class="section-header-left">
+      <div class="section-icon">
+        <i class="bi bi-layers" aria-hidden="true"></i>
+      </div>
+      <div>
+        <h1 class="section-title">Fases del proyecto</h1>
+        <p class="section-subtitle">Gestiona las fases y su avance</p>
+      </div>
+    </div>
+    @if (puedeCrear()) {
+      <button class="btn-nueva-fase" (click)="abrirNuevaFase()">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> Nueva fase
+      </button>
+    }
+  </div>
+
+  <!-- ── Grid de tarjetas ───────────────────────────────────────────────────── -->
+  <div class="fases-grid">
+
+    <!-- Tarjetas de fases existentes -->
+    @for (fase of fases(); track fase.id) {
+      <div class="fase-card">
+
+        <!-- Cabecera de tarjeta -->
+        <div class="fase-card-header">
+          <div class="fase-icono" [style.background]="fase.color + '20'" [style.color]="fase.color">
+            <i class="bi bi-layers" aria-hidden="true"></i>
+          </div>
+          <div class="fase-num-badge" [style.background]="fase.color">{{ fase.numero }}</div>
+        </div>
+
+        <!-- Nombre -->
+        <h3 class="fase-nombre">{{ fase.nombre }}</h3>
+        @if (fase.descripcion) {
+          <p class="fase-desc">{{ fase.descripcion }}</p>
+        }
+
+        <!-- Barra de progreso -->
+        <div class="fase-progreso">
+          <div class="progreso-track">
+            <div class="progreso-fill" [style.width.%]="fase.progreso" [style.background]="fase.color"></div>
+          </div>
+          <span class="progreso-pct">{{ fase.progreso }}%</span>
+        </div>
+
+        <!-- Contadores -->
+        <div class="fase-contadores">
+          <div class="contador">
+            <i class="bi bi-journal-text" aria-hidden="true"></i>
+            <span class="contador-num">{{ fase.historiasTotal }}</span>
+            <span class="contador-label">Historias</span>
+          </div>
+          <div class="contador-sep"></div>
+          <div class="contador">
+            <i class="bi bi-check2-square" aria-hidden="true"></i>
+            <span class="contador-num">{{ fase.actividadesTotal }}</span>
+            <span class="contador-label">Actividades</span>
+          </div>
+        </div>
+
+        <!-- Footer: badge + link -->
+        <div class="fase-card-footer">
+          <app-estado-badge [estado]="fase.estado" size="sm" />
+          <button class="ver-detalle-btn" (click)="verDetalle(fase)">
+            Ver detalle <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <!-- Acciones (solo para roles con permiso) -->
+        @if (puedeEditar()) {
+          <div class="fase-acciones">
+            <button class="accion-btn" title="Editar fase">
+              <i class="bi bi-pencil" aria-hidden="true"></i>
+            </button>
+            @if (puedeEliminar()) {
+              <button class="accion-btn danger" title="Eliminar fase">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+              </button>
+            }
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- Tarjeta "+ Nueva fase" (solo Admin / Líder) -->
+    @if (puedeCrear()) {
+      <button class="fase-card-nueva" (click)="abrirNuevaFase()" aria-label="Crear nueva fase">
+        <div class="nueva-icono">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        </div>
+        <span class="nueva-label">Nueva fase</span>
+      </button>
+    }
+
+  </div>
+
+  <!-- ── Aviso de permisos ──────────────────────────────────────────────────── -->
+  <p class="permisos-aviso">
+    <i class="bi bi-shield-check" aria-hidden="true"></i>
+    Solo los miembros del equipo asignado al proyecto pueden ver, crear y gestionar
+    Fases, Historias y Actividades.
+  </p>
+
+</div>

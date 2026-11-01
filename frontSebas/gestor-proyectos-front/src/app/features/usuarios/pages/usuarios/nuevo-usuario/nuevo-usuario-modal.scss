@@ -1,0 +1,90 @@
+// El marco del modal y los campos vienen de <app-modal> y de styles/_formulario.scss.
+
+.ojo {
+  color: var(--texto-suave) !important;
+  font-size: 1.1rem;
+}
+
+// ─── Roles ──────────────────────────────────────────────────────────────────
+.roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+  border-radius: 12px;
+
+  &.con-error { outline: 1px solid var(--rojo); outline-offset: 4px; }
+}
+
+.rol {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  cursor: pointer;
+
+  input {
+    width: 18px;
+    height: 18px;
+    margin-top: 0.15rem;
+    accent-color: var(--morado);
+  }
+
+  strong {
+    display: block;
+    color: var(--tinta);
+    font-weight: 600;
+  }
+
+  small { color: var(--texto-suave); }
+
+  &.elegido {
+    border-color: var(--morado);
+    background: var(--morado-suave);
+  }
+}
+
+// ─── Proyectos ──────────────────────────────────────────────────────────────
+.proyectos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+
+  select {
+    flex: 1;
+    width: auto !important;
+    min-width: 180px;
+    padding: 0.35rem 0.4rem !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: var(--texto-suave) !important;
+  }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 8px;
+  background: var(--morado-suave);
+  color: var(--morado);
+  font-weight: 500;
+
+  button {
+    border: 0;
+    background: none;
+    color: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+}
+
+@media (max-width: 640px) {
+  .roles { grid-template-columns: 1fr; }
+}

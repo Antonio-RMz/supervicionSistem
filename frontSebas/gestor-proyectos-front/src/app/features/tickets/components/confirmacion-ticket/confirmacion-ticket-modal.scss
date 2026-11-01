@@ -1,0 +1,96 @@
+// Los campos vienen de styles/_formulario.scss (.formulario, .campo, .pie-modal...).
+
+.formulario {
+  gap: 1.1rem;
+}
+
+.revisiones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: var(--fondo-pagina);
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    color: var(--tinta);
+  }
+
+  i { margin-top: 0.1rem; }
+  .ok { color: var(--verde); }
+  .falta { color: var(--rojo); }
+  .info { color: var(--borde-fuerte); }
+}
+
+.nota {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--tono-fondo);
+  color: var(--tono-texto);
+  font-weight: 500;
+
+  i { margin-top: 0.1rem; }
+}
+
+.opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  cursor: pointer;
+
+  input { margin-top: 0.25rem; accent-color: var(--morado); }
+
+  strong {
+    display: block;
+    color: var(--tinta);
+  }
+
+  small { color: var(--texto-suave); }
+
+  &.elegida {
+    border-color: var(--morado);
+    background: var(--morado-suave);
+  }
+}
+
+.texto {
+  margin: 0;
+  color: var(--texto);
+}
+
+.severidad {
+  color: var(--tono-texto);
+}
+
+.pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--tinta);
+
+  i {
+    margin-right: 0.4rem;
+    color: var(--morado);
+  }
+}

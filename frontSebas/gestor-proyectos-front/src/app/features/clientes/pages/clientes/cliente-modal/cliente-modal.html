@@ -1,0 +1,102 @@
+<app-modal [titulo]="editando() ? 'Editar cliente' : 'Nuevo cliente'"
+           [subtitulo]="editando() ? cliente()!.razonSocial : 'Después podrás ligarle proyectos.'"
+           (cerrar)="cerrar.emit()">
+  <form id="form-cliente" class="formulario" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+    <p class="seccion">Empresa</p>
+
+    <label class="campo">
+      <span>Nombre o razón social <b>*</b></span>
+      <input formControlName="razonSocial" placeholder="Grupo Ferretero León S.A. de C.V." autocomplete="off"
+             [class.con-error]="invalido('razonSocial')" />
+      @if (invalido('razonSocial')) {
+        <small class="mensaje-campo">Escribe el nombre o razón social.</small>
+      }
+    </label>
+
+    <div class="fila">
+      <label class="campo">
+        <span>Nombre corto</span>
+        <input formControlName="nombreCorto" placeholder="Ferretero León" autocomplete="off" />
+        <small class="pista">Así aparece en listas y proyectos.</small>
+      </label>
+      <label class="campo">
+        <span>RFC</span>
+        <input formControlName="rfc" placeholder="GFL120315AB1" autocomplete="off" class="mayusculas"
+               [class.con-error]="invalido('rfc')" />
+        @if (invalido('rfc')) {
+          <small class="mensaje-campo">12 o 13 caracteres, ej. GFL120315AB1.</small>
+        }
+      </label>
+    </div>
+
+    <div class="fila">
+      <label class="campo">
+        <span>Giro</span>
+        <select formControlName="giro">
+          <option value="">Selecciona…</option>
+          @for (giro of giros; track giro.codigo) {
+            <option [value]="giro.codigo">{{ giro.nombre }}</option>
+          }
+        </select>
+      </label>
+      <label class="campo">
+        <span>Ciudad</span>
+        <input formControlName="ciudad" placeholder="León, Gto." autocomplete="off" />
+      </label>
+    </div>
+
+    <hr class="separador" />
+    <p class="seccion">Contacto principal</p>
+
+    <label class="campo">
+      <span>Nombre del contacto</span>
+      <input formControlName="contactoNombre" placeholder="Mariana Torres" autocomplete="off" />
+    </label>
+
+    <div class="fila">
+      <label class="campo">
+        <span>Correo</span>
+        <input type="email" formControlName="contactoCorreo" placeholder="mariana@empresa.mx" autocomplete="off"
+               [class.con-error]="invalido('contactoCorreo')" />
+        @if (invalido('contactoCorreo')) {
+          <small class="mensaje-campo">Escribe un correo válido.</small>
+        }
+      </label>
+      <label class="campo">
+        <span>Teléfono</span>
+        <input type="tel" formControlName="contactoTelefono" placeholder="477 123 4567" autocomplete="off" />
+      </label>
+    </div>
+
+    <label class="campo">
+      <span>Notas</span>
+      <textarea formControlName="notas" placeholder="Horarios, acuerdos, cómo prefiere que lo contacten…"></textarea>
+    </label>
+
+    <label class="interruptor">
+      <input type="checkbox" formControlName="activo" />
+      <span class="riel" aria-hidden="true"></span>
+      <span>
+        <strong>Cliente activo</strong>
+        <small>Los inactivos no aparecen al crear proyectos nuevos.</small>
+      </span>
+    </label>
+
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+  </form>
+
+  <div pie class="pie-modal">
+    <div class="botones">
+      <button type="button" class="boton boton-secundario" (click)="cerrar.emit()">Cancelar</button>
+      <button type="submit" form="form-cliente" class="boton boton-primario" [disabled]="enviando()">
+        @if (enviando()) {
+          Guardando…
+        } @else {
+          {{ editando() ? 'Guardar cambios' : 'Crear cliente' }}
+        }
+      </button>
+    </div>
+  </div>
+</app-modal>

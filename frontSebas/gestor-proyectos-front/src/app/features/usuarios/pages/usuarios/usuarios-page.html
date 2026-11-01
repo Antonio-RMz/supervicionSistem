@@ -1,0 +1,147 @@
+<header class="encabezado">
+  <div>
+    <h1>Usuarios y roles</h1>
+    <p>Proyecto privado: el administrador da de alta a cada persona, le asigna roles y permisos.</p>
+  </div>
+  <button type="button" class="boton boton-primario" (click)="creando.set(true)" [disabled]="!catalogo.roles().length">
+    <i class="bi bi-plus-lg"></i> Nuevo usuario
+  </button>
+</header>
+
+<nav class="pestanas" role="tablist">
+  <button type="button" role="tab" [class.activa]="pestana() === 'usuarios'" [attr.aria-selected]="pestana() === 'usuarios'"
+          (click)="pestana.set('usuarios')">Usuarios · {{ usuarios().length }}</button>
+  <button type="button" role="tab" [class.activa]="pestana() === 'roles'" [attr.aria-selected]="pestana() === 'roles'"
+          (click)="pestana.set('roles')">Roles · {{ catalogo.roles().length }}</button>
+  <button type="button" role="tab" [class.activa]="pestana() === 'matriz'" [attr.aria-selected]="pestana() === 'matriz'"
+          (click)="pestana.set('matriz')">Matriz de permisos</button>
+  <button type="button" role="tab" [class.activa]="pestana() === 'flujos'" [attr.aria-selected]="pestana() === 'flujos'"
+          (click)="pestana.set('flujos')">Flujos por tipo de ticket</button>
+</nav>
+
+@switch (pestana()) {
+  @case ('usuarios') {
+    <div class="usuarios" [class.con-panel]="seleccionado()">
+      <div class="izquierda">
+        <label class="buscar">
+          <i class="bi bi-search"></i>
+          <span class="solo-lectores">Buscar</span>
+          <input type="search" placeholder="Buscar por nombre o correo…" [value]="busqueda()"
+                 (input)="busqueda.set($any($event.target).value)" />
+        </label>
+
+        @if (error()) {
+          <p class="error-carga">No pudimos cargar los usuarios. Intenta recargar la página.</p>
+        } @else if (cargando()) {
+          <p class="cargando">Cargando…</p>
+        } @else {
+          <div class="tarjeta tabla-contenedor">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Roles</th>
+                  <th class="numero">Proyectos</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (usuario of filtrados(); track usuario.id) {
+                  <tr [class.elegido]="usuario.id === seleccionadoId()" (click)="elegir(usuario)">
+                    <td>
+                      <div class="persona">
+                        <app-avatar [iniciales]="usuario.iniciales" [tono]="usuario.tonoAvatar" />
+                        <div>
+                          <a [routerLink]="['/usuarios', usuario.id]" (click)="$event.stopPropagation()">{{ usuario.nombreCompleto }}</a>
+                          <small>{{ usuario.correo }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="chips">
+                        @for (etiqueta of usuario.etiquetasRol; track etiqueta.texto) {
+                          <app-etiqueta-estado [etiqueta]="etiqueta" />
+                        }
+                      </div>
+                    </td>
+                    <td class="numero">{{ usuario.proyectos }}</td>
+                    <td><app-etiqueta-estado [etiqueta]="usuario.activo ? activo : inactivo" /></td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="4" class="sin-resultados">Nadie coincide con "{{ busqueda() }}".</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      @if (seleccionado(); as usuario) {
+        <app-panel-accesos class="tarjeta panel" [usuario]="usuario" [roles]="catalogo.roles()"
+                           [permisos]="catalogo.permisos()" [proyectos]="proyectos()"
+                           (cerrar)="seleccionadoId.set(null)" (guardado)="alGuardar(usuario.id, $event)" />
+      }
+    </div>
+  }
+
+  @case ('roles') {
+    <ul class="roles">
+      @for (rol of catalogo.roles(); track rol.codigo) {
+        <li class="tarjeta">
+          <app-etiqueta-estado [etiqueta]="etiquetaDeRol(rol.codigo)" />
+          <h2>{{ rol.nombre }}</h2>
+          <p>{{ rol.descripcion }}</p>
+          <small>{{ rol.permisos.length }} de {{ catalogo.permisos().length }} permisos</small>
+        </li>
+      }
+    </ul>
+  }
+
+  @case ('matriz') {
+    <div class="tarjeta tabla-contenedor">
+      <table class="matriz">
+        <thead>
+          <tr>
+            <th>Permiso</th>
+            @for (rol of catalogo.roles(); track rol.codigo) {
+              <th class="marca">{{ etiquetaDeRol(rol.codigo).texto }}</th>
+            }
+          </tr>
+        </thead>
+        @for (grupo of grupos(); track grupo.nombre) {
+          <tbody>
+            <tr class="grupo"><th [attr.colspan]="catalogo.roles().length + 1">{{ grupo.nombre }}</th></tr>
+            @for (permiso of grupo.permisos; track permiso.codigo) {
+              <tr>
+                <td>{{ permiso.nombre }}</td>
+                @for (rol of catalogo.roles(); track rol.codigo) {
+                  <td class="marca">
+                    @if (tienePermiso(rol.permisos, permiso.codigo)) {
+                      <i class="bi bi-check-lg" title="{{ rol.nombre }}: sí"></i>
+                    } @else {
+                      <span class="no" title="{{ rol.nombre }}: no">—</span>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        }
+      </table>
+    </div>
+    <p class="nota">Los permisos extra de cada persona ajustan esta matriz: se ven en su panel, en la pestaña Usuarios.</p>
+  }
+
+  @case ('flujos') {
+    <section class="tarjeta proximamente">
+      <i class="bi bi-diagram-3"></i>
+      <h2>Flujos por tipo de ticket</h2>
+      <p>Esta sección está en construcción.</p>
+    </section>
+  }
+}
+
+@if (creando()) {
+  <app-nuevo-usuario-modal [roles]="catalogo.roles()" [proyectos]="proyectos()"
+                           (cerrar)="creando.set(false)" (creado)="alCrear($event)" />
+}

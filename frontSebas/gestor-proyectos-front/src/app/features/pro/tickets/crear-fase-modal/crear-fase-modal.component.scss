@@ -1,0 +1,305 @@
+@use 'sass:color';
+
+$primary:   #4361ee;
+$text:      #14172b;
+$text-2:    #374151;
+$muted:     #6c757d;
+$border:    #e9ecef;
+$surface:   #f8f9fb;
+$white:     #ffffff;
+$danger:    #dc2626;
+$radius:    14px;
+$radius-sm: 8px;
+
+// ─── Overlay ──────────────────────────────────────────────────────────────────
+.cf-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 13, 28, 0.52);
+  backdrop-filter: blur(2px);
+  z-index: 9900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+// ─── Panel ────────────────────────────────────────────────────────────────────
+.cf-modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: $white;
+  border-radius: $radius;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  animation: cf-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes cf-in {
+  from { opacity: 0; transform: translateY(-14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+.cf-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1.2rem 1.35rem 1rem;
+  border-bottom: 1px solid $border;
+}
+
+.cf-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  background: #ede9fe;
+  color: #7c3aed;
+  border-radius: 9px;
+  flex-shrink: 0;
+
+  i { font-size: 1rem; }
+}
+
+.cf-header-text { flex: 1; min-width: 0; }
+
+.cf-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 0.2rem;
+}
+
+.cf-subtitle {
+  font-size: 0.775rem;
+  color: $muted;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cf-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border: none;
+  background: transparent;
+  color: $muted;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.14s, color 0.14s;
+
+  i { font-size: 0.82rem; }
+  &:hover { background: $surface; color: $text; }
+}
+
+// ─── Error banner ─────────────────────────────────────────────────────────────
+.cf-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.9rem 1.35rem 0;
+  padding: 0.6rem 0.8rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: $radius-sm;
+  font-size: 0.8rem;
+  color: $danger;
+  line-height: 1.45;
+
+  i { flex-shrink: 0; margin-top: 0.05rem; }
+}
+
+// ─── Formulario ───────────────────────────────────────────────────────────────
+.cf-body {
+  padding: 1rem 1.35rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.cf-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $text-2;
+}
+
+.cf-req { color: $danger; margin-left: 0.1rem; }
+
+.cf-input,
+.cf-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  background: $white;
+  font-size: 0.82rem;
+  color: $text;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  font-family: inherit;
+
+  &::placeholder { color: color.adjust($muted, $lightness: 12%); }
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.12);
+  }
+
+  &.cf-input--err {
+    border-color: $danger;
+    &:focus { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
+  }
+}
+
+.cf-textarea {
+  resize: vertical;
+  min-height: 88px;
+  line-height: 1.5;
+}
+
+// ─── Select con icono ─────────────────────────────────────────────────────────
+.cf-select-wrap {
+  position: relative;
+}
+
+.cf-select {
+  width: 100%;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  background: $white;
+  font-size: 0.82rem;
+  color: $text;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.12);
+  }
+
+  &.cf-input--err {
+    border-color: $danger;
+    &:focus { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
+  }
+}
+
+.cf-select-icon {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  color: $muted;
+  pointer-events: none;
+}
+
+// ─── Hints y contadores ───────────────────────────────────────────────────────
+.cf-row-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.cf-hint {
+  font-size: 0.75rem;
+  color: $muted;
+
+  &--err { color: $danger; }
+}
+
+.cf-counter {
+  font-size: 0.7rem;
+  color: color.adjust($muted, $lightness: 10%);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+// ─── Fechas ───────────────────────────────────────────────────────────────────
+.cf-dates-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+.cf-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid $border;
+  margin-top: 0.15rem;
+}
+
+.cf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: $radius-sm;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  line-height: 1;
+}
+
+.cf-btn--primary {
+  background: $primary;
+  color: $white;
+  box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+
+  i { font-size: 0.78rem; }
+
+  &:hover:not(:disabled) {
+    background: #3451d1;
+    box-shadow: 0 4px 14px rgba(67, 97, 238, 0.38);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.cf-btn--ghost {
+  background: transparent;
+  color: $text-2;
+  border: 1.5px solid $border;
+
+  &:hover { background: $surface; border-color: color.adjust($border, $lightness: -6%); }
+}
+
+.cf-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: $white;
+  border-radius: 50%;
+  animation: cf-spin 0.6s linear infinite;
+}
+
+@keyframes cf-spin { to { transform: rotate(360deg); } }

@@ -1,0 +1,62 @@
+<div class="feature-page equipo-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <button class="btn-regresar" [routerLink]="['/pro', idProyecto()]">
+        <i class="bi bi-chevron-left"></i> Regresar
+      </button>
+      <div>
+        <h1 class="page-title">Equipo del proyecto</h1>
+        <p class="page-subtitle">
+          @if (equipo().length === 1) {
+            1 miembro asignado
+          } @else {
+            {{ equipo().length }} miembros asignados
+          }
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estados: carga / error / vacío / lista -->
+  @if (cargandoEquipo()) {
+    <div class="estado-carga">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p>Cargando equipo...</p>
+    </div>
+  } @else if (errorEquipo()) {
+    <div class="alert alert-danger mt-3">
+      {{ errorEquipo() }}
+    </div>
+  } @else if (equipo().length > 0) {
+    <div class="miembros-grid">
+      @for (miembro of equipo(); track miembro.idUsuario) {
+        <div class="miembro-card" [class.inactivo]="!miembro.activo">
+          <div class="miembro-avatar" [style.background]="obtenerColorAvatar(miembro)">
+            {{ obtenerIniciales(miembro) }}
+          </div>
+          <div class="miembro-info">
+            <span class="miembro-nombre">{{ obtenerNombreCompleto(miembro) }}</span>
+            <span class="miembro-email">{{ miembro.email }}</span>
+          </div>
+          <div class="miembro-footer">
+            <span class="rol-badge">{{ obtenerRol(miembro) }}</span>
+            @if (!miembro.activo) {
+              <span class="inactivo-tag">Inactivo</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="empty-state">
+      <i class="bi bi-people empty-icon"></i>
+      <p>Este proyecto no tiene miembros asignados.</p>
+      <p class="text-muted">Los usuarios aparecerán aquí cuando sean asignados al proyecto.</p>
+    </div>
+  }
+
+</div>

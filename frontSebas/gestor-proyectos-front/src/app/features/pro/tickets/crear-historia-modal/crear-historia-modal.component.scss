@@ -1,0 +1,309 @@
+@use 'sass:color';
+
+$primary:   #4361ee;
+$text:      #14172b;
+$text-2:    #374151;
+$muted:     #6c757d;
+$border:    #e9ecef;
+$surface:   #f8f9fb;
+$white:     #ffffff;
+$danger:    #dc2626;
+$radius:    14px;
+$radius-sm: 8px;
+
+// ─── Overlay ──────────────────────────────────────────────────────────────────
+.ch-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 13, 28, 0.52);
+  backdrop-filter: blur(2px);
+  z-index: 9900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+// ─── Panel ────────────────────────────────────────────────────────────────────
+.ch-modal {
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: $white;
+  border-radius: $radius;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  animation: ch-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes ch-in {
+  from { opacity: 0; transform: translateY(-14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// ─── Header ───────────────────────────────────────────────────────────────────
+.ch-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1.2rem 1.35rem 1rem;
+  border-bottom: 1px solid $border;
+}
+
+.ch-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  background: #ede9fe;
+  color: #7c3aed;
+  border-radius: 9px;
+  flex-shrink: 0;
+
+  i { font-size: 1rem; }
+}
+
+.ch-header-text { flex: 1; min-width: 0; }
+
+.ch-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 0.2rem;
+}
+
+.ch-subtitle {
+  font-size: 0.775rem;
+  color: $muted;
+  margin: 0;
+  line-height: 1.5;
+
+  strong { color: $text-2; }
+}
+
+.ch-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border: none;
+  background: transparent;
+  color: $muted;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.14s, color 0.14s;
+
+  i { font-size: 0.82rem; }
+  &:hover:not(:disabled) { background: $surface; color: $text; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+// ─── Error banner ─────────────────────────────────────────────────────────────
+.ch-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.9rem 1.35rem 0;
+  padding: 0.6rem 0.8rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: $radius-sm;
+  font-size: 0.8rem;
+  color: $danger;
+  line-height: 1.45;
+
+  i { flex-shrink: 0; margin-top: 0.05rem; }
+}
+
+// ─── Formulario ───────────────────────────────────────────────────────────────
+.ch-body {
+  padding: 1rem 1.35rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.ch-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.ch-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $text-2;
+}
+
+.ch-req { color: $danger; margin-left: 0.1rem; }
+
+.ch-input,
+.ch-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  background: $white;
+  font-size: 0.82rem;
+  color: $text;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  font-family: inherit;
+
+  &::placeholder { color: color.adjust($muted, $lightness: 12%); }
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.12);
+  }
+
+  &.ch-input--err {
+    border-color: $danger;
+    &:focus { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
+  }
+}
+
+.ch-textarea {
+  resize: vertical;
+  min-height: 88px;
+  line-height: 1.5;
+}
+
+// ─── Select con icono ─────────────────────────────────────────────────────────
+.ch-select-wrap {
+  position: relative;
+}
+
+.ch-select {
+  width: 100%;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  background: $white;
+  font-size: 0.82rem;
+  color: $text;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.12);
+  }
+
+  &.ch-input--err {
+    border-color: $danger;
+    &:focus { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
+  }
+}
+
+.ch-select-icon {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  color: $muted;
+  pointer-events: none;
+}
+
+// ─── Hints y contadores ───────────────────────────────────────────────────────
+.ch-row-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ch-hint {
+  font-size: 0.75rem;
+  color: $muted;
+
+  &--err { color: $danger; }
+}
+
+.ch-counter {
+  font-size: 0.7rem;
+  color: color.adjust($muted, $lightness: 10%);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+// ─── Fechas ───────────────────────────────────────────────────────────────────
+.ch-dates-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+.ch-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid $border;
+  margin-top: 0.15rem;
+}
+
+.ch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: $radius-sm;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  line-height: 1;
+}
+
+.ch-btn--primary {
+  background: $primary;
+  color: $white;
+  box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+
+  i { font-size: 0.78rem; }
+
+  &:hover:not(:disabled) {
+    background: #3451d1;
+    box-shadow: 0 4px 14px rgba(67, 97, 238, 0.38);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.ch-btn--ghost {
+  background: transparent;
+  color: $text-2;
+  border: 1.5px solid $border;
+
+  &:hover:not(:disabled) { background: $surface; border-color: color.adjust($border, $lightness: -6%); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.ch-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: $white;
+  border-radius: 50%;
+  animation: ch-spin 0.6s linear infinite;
+}
+
+@keyframes ch-spin { to { transform: rotate(360deg); } }

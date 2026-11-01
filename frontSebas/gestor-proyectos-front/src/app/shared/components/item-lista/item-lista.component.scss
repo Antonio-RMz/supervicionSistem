@@ -1,0 +1,114 @@
+$text:   #14172b;
+$muted:  #6c757d;
+$border: #e9ecef;
+$primary: #4361ee;
+
+// ─── Toolbar ─────────────────────────────────────────────────────────────────
+.il-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.85rem;
+}
+
+.il-btn-nuevo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: $primary;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  &:hover { opacity: 0.88; }
+  i { font-size: 0.72rem; }
+}
+
+// ─── Lista ────────────────────────────────────────────────────────────────────
+.il-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.il-fila {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 0.5px solid $border;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-radius: 6px;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: #f8f9ff;
+    .il-flecha { opacity: 1; transform: translateX(2px); }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.il-icono {
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.il-codigo {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $muted;
+  white-space: nowrap;
+  width: 72px;
+  flex-shrink: 0;
+  font-family: ui-monospace, 'Cascadia Code', monospace;
+}
+
+.il-titulo {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: $text;
+  line-height: 1.4;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.il-flecha {
+  font-size: 0.65rem;
+  color: #c4c9d4;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.12s, transform 0.12s;
+}
+
+// ─── Estado vacío ─────────────────────────────────────────────────────────────
+.il-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3.5rem 1rem;
+  text-align: center;
+}
+
+.il-vacio-icono { font-size: 2.5rem; color: #d1d5db; }
+.il-vacio-texto { font-size: 0.85rem; color: $muted; margin: 0; }
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .il-codigo { width: 56px; font-size: 0.7rem; }
+  .il-titulo { font-size: 0.82rem; }
+}

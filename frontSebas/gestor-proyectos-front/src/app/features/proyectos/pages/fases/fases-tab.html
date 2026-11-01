@@ -1,0 +1,61 @@
+@if (error()) {
+  <p class="error-carga">No pudimos cargar las fases.</p>
+} @else if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else {
+  <div class="cabecera">
+    <h2>Fases <small>{{ fases().length }}</small></h2>
+  </div>
+
+  <ul class="fases">
+    @for (f of fases(); track f.fase.id) {
+      @let abierta = abiertas().has(f.fase.id);
+      <li class="tarjeta fase" [class.abierta]="abierta">
+        <div class="fase-fila">
+          <button type="button" class="desplegar" (click)="alternar(f.fase.id)" [attr.aria-expanded]="abierta"
+                  [attr.aria-controls]="'historias-fase-' + f.fase.id">
+            <i class="bi bi-chevron-right flechita"></i>
+            @if (f.fase.estado === 'PUBLICADA') {
+              <span class="marca listo"><i class="bi bi-check-lg"></i></span>
+            } @else {
+              <span class="marca" [class.actual]="f.fase.estado !== 'PLANEADA' && f.fase.estado !== 'CANCELADA'">{{ f.fase.numero }}</span>
+            }
+            <span class="fase-nombre">
+              <strong>{{ f.fase.nombre }}</strong>
+              <small>{{ f.fase.fechas || 'Sin fechas' }}</small>
+            </span>
+          </button>
+          <app-etiqueta-estado [etiqueta]="f.fase.etiqueta" />
+          <span class="conteo">{{ f.historias.length }} {{ f.historias.length === 1 ? 'historia' : 'historias' }}</span>
+          <span class="avance-fase">
+            <app-barra-avance [valor]="f.fase.avance" [tono]="f.fase.tonoAvance" />
+            <strong>{{ f.fase.avance }}%</strong>
+          </span>
+          <a class="ir" [routerLink]="['/proyectos', store.resumen()?.id, 'fases', f.fase.id]">Ver fase <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        @if (abierta) {
+          <div class="historias" [id]="'historias-fase-' + f.fase.id">
+            @for (h of f.historias; track h.id) {
+              <a class="historia" [routerLink]="['/proyectos', store.resumen()?.id, 'historias', h.id]">
+                <span class="codigo">{{ h.codigo }}</span>
+                <span class="titulo">{{ h.titulo }}</span>
+                <app-avatar [iniciales]="h.analista.iniciales" [tono]="h.analista.tono" class="chico" title="Analista" />
+                <app-etiqueta-estado [etiqueta]="etiquetaHistoria(h.estado)" />
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            } @empty {
+              <p class="vacio">Esta fase aún no tiene historias.</p>
+            }
+            @if (store.resumen()?.puedeCrearHistoria && aceptaHistorias(f.fase.estado)) {
+              <a class="nueva" [routerLink]="['/proyectos', store.resumen()!.id, 'historias', 'nueva']"
+                 [queryParams]="{ fase: f.fase.id }"><i class="bi bi-plus-lg"></i> Nueva historia</a>
+            }
+          </div>
+        }
+      </li>
+    } @empty {
+      <li class="vacio tarjeta">El proyecto aún no tiene fases.</li>
+    }
+  </ul>
+}

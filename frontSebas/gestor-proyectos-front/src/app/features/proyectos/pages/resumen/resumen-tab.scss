@@ -1,0 +1,218 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+h2 { font-size: 1.15rem; }
+
+// ─── Métricas ────────────────────────────────────────────────────────────────
+.metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.metrica {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1.1rem 1.35rem;
+
+  span,
+  small { color: var(--texto-suave); }
+
+  strong {
+    color: var(--tinta);
+    font-size: 1.9rem;
+    line-height: 1.15;
+
+    &.alerta { color: var(--rojo); }
+    &.ritmo { color: var(--tono-texto); }
+  }
+}
+
+// ─── Columnas ────────────────────────────────────────────────────────────────
+.columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.izquierda,
+.derecha {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bloque { padding: 1.4rem 1.6rem; }
+
+.bloque-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  a {
+    color: var(--morado);
+    font-weight: 500;
+    text-decoration: none;
+  }
+}
+
+.ayuda {
+  margin: 0.4rem 0 0;
+  color: var(--texto-suave);
+}
+
+.sin-items {
+  color: var(--texto-suave);
+
+  i { color: var(--verde); margin-right: 0.35rem; }
+}
+
+// ─── Listas ──────────────────────────────────────────────────────────────────
+.lista {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 0;
+    border-top: 1px solid var(--borde);
+  }
+}
+
+.codigo {
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.titulo-item {
+  flex: 1;
+  min-width: 0;
+  color: var(--tinta);
+  font-weight: 500;
+}
+
+// Lo que te toca hacer; se hace al entrar al ticket o la historia.
+.pendiente {
+  display: inline-flex;
+  align-items: center;
+  color: var(--morado);
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.detenido {
+  i { font-size: 1.1rem; }
+
+  strong {
+    display: block;
+    color: var(--tinta);
+  }
+
+  small { display: block; }
+}
+
+.rojo { color: var(--rojo); }
+.naranja { color: var(--naranja-texto); }
+
+.cuenta-roja {
+  min-width: 1.6rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--rojo-suave);
+  color: var(--rojo);
+  font-weight: 600;
+  text-align: center;
+}
+
+// ─── Lado derecho ────────────────────────────────────────────────────────────
+.etiqueta {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--tono-fondo);
+  color: var(--tono-texto);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.datos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  dt { color: var(--texto-suave); }
+
+  dd {
+    margin: 0;
+    color: var(--tinta);
+    font-weight: 600;
+  }
+}
+
+.modulos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--tinta);
+  }
+
+  i { color: var(--morado); }
+
+  small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+    color: var(--texto-suave);
+  }
+}
+
+.punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tono-solido);
+}
+
+.actividad {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  span {
+    display: block;
+    color: var(--tinta);
+  }
+
+  small { color: var(--texto-suave); }
+}
+
+@media (max-width: 1200px) {
+  .columnas { grid-template-columns: 1fr; }
+}

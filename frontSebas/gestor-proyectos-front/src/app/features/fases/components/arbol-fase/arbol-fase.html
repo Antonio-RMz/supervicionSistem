@@ -1,0 +1,216 @@
+<!-- ─── Herramientas: contraer, filtros, leyenda y zoom ─── -->
+<div class="herramientas">
+  <div class="grupo">
+    <button type="button" class="boton boton-secundario chico" (click)="expandirTodo()">
+      <i class="bi bi-arrows-angle-expand"></i> Expandir todo
+    </button>
+    <button type="button" class="boton boton-secundario chico" (click)="contraerTodo()">
+      <i class="bi bi-arrows-angle-contract"></i> Contraer
+    </button>
+    <select class="filtro" aria-label="Tipo de ticket" [value]="filtroTipo()" (change)="filtroTipo.set($any($event.target).value)">
+      <option value="">Tipo: todos</option>
+      @for (t of tipos; track t.tipo) {
+        <option [value]="t.tipo">{{ t.nombre }}</option>
+      }
+    </select>
+    <select class="filtro" aria-label="Estado" [value]="filtroEtapa()" (change)="filtroEtapa.set($any($event.target).value)">
+      <option value="">Estado: todos</option>
+      @for (e of etapas; track e.etapa) {
+        <option [value]="e.etapa">{{ e.texto }}</option>
+      }
+    </select>
+    <button type="button" class="boton chico" [class.boton-primario]="soloMios()" [class.boton-secundario]="!soloMios()"
+            [attr.aria-pressed]="soloMios()" (click)="soloMios.set(!soloMios())">
+      <i class="bi bi-person"></i> Solo los míos
+    </button>
+  </div>
+  <div class="grupo">
+    <ul class="leyenda">
+      @for (e of etapas; track e.etapa) {
+        <li><span class="punto tono-{{ e.tono }}"></span>{{ e.texto }}</li>
+      }
+    </ul>
+    <div class="zoom">
+      <button type="button" (click)="acercar(-10)" title="Alejar" [disabled]="zoom() <= 50"><i class="bi bi-dash-lg"></i></button>
+      <span>{{ zoom() }}%</span>
+      <button type="button" (click)="acercar(10)" title="Acercar" [disabled]="zoom() >= 150"><i class="bi bi-plus-lg"></i></button>
+      <button type="button" class="centrar" (click)="centrar()" title="Volver al inicio"><i class="bi bi-fullscreen-exit"></i></button>
+    </div>
+  </div>
+</div>
+
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (error()) {
+  <p class="error-carga">{{ error() }}</p>
+} @else if (arbol(); as a) {
+  <div class="columnas-arbol">
+    <!-- ─── Lienzo ─── -->
+    <!-- Se mueve arrastrando el fondo con la "manita" o con la rueda; Ctrl + rueda acerca o aleja -->
+    <div class="lienzo tarjeta" [class.arrastrando]="arrastre() !== null"
+         (pointerdown)="empezarArrastre($event)" (pointermove)="arrastrar($event)"
+         (pointerup)="soltar($event)" (pointercancel)="soltar($event)" (wheel)="rueda($event)">
+      <div class="arbol" [style.zoom]="zoom() / 100" [style.transform]="transformacion()">
+        <!-- Fase -->
+        <button type="button" class="nodo nodo-fase" [class.elegido]="elegido('fase')" (click)="elegir({ tipo: 'fase' })">
+          <span class="nodo-arriba">
+            <span class="tipo-fila">FASE</span>
+            <app-etiqueta-estado [etiqueta]="a.fase.etiqueta" />
+          </span>
+          <strong>{{ a.fase.titulo }}</strong>
+          @if (a.fase.fechas) {
+            <small>{{ a.fase.fechas }}</small>
+          }
+          <app-barra-avance [valor]="a.fase.avance" [tono]="a.fase.tonoAvance" />
+          <small>{{ a.fase.historias }} {{ a.fase.historias === 1 ? 'historia' : 'historias' }} · {{ a.fase.tickets }} tickets</small>
+        </button>
+
+        @if (historias().length || sueltos().length) {
+          <div class="rama">
+            @for (h of historias(); track h.historia.id) {
+              <div class="hoja">
+                <!-- Historia -->
+                <div class="nodo nodo-historia" role="button" tabindex="0" [class.elegido]="elegido('historia', h.historia.id)"
+                     (click)="elegir({ tipo: 'historia', id: h.historia.id })" (keydown.enter)="elegir({ tipo: 'historia', id: h.historia.id })"
+                     (dblclick)="abrir(['historias', h.historia.id])">
+                  <span class="nodo-arriba">
+                    <button type="button" class="flecha" (click)="alternar(h.historia.id, $event)"
+                            [title]="contraida(h.historia.id) ? 'Mostrar sus tickets' : 'Ocultar sus tickets'">
+                      <i class="bi" [class.bi-chevron-down]="!contraida(h.historia.id)" [class.bi-chevron-right]="contraida(h.historia.id)"></i>
+                    </button>
+                    <app-tipo-ticket tipo="HIST" />
+                    <span class="codigo">{{ h.historia.codigo }}</span>
+                    <app-avatar class="chico" [iniciales]="h.historia.analista.iniciales" [tono]="h.historia.analista.tono"
+                                title="Analista" />
+                  </span>
+                  <strong>{{ h.historia.titulo }}</strong>
+                  <span class="nodo-abajo">
+                    <app-etiqueta-estado [etiqueta]="etiquetaHistoria(h.historia.estado)" />
+                    <small>{{ h.historia.total ? h.historia.listos + '/' + h.historia.total + ' tickets' : 'Sin tickets' }}</small>
+                  </span>
+                  <app-barra-avance [valor]="h.historia.total ? (h.historia.listos * 100) / h.historia.total : 0" />
+                </div>
+
+                <!-- Sus tickets -->
+                @if (!contraida(h.historia.id)) {
+                  @if (h.tickets.length) {
+                    <div class="rama">
+                      @for (t of h.tickets; track t.id) {
+                        <div class="hoja">
+                          <ng-container *ngTemplateOutlet="nodoTicket; context: { $implicit: t }" />
+                        </div>
+                      }
+                    </div>
+                  } @else if (puedeCrearTicket() && h.historia.aceptaTickets) {
+                    <div class="rama">
+                      <div class="hoja">
+                        <a class="nodo nodo-nuevo" [routerLink]="['/proyectos', proyectoId(), 'tickets', 'nuevo']"
+                           [queryParams]="{ historia: h.historia.id }">
+                          <i class="bi bi-plus-lg"></i> Nuevo ticket en {{ h.historia.codigo }}
+                        </a>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+            }
+
+            <!-- Tickets sin historia -->
+            @if (sueltos().length) {
+              <div class="hoja">
+                <div class="nodo nodo-historia sin-historia">
+                  <strong>Sin historia</strong>
+                  <small>{{ sueltos().length }} {{ sueltos().length === 1 ? 'ticket' : 'tickets' }}</small>
+                </div>
+                <div class="rama">
+                  @for (t of sueltos(); track t.id) {
+                    <div class="hoja">
+                      <ng-container *ngTemplateOutlet="nodoTicket; context: { $implicit: t }" />
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="vacio">{{ filtrando() ? 'Ningún ticket coincide con los filtros.' : 'La fase aún no tiene historias.' }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- ─── Seleccionado ─── -->
+    <aside class="tarjeta panel">
+      <span class="panel-titulo">Seleccionado</span>
+      @if (ticketElegido(); as e) {
+        <div class="panel-arriba">
+          <app-tipo-ticket [tipo]="e.ticket.tipo" />
+          <span class="codigo">{{ e.ticket.codigo }}</span>
+          <app-etiqueta-estado [etiqueta]="etiquetaEstadoTicket(e.ticket.estado)" />
+        </div>
+        <h3>{{ e.ticket.titulo }}</h3>
+        <dl>
+          <div><dt>Historia</dt><dd>{{ e.historia ? e.historia.codigo + ' · ' + e.historia.titulo : '—' }}</dd></div>
+          <div><dt>Repositorio</dt><dd>{{ e.ticket.modulo?.largo ?? '—' }}</dd></div>
+          <div><dt>Responsable</dt><dd>{{ e.ticket.responsable?.nombre || 'Sin asignar' }}</dd></div>
+        </dl>
+        <p class="siguiente" [class.mia]="!!e.ticket.accion">{{ siguientePaso(e.ticket) }}</p>
+        <a class="boton boton-primario abrir" [routerLink]="['/proyectos', proyectoId(), 'tickets', e.ticket.id]">
+          <i class="bi bi-box-arrow-up-right"></i> Abrir detalle
+        </a>
+      } @else if (historiaElegida(); as h) {
+        <div class="panel-arriba">
+          <app-tipo-ticket tipo="HIST" />
+          <span class="codigo">{{ h.codigo }}</span>
+          <app-etiqueta-estado [etiqueta]="etiquetaHistoria(h.estado)" />
+        </div>
+        <h3>{{ h.titulo }}</h3>
+        <dl>
+          <div><dt>Tickets</dt><dd>{{ h.listos }} de {{ h.total }} terminados</dd></div>
+          <div><dt>Actividades</dt><dd>{{ cuantos(h, true) }}</dd></div>
+          <div><dt>Bugs y mejoras</dt><dd>{{ cuantos(h, false) }}</dd></div>
+        </dl>
+        <a class="boton boton-primario abrir" [routerLink]="['/proyectos', proyectoId(), 'historias', h.id]">
+          <i class="bi bi-box-arrow-up-right"></i> Abrir detalle
+        </a>
+        @if (puedeCrearTicket() && h.aceptaTickets) {
+          <a class="boton boton-secundario abrir" [routerLink]="['/proyectos', proyectoId(), 'tickets', 'nuevo']"
+             [queryParams]="{ historia: h.id }"><i class="bi bi-plus-lg"></i> Nuevo ticket</a>
+        }
+      } @else {
+        <div class="panel-arriba">
+          <span class="tipo-fila">FASE</span>
+          <app-etiqueta-estado [etiqueta]="a.fase.etiqueta" />
+        </div>
+        <h3>{{ a.fase.titulo }}</h3>
+        <dl>
+          <div><dt>Fechas</dt><dd>{{ a.fase.fechas || '—' }}</dd></div>
+          <div><dt>Historias</dt><dd>{{ a.fase.historias }}</dd></div>
+          <div><dt>Tickets</dt><dd>{{ a.fase.tickets }}</dd></div>
+          <div><dt>Avance</dt><dd>{{ a.fase.avance }}%</dd></div>
+        </dl>
+      }
+      <p class="ayuda">Clic en un nodo para verlo aquí; doble clic abre su detalle. La flecha de cada historia la contrae. Arrastra el fondo (o usa la rueda) para moverte; Ctrl + rueda para el zoom.</p>
+    </aside>
+  </div>
+} @else {
+  <p class="tarjeta vacio">No encontramos esta fase en el proyecto.</p>
+}
+
+<!-- Un ticket del árbol -->
+<ng-template #nodoTicket let-t>
+  <div class="nodo nodo-ticket etapa-{{ etapaDe(t.estado) ?? 'fuera' }}" role="button" tabindex="0" [class.elegido]="elegido('ticket', t.id)"
+       (click)="elegir({ tipo: 'ticket', id: t.id })" (keydown.enter)="elegir({ tipo: 'ticket', id: t.id })"
+       (dblclick)="abrir(['tickets', t.id])">
+    <span class="nodo-arriba">
+      <app-tipo-ticket [tipo]="t.tipo" />
+      <span class="codigo">{{ t.codigo }}</span>
+      @if (t.modulo; as m) {
+        <app-chip-modulo class="derecha" [texto]="m.corto" [icono]="m.icono" [tono]="m.tono" />
+      }
+    </span>
+    <span class="nodo-abajo">
+      <strong>{{ t.titulo }}</strong>
+      <app-etiqueta-estado [etiqueta]="etiquetaEstadoTicket(t.estado)" />
+    </span>
+  </div>
+</ng-template>

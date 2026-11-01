@@ -1,0 +1,33 @@
+<!-- Barra superior con botón de creación -->
+@if (puedeCrear()) {
+  <div class="il-toolbar">
+    <button class="il-btn-nuevo" (click)="nuevo.emit()">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ labelNuevo() }}
+    </button>
+  </div>
+}
+
+<!-- Lista -->
+@if (items().length > 0) {
+  <ul class="il-lista" role="list">
+    @for (item of items(); track item.id) {
+      <li class="il-fila" (click)="itemClick.emit(item)" role="listitem" tabindex="0"
+          (keydown.enter)="itemClick.emit(item)" (keydown.space)="itemClick.emit(item)">
+        <i class="bi il-icono" [class]="icono()" [style.color]="item.iconColor" aria-hidden="true"></i>
+        <span class="il-codigo">{{ item.codigo }}</span>
+        <span class="il-titulo">{{ item.titulo }}</span>
+        <i class="bi bi-chevron-right il-flecha" aria-hidden="true"></i>
+      </li>
+    }
+  </ul>
+} @else {
+  <div class="il-vacio">
+    <i class="bi bi-inbox il-vacio-icono" aria-hidden="true"></i>
+    <p class="il-vacio-texto">{{ labelVacio() }}</p>
+    @if (puedeCrear()) {
+      <button class="il-btn-nuevo" (click)="nuevo.emit()">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ labelNuevo() }}
+      </button>
+    }
+  </div>
+}

@@ -1,0 +1,322 @@
+// ─── Estado cargando / error ──────────────────────────────────────────────────
+.rd-state-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 5rem 1rem;
+}
+
+.rd-state-icon { font-size: 2.5rem; }
+.rd-state-text { font-size: 0.9rem; color: #6c757d; margin: 0; }
+
+.spinner-ring {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e9ecef;
+  border-top-color: #4361ee;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.btn-reintentar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #4361ee;
+  background: transparent;
+  color: #4361ee;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+
+  &:hover { background: #4361ee; color: #fff; }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ─── Breadcrumb ───────────────────────────────────────────────────────────────
+.breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #6c757d;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 500;
+
+  &:hover { color: #4361ee; }
+
+  i { font-size: 0.8rem; }
+}
+
+.breadcrumb-sep {
+  color: #9ca3af;
+  font-size: 0.68rem;
+  margin: 0 0.35rem;
+}
+
+// ─── Botón volver ─────────────────────────────────────────────────────────────
+.rd-btn-back {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1.5px solid #e5e7eb;
+  color: #6b7280;
+  background: #fff;
+  text-decoration: none;
+  transition: all 0.15s;
+  flex-shrink: 0;
+
+  &:hover {
+    border-color: #4361ee;
+    color: #4361ee;
+    background: rgba(67, 97, 238, 0.06);
+  }
+}
+
+// ─── Card sin padding propio ──────────────────────────────────────────────────
+.rd-card { padding: 0 !important; }
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+.rd-tab-nav {
+  display: flex;
+  padding: 0 1.75rem;
+  border-bottom: 1.5px solid #f0f2f5;
+}
+
+.rd-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.9rem 1rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #6c757d;
+  background: none;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1.5px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+
+  i { font-size: 0.83rem; }
+
+  &:hover { color: #4361ee; }
+
+  &--active {
+    color: #4361ee;
+    border-bottom-color: #4361ee;
+  }
+}
+
+.rd-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 20px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+// ─── Tab body ─────────────────────────────────────────────────────────────────
+.rd-tab-body { padding: 1.75rem; }
+
+// ─── Tab Información: campos en grid ──────────────────────────────────────────
+.rd-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.rd-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+  background: #f9fafb;
+  border: 1px solid #f0f2f5;
+  border-radius: 10px;
+
+  &--full { grid-column: 1 / -1; }
+}
+
+.rd-info-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rd-info-value {
+  font-size: 0.9rem;
+  color: #14172b;
+}
+
+.rd-nombre {
+  font-weight: 700;
+  color: #14172b;
+}
+
+// ─── Tab Permisos: barra de herramientas ──────────────────────────────────────
+.rd-permisos-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.rd-search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 340px;
+}
+
+.rd-search-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 0.82rem;
+  pointer-events: none;
+}
+
+.rd-search-input {
+  width: 100%;
+  padding: 0.55rem 0.85rem 0.55rem 2.2rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 9px;
+  background: #fafafa;
+  font-size: 0.83rem;
+  color: #14172b;
+  outline: none;
+  transition: border-color 0.18s, background 0.18s;
+  font-family: inherit;
+
+  &:focus {
+    border-color: #4361ee;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+  }
+
+  &::placeholder { color: #c4c9d4; }
+}
+
+.rd-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.rd-cambios-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: #6b7280;
+
+  i { color: #4361ee; font-size: 0.72rem; }
+}
+
+// ─── Badge método HTTP ────────────────────────────────────────────────────────
+.rd-method {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.18rem 0.55rem;
+  border-radius: 6px;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+
+  &--get    { background: #d1fae5; color: #065f46; }
+  &--post   { background: #dbeafe; color: #1e40af; }
+  &--put    { background: #fef3c7; color: #92400e; }
+  &--delete { background: #fee2e2; color: #991b1b; }
+}
+
+// ─── Tabla ────────────────────────────────────────────────────────────────────
+.rd-permiso-nombre {
+  font-weight: 600;
+  font-size: 0.83rem;
+  color: #14172b;
+}
+
+.rd-path {
+  font-size: 0.74rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.12rem 0.45rem;
+  border-radius: 5px;
+}
+
+// ─── Checkbox ─────────────────────────────────────────────────────────────────
+.rd-check-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0;
+}
+
+.rd-check {
+  width: 17px;
+  height: 17px;
+  accent-color: #4361ee;
+  cursor: pointer;
+}
+
+// ─── Botón guardar ────────────────────────────────────────────────────────────
+.rd-btn-guardar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.3rem;
+  border-radius: 9px;
+  border: none;
+  background: #4361ee;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s;
+
+  &:hover:not(:disabled) { background: #3451d1; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+.rd-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.7s linear infinite;
+}
+
+// ─── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .rd-permisos-toolbar { flex-wrap: wrap; }
+  .rd-search-wrap      { max-width: 100%; }
+  .rd-toolbar-right    { width: 100%; justify-content: flex-end; }
+  .rd-info-grid        { grid-template-columns: 1fr; }
+
+  .rd-tab-nav { padding: 0 1rem; }
+  .rd-tab-body { padding: 1.25rem 1rem; }
+}

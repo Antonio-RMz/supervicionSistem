@@ -1,0 +1,158 @@
+<nav class="migas" aria-label="Ruta">
+  <a routerLink="/usuarios">Usuarios y roles</a>
+  <i class="bi bi-chevron-right"></i>
+  <span>{{ perfil()?.nombreCompleto ?? '…' }}</span>
+</nav>
+
+@if (error()) {
+  <p class="error-carga">No pudimos cargar a esta persona. <a routerLink="/usuarios">Volver a Usuarios y roles</a></p>
+} @else if (cargando() && !perfil()) {
+  <p class="cargando">Cargando…</p>
+} @else if (perfil(); as p) {
+  <section class="tarjeta cabecera">
+    <app-avatar [iniciales]="p.iniciales" [tono]="p.tonoAvatar" [grande]="true" />
+    <div class="quien">
+      <div class="nombre">
+        <h1>{{ p.nombreCompleto }}</h1>
+        <app-etiqueta-estado [etiqueta]="p.activo ? { texto: 'Activo', tono: 'verde' } : { texto: 'Inactivo', tono: 'gris' }" />
+      </div>
+      <p class="datos">
+        <span>{{ p.correo }}</span>
+        @for (etiqueta of p.etiquetasRol; track etiqueta.texto) {
+          <span class="punto">·</span>
+          <app-etiqueta-estado [etiqueta]="etiqueta" />
+        }
+        <span class="punto">·</span>
+        <span>{{ p.ultimoAcceso ? 'Último acceso: ' + diaYHora(p.ultimoAcceso) : 'Nunca ha entrado' }}</span>
+      </p>
+    </div>
+    <div class="acciones">
+      <a class="boton boton-secundario" routerLink="/usuarios" [queryParams]="{ editar: p.id }">
+        <i class="bi bi-pencil"></i> Editar roles y permisos
+      </a>
+      @if (!soyYo()) {
+        <button type="button" class="boton boton-secundario" [class.peligro]="p.activo" [class.exito]="!p.activo"
+                [disabled]="cambiandoEstado()" (click)="cambiarEstado()" (blur)="confirmandoDesactivar.set(false)">
+          @if (!p.activo) {
+            <i class="bi bi-check-circle"></i> Activar
+          } @else if (confirmandoDesactivar()) {
+            <i class="bi bi-slash-circle"></i> ¿Seguro? Ya no podrá entrar
+          } @else {
+            <i class="bi bi-slash-circle"></i> Desactivar
+          }
+        </button>
+      }
+    </div>
+    @if (errorEstado()) {
+      <p class="error-estado" role="alert">{{ errorEstado() }}</p>
+    }
+  </section>
+
+  <section class="metricas">
+    <article class="tarjeta metrica">
+      <span>Trabajando ahora</span>
+      <strong>{{ p.metricas.trabajandoAhora }}</strong>
+      <small>En progreso</small>
+    </article>
+    <article class="tarjeta metrica">
+      <span>Le toca</span>
+      <strong class="destacada">{{ p.metricas.leToca }}</strong>
+      <small>Esperan su acción</small>
+    </article>
+    <article class="tarjeta metrica">
+      <span>Esperando a otros</span>
+      <strong>{{ p.metricas.esperandoAOtros }}</strong>
+      <small>En QA o revisión</small>
+    </article>
+    <article class="tarjeta metrica">
+      <span>Cerrados este mes</span>
+      <strong>{{ p.metricas.cerradosEsteMes }}</strong>
+      <small>{{ p.metricas.rechazadosEnQaEsteMes }} {{ p.metricas.rechazadosEnQaEsteMes === 1 ? 'rechazado' : 'rechazados' }} en QA</small>
+    </article>
+  </section>
+
+  <div class="columnas">
+    <section class="tarjeta bloque">
+      <h2>Trabajo actual</h2>
+
+      <h3 class="grupo verde"><i class="bi bi-play-fill"></i> Trabajando ahora</h3>
+      <ul class="lista">
+        @for (t of p.trabajandoAhora; track t.tipo + t.id) {
+          <li>
+            <app-tipo-ticket [tipo]="t.tipo" />
+            <span class="codigo">{{ t.codigo }}</span>
+            <span class="titulo">{{ t.titulo }}</span>
+            <span class="estado">{{ t.estadoTexto }}</span>
+            <span class="lado">{{ haceCuanto(t.actualizadoEn) }}</span>
+          </li>
+        } @empty {
+          <li class="sin-items">Nada en progreso.</li>
+        }
+      </ul>
+
+      <h3 class="grupo morado"><i class="bi bi-clock"></i> Le toca · <span>esperan su acción</span></h3>
+      <ul class="lista">
+        @for (t of p.leToca; track t.tipo + t.id) {
+          <li>
+            <app-tipo-ticket [tipo]="t.tipo" />
+            <span class="codigo">{{ t.codigo }}</span>
+            <span class="titulo">{{ t.titulo }}</span>
+            <span class="estado">{{ t.estadoTexto }}</span>
+            <span class="lado accion" [class.rechazo]="t.rechazadaEnQa">{{ t.accion }}</span>
+          </li>
+        } @empty {
+          <li class="sin-items">Nada esperando su acción.</li>
+        }
+      </ul>
+
+      <h3 class="grupo gris"><i class="bi bi-eye"></i> Esperando a otros</h3>
+      <ul class="lista">
+        @for (t of p.esperandoAOtros; track t.tipo + t.id) {
+          <li>
+            <app-tipo-ticket [tipo]="t.tipo" />
+            <span class="codigo">{{ t.codigo }}</span>
+            <span class="titulo">{{ t.titulo }}</span>
+            <span class="estado">{{ t.estadoTexto }}</span>
+            <span class="lado">{{ t.quien }}</span>
+          </li>
+        } @empty {
+          <li class="sin-items">No espera a nadie.</li>
+        }
+      </ul>
+    </section>
+
+    <aside class="derecha">
+      <section class="tarjeta bloque">
+        <h2>Lo que hizo</h2>
+        @for (dia of p.actividad; track dia.dia) {
+          <h3 class="dia">{{ dia.dia }}</h3>
+          <ul class="hechos">
+            @for (h of dia.hechos; track $index) {
+              <li>
+                <span class="marca tono-{{ h.tono }}" aria-hidden="true"></span>
+                <span class="texto">{{ h.descripcion }}</span>
+                <small>{{ hora(h.fecha) }}</small>
+              </li>
+            }
+          </ul>
+        } @empty {
+          <p class="sin-items">Todavía no hay movimientos suyos.</p>
+        }
+      </section>
+
+      <section class="tarjeta bloque">
+        <h2>Proyectos</h2>
+        <ul class="proyectos">
+          @for (proyecto of p.proyectos; track proyecto.id) {
+            <li>
+              <span>{{ proyecto.nombre }}</span>
+              <small>{{ proyecto.ticketsAbiertos }} {{ proyecto.ticketsAbiertos === 1 ? 'ticket abierto' : 'tickets abiertos' }}</small>
+            </li>
+          } @empty {
+            <li class="sin-items">No está en ningún proyecto.</li>
+          }
+        </ul>
+      </section>
+    </aside>
+  </div>
+}

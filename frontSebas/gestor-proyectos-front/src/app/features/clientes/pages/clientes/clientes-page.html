@@ -1,0 +1,125 @@
+<header class="encabezado">
+  <div>
+    <h1>Clientes</h1>
+    <p>Empresas para las que trabaja el equipo. Cada proyecto pertenece a un cliente.</p>
+  </div>
+  @if (puedeGestionar()) {
+    <button type="button" class="boton boton-primario" (click)="enModal.set(null)">
+      <i class="bi bi-plus-lg"></i> Nuevo cliente
+    </button>
+  }
+</header>
+
+<div class="filtros">
+  <label class="buscar">
+    <i class="bi bi-search"></i>
+    <span class="solo-lectores">Buscar</span>
+    <input type="search" placeholder="Buscar cliente o contacto…" [value]="busqueda()"
+           (input)="busqueda.set($any($event.target).value)" />
+  </label>
+  <label class="estado-filtro">
+    <span>Estado:</span>
+    <select (change)="estado.set($any($event.target).value)">
+      <option value="todos" [selected]="estado() === 'todos'">todos</option>
+      <option value="activos" [selected]="estado() === 'activos'">activos</option>
+      <option value="inactivos" [selected]="estado() === 'inactivos'">inactivos</option>
+    </select>
+  </label>
+</div>
+
+@if (errorAccion()) {
+  <p class="error-accion" role="alert">{{ errorAccion() }}</p>
+}
+
+@if (error()) {
+  <p class="error-carga">No pudimos cargar los clientes. Intenta recargar la página.</p>
+} @else if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else {
+  <div class="tarjeta tabla-contenedor">
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Contacto principal</th>
+          <th>Teléfono</th>
+          <th>Proyectos</th>
+          <th>Estado</th>
+          @if (puedeGestionar()) {
+            <th><span class="solo-lectores">Acciones</span></th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (cliente of filtrados(); track cliente.id) {
+          <tr [class.inactivo]="!cliente.activo">
+            <td>
+              <div class="empresa">
+                <app-avatar [iniciales]="cliente.iniciales" [tono]="cliente.tono" [cuadro]="true" />
+                <div>
+                  <strong>{{ cliente.nombreCorto }}</strong>
+                  <small>{{ cliente.ciudad || cliente.razonSocial }}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="contacto">{{ cliente.contactoNombre || '—' }}</span>
+              <small>{{ cliente.contactoCorreo }}</small>
+            </td>
+            <td class="telefono">{{ cliente.contactoTelefono || '—' }}</td>
+            <td>
+              <div class="chips">
+                @for (proyecto of cliente.proyectos; track proyecto.id) {
+                  <span class="chip">{{ proyecto.nombre }}</span>
+                } @empty {
+                  <span class="sin-proyectos">Sin proyectos</span>
+                }
+              </div>
+            </td>
+            <td><app-etiqueta-estado [etiqueta]="cliente.activo ? activo : inactivo" /></td>
+            @if (puedeGestionar()) {
+              <td class="acciones">
+                <button type="button" class="mas" (click)="alternarMenu(cliente.id, $event)"
+                        [attr.aria-expanded]="menuAbierto() === cliente.id" title="Acciones">
+                  <i class="bi bi-three-dots"></i>
+                  <span class="solo-lectores">Acciones de {{ cliente.nombreCorto }}</span>
+                </button>
+                @if (menuAbierto() === cliente.id) {
+                  <div class="menu" role="menu" (click)="$event.stopPropagation()">
+                    <button type="button" role="menuitem" (click)="editar(cliente)">
+                      <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button type="button" role="menuitem" [class.peligro]="cliente.activo" (click)="cambiarEstado(cliente)">
+                      @if (cliente.activo && confirmandoDesactivar()) {
+                        <i class="bi bi-slash-circle"></i> ¿Seguro? Desactivar
+                      } @else if (cliente.activo) {
+                        <i class="bi bi-slash-circle"></i> Desactivar
+                      } @else {
+                        <i class="bi bi-check-circle"></i> Activar
+                      }
+                    </button>
+                  </div>
+                }
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td [attr.colspan]="puedeGestionar() ? 6 : 5" class="sin-resultados">
+              {{ clientes().length ? 'Ningún cliente coincide con la búsqueda.' : 'Aún no hay clientes.' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="nota">
+    {{ clientes().length }} {{ clientes().length === 1 ? 'cliente' : 'clientes' }} ·
+    Solo Administrador y Líder pueden crear o editar clientes; los demás solo los ven.
+  </p>
+}
+
+@if (enModal() !== undefined) {
+  <app-cliente-modal [cliente]="enModal() ?? null" (cerrar)="enModal.set(undefined)" (guardado)="alGuardar($event)" />
+}

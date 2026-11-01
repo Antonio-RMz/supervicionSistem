@@ -1,0 +1,4 @@
+// El marco del modal y los campos vienen de <app-modal> y de styles/_formulario.scss.
+
+.mayusculas { text-transform: uppercase; }
+.mayusculas::placeholder { text-transform: none; }

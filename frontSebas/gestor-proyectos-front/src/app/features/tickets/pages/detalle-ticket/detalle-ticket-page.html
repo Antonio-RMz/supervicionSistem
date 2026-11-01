@@ -1,0 +1,342 @@
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else if (ticket(); as t) {
+  <nav class="migas" aria-label="Ruta">
+    <a [routerLink]="['/proyectos', t.proyectoId, 'fases']">{{ t.proyectoNombre }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <a [routerLink]="['/proyectos', t.proyectoId, 'fases', t.faseId]">{{ t.faseTitulo.split(' · ')[0] }}</a>
+    @if (t.historia; as h) {
+      <i class="bi bi-chevron-right"></i>
+      <a [routerLink]="['/proyectos', t.proyectoId, 'historias', h.id]">{{ h.codigo }}</a>
+    }
+    <i class="bi bi-chevron-right"></i>
+    <span>{{ t.codigo }}</span>
+  </nav>
+
+  @if (vista() === 'arbol') {
+    <!-- ─── Vista árbol: su fase con historias y tickets conectados, con este elegido ─── -->
+    <header class="encabezado">
+      <div class="titulo">
+        <app-tipo-ticket [tipo]="t.tipo" />
+        <h1>{{ t.codigo }} · {{ t.titulo }}</h1>
+        <app-etiqueta-estado [etiqueta]="t.etiqueta" />
+      </div>
+      <app-cambio-vista [arbol]="true" />
+    </header>
+    <app-arbol-fase [proyectoId]="t.proyectoId" [faseId]="t.faseId" [ticketId]="t.id" />
+  } @else {
+    <div class="columnas">
+      <div class="principal">
+        <header class="encabezado">
+          <div>
+            <div class="titulo">
+              <app-tipo-ticket [tipo]="t.tipo" />
+              <h1>{{ t.codigo }} · {{ t.titulo }}</h1>
+              <app-etiqueta-estado [etiqueta]="t.etiqueta" />
+              @if (t.severidad; as s) {
+                <span class="pastilla tono-{{ s.tono }}">Severidad {{ s.texto }}</span>
+              }
+              @if (t.hotfix) {
+                <span class="pastilla tono-rojo"><i class="bi bi-fire"></i> Hotfix</span>
+              }
+              @if (t.modulo; as m) {
+                <app-chip-modulo [texto]="m.corto" [icono]="m.icono" [tono]="m.tono" />
+              }
+            </div>
+            <p>
+              @if (t.historia; as h) { Historia {{ h.codigo }} · {{ h.titulo }} · }{{ t.faseTitulo }}
+            </p>
+          </div>
+          <app-cambio-vista />
+        </header>
+
+        <!-- ─── Descripción técnica ─── -->
+        <section class="tarjeta bloque">
+          <h2>Descripción técnica</h2>
+          <p class="descripcion">{{ t.descripcion || 'Sin descripción técnica.' }}</p>
+          @if (t.capas.length) {
+            <div class="capas">
+              @for (c of t.capas; track c) {
+                <span class="pastilla tono-morado">{{ c }}</span>
+              }
+            </div>
+          }
+        </section>
+
+        <!-- ─── Trabajar con IA (las Actividades no lo llevan) ─── -->
+        @if (t.tipo !== 'ACTV') {
+          <app-prompt-ia [ticket]="t" />
+        }
+
+        <!-- ─── Subtareas: las agregan quien lo trabaja o el Líder ─── -->
+        @if (t.subtareas.length || t.puedeEditarSubtareas) {
+          <section class="tarjeta bloque">
+            <div class="bloque-cabecera">
+              <h2>Subtareas</h2>
+              @if (t.subtareas.length) {
+                <span class="detalle">{{ t.subtareasHechas }} de {{ t.subtareas.length }}</span>
+              }
+            </div>
+            @if (t.subtareas.length) {
+              <div class="barra-subtareas">
+                <span [style.width.%]="(t.subtareasHechas * 100) / t.subtareas.length"></span>
+              </div>
+            } @else {
+              <p class="pista">Divide el trabajo en pasos. Se van palomeando; no cambian el estado del ticket.</p>
+            }
+            <ul class="subtareas">
+              @for (s of t.subtareas; track s.id) {
+                <li>
+                  <label [class.hecha]="s.hecha">
+                    <input type="checkbox" [checked]="s.hecha" [disabled]="!t.puedeMarcarSubtareas || enviando() !== null"
+                           (change)="marcarSubtarea(s.id, $any($event.target).checked)" />
+                    {{ s.descripcion }}
+                  </label>
+                  @if (t.puedeEditarSubtareas) {
+                    <button type="button" class="quitar" (click)="quitarSubtarea(s.id)" [disabled]="enviando() !== null"
+                            title="Quitar subtarea">
+                      <i class="bi bi-x-lg"></i><span class="solo-lectores">Quitar {{ s.descripcion }}</span>
+                    </button>
+                  }
+                </li>
+              }
+            </ul>
+            @if (t.puedeEditarSubtareas) {
+              <form class="agregar-subtarea" (submit)="$event.preventDefault(); agregarSubtarea()">
+                <input class="campo-texto" type="text" maxlength="300" placeholder="Agregar subtarea…"
+                       [value]="subtareaNueva()" (input)="subtareaNueva.set($any($event.target).value)" />
+                <button type="submit" class="boton boton-secundario" [disabled]="!subtareaNueva().trim() || enviando() !== null">
+                  <i class="bi bi-plus-lg"></i> {{ enviando() === 'subtarea-nueva' ? 'Agregando…' : 'Agregar' }}
+                </button>
+              </form>
+            }
+          </section>
+        }
+
+        <!-- ─── Desarrollo: aparece cuando el Desarrollador inicia el ticket ─── -->
+        @if (enDesarrollo()) {
+        <section class="tarjeta bloque">
+          <div class="bloque-cabecera">
+            <h2>Desarrollo</h2>
+            @if (t.modulo; as m) {
+              <span class="detalle">{{ m.nombre }}{{ m.tecnologia ? ' · ' + m.tecnologia : '' }}</span>
+            }
+          </div>
+          <!-- Los comandos de git del Desarrollador: crear su rama y crear el PR -->
+          <app-comandos-git [ticket]="t" />
+          @for (pr of t.pullRequests; track pr.numero) {
+            <div class="pr">
+              <i class="bi bi-git"></i>
+              <span class="nombre">#{{ pr.numero }} · {{ pr.titulo }}</span>
+              <span class="pastilla tono-{{ pr.estado.tono }}">{{ pr.estado.texto }}</span>
+              <span class="pastilla tono-{{ pr.ci.tono }}">{{ pr.ci.texto }}</span>
+              @if (pr.url) {
+                <a [href]="pr.url" target="_blank" rel="noopener" title="Abrir el PR">
+                  <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+              }
+            </div>
+          } @empty {
+            <p class="pista">Aún no hay PR. Se registra al subir la rama.</p>
+          }
+        </section>
+        }
+
+        <!-- ─── Criterios de la historia ─── -->
+        @if (t.criterios.length) {
+          <section class="tarjeta bloque">
+            <div class="bloque-cabecera">
+              <h2>Criterios de la historia que cubre</h2>
+              <span class="detalle">{{ t.criterios.length }}</span>
+            </div>
+            <ul class="filas">
+              @for (c of t.criterios; track $index) {
+                <li class="revision">
+                  <i class="bi" [class.bi-check-square-fill]="c.verificado" [class.ok]="c.verificado"
+                     [class.bi-square]="!c.verificado" [class.info]="!c.verificado"></i>
+                  <span class="nombre">{{ c.descripcion }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <!-- ─── Comentarios ─── -->
+        <section class="tarjeta bloque">
+          <h2>Comentarios · {{ t.comentarios.length }}</h2>
+          <ul class="comentarios">
+            @for (c of t.comentarios; track $index) {
+              <li>
+                <app-avatar [iniciales]="c.iniciales" [tono]="c.tono" class="chico" />
+                <div>
+                  <p><strong>{{ c.usuario }}</strong><small>{{ c.cuando }}</small></p>
+                  <p class="texto">{{ c.texto }}</p>
+                </div>
+              </li>
+            }
+          </ul>
+          <form class="comentar" (submit)="$event.preventDefault(); comentar()">
+            <input class="campo-texto" type="text" maxlength="2000" placeholder="Escribe un comentario…"
+                   [value]="comentario()" (input)="comentario.set($any($event.target).value)" />
+            <button type="submit" class="boton boton-secundario" [disabled]="!comentario().trim() || enviando() !== null">
+              {{ enviando() === 'comentario' ? 'Enviando…' : 'Comentar' }}
+            </button>
+          </form>
+        </section>
+      </div>
+
+      <aside class="lateral">
+        <!-- ─── Acciones: arriba de la columna derecha, al nivel del título ─── -->
+        <div class="tarjeta lado-acciones">
+          <div class="acciones-cabecera">
+            <h2>Acciones</h2>
+            @if (t.meToca ? 'Te toca a ti' : t.actor) {
+              <span class="pastilla" [class]="t.meToca ? 'tono-morado' : 'tono-gris'">{{ t.meToca ? 'Te toca a ti' : t.actor }}</span>
+            }
+          </div>
+          @if (panel(); as p) {
+            <p class="estado-actual">{{ p.descripcion }}</p>
+
+            <!-- Lo que hace avanzar el ticket: grande, uno por renglón -->
+            @if (principales().length) {
+              <div class="acciones-principales">
+                @for (b of principales(); track b.tipo + b.texto) {
+                  <button type="button" class="boton {{ b.habilitado ? b.clase : 'bloqueado' }}"
+                          [disabled]="!b.habilitado || enviando() !== null" [title]="b.impedimentos.join('. ')"
+                          (click)="presionar(b)">
+                    <i class="bi {{ b.habilitado ? b.icono : 'bi-lock' }}"></i>
+                    {{ enviando() === b.tipo + b.texto ? 'Un momento…' : b.texto }}
+                  </button>
+                }
+              </div>
+            } @else if (!alternos().length && p.avanzaSolo) {
+              <p class="sin-botones"><i class="bi bi-arrow-repeat"></i> Sin botones: avanza solo</p>
+            }
+
+            <!-- Rechazar, Bloquear, Retirar...: más chicos, en una fila -->
+            @if (alternos().length) {
+              <div class="acciones-alternas">
+                @for (b of alternos(); track b.tipo + b.texto) {
+                  <button type="button" class="boton {{ b.habilitado ? b.clase : 'bloqueado' }}"
+                          [disabled]="!b.habilitado || enviando() !== null" [title]="b.impedimentos.join('. ')"
+                          (click)="presionar(b)">
+                    <i class="bi {{ b.habilitado ? b.icono : 'bi-lock' }}"></i>
+                    {{ enviando() === b.tipo + b.texto ? 'Un momento…' : b.texto }}
+                  </button>
+                }
+              </div>
+            }
+
+            @if (t.puedeEditar) {
+              <a class="boton boton-secundario editar" [routerLink]="['/proyectos', t.proyectoId, 'tickets', t.id, 'editar']">
+                <i class="bi bi-pencil"></i> Editar</a>
+            }
+
+            @if (p.revisiones.length) {
+              <ul class="revisiones">
+                @for (r of p.revisiones; track $index) {
+                  <li class="revision">
+                    <i class="bi" [class.bi-check-circle-fill]="r.estado === 'ok'" [class.ok]="r.estado === 'ok'"
+                       [class.bi-x-circle]="r.estado === 'falta'" [class.falta]="r.estado === 'falta'"
+                       [class.bi-circle]="r.estado === 'info'" [class.info]="r.estado === 'info'"></i>
+                    <span>{{ r.texto }}</span>
+                  </li>
+                }
+              </ul>
+            }
+
+            <!-- Cancelar no se deshace: apartado al final, sin competir con lo demás -->
+            @if (cancelar(); as b) {
+              <button type="button" class="accion-discreta"
+                      [disabled]="!b.habilitado || enviando() !== null" [title]="b.impedimentos.join('. ')"
+                      (click)="presionar(b)">
+                <i class="bi {{ b.habilitado ? b.icono : 'bi-lock' }}"></i>
+                {{ enviando() === b.tipo + b.texto ? 'Un momento…' : b.texto }}
+              </button>
+            }
+          }
+        </div>
+
+        <!-- ─── Flujo: de inicio a fin, en cuál va ─── -->
+        @if (pasos().length) {
+          <app-flujo [pasos]="pasos()" [fuera]="fuera()" />
+        }
+
+        @if (t.historia; as h) {
+          <section class="tarjeta bloque">
+            <h2>Pertenece a</h2>
+            <a class="pertenece" [routerLink]="['/proyectos', t.proyectoId, 'historias', h.id]">
+              <app-tipo-ticket tipo="HIST" />
+              <strong>{{ h.codigo }} · {{ h.titulo }}</strong>
+              <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+          </section>
+        }
+
+        <section class="tarjeta bloque">
+          <h2>Detalles</h2>
+          <dl class="datos">
+            <div>
+              <dt>Responsable</dt>
+              <dd class="persona">
+                @if (t.responsable; as r) {
+                  <app-avatar [iniciales]="r.iniciales" tono="verde" class="mini" /> {{ r.nombre }}
+                } @else { Sin asignar }
+              </dd>
+            </div>
+            <!-- Solo un hotfix lo prueba un Analista aparte; lo demás se prueba con su historia completa. -->
+            @if (t.tester || t.hotfix) {
+              <div>
+                <dt>Lo prueba</dt>
+                <dd class="persona">
+                  @if (t.tester; as q) {
+                    <app-avatar [iniciales]="q.iniciales" tono="violeta" class="mini" /> {{ q.nombre }}
+                  } @else { — }
+                </dd>
+              </div>
+            }
+            <div><dt>Prioridad</dt><dd><span class="pastilla tono-{{ t.prioridad.tono }}">{{ t.prioridad.texto }}</span></dd></div>
+            <div><dt>Estimación</dt><dd>{{ t.estimacion }}</dd></div>
+            <div><dt>Fecha límite</dt><dd>{{ t.fechaLimite }}</dd></div>
+            <div>
+              <dt>Depende de</dt>
+              <dd class="chips">
+                @for (d of t.dependencias; track d.codigo) {
+                  <span class="pastilla tono-{{ d.etiqueta.tono }}" [title]="d.titulo">{{ d.codigo }} · {{ d.etiqueta.texto }}</span>
+                } @empty { — }
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="tarjeta bloque">
+          <h2>Historial</h2>
+          <ul class="historial">
+            @for (h of t.historial; track $index) {
+              <li>
+                <span class="punto tono-{{ h.tono }}"></span>
+                <div>
+                  <strong>{{ h.texto }}</strong>
+                  @if (h.motivo) {
+                    <p class="motivo">“{{ h.motivo }}”</p>
+                  }
+                  <small>{{ h.detalle }}</small>
+                </div>
+              </li>
+            } @empty {
+              <li class="vacio">Sin cambios registrados.</li>
+            }
+          </ul>
+        </section>
+      </aside>
+    </div>
+  }
+
+  @if (confirmando(); as c) {
+    <app-confirmacion-ticket-modal [confirmacion]="c.confirmacion" [accion]="c.opcion.texto" [ticket]="t"
+                                   [enviando]="enviando() !== null"
+                                   (confirmar)="mover(c.opcion, $event)" (cancelar)="confirmando.set(null)" />
+  }
+}

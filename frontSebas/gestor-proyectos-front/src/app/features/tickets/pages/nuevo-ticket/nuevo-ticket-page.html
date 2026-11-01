@@ -1,0 +1,324 @@
+<nav class="migas" aria-label="Ruta">
+  <a [routerLink]="['/proyectos', id()]">{{ preparacion()?.proyectoNombre ?? '…' }}</a>
+  @if (fase(); as f) {
+    <i class="bi bi-chevron-right"></i>
+    <a [routerLink]="['/proyectos', id(), 'fases']">{{ f.titulo }}</a>
+  }
+  @if (historiaElegida(); as h) {
+    <i class="bi bi-chevron-right"></i>
+    <span>{{ h.codigo }} · {{ h.titulo }}</span>
+  }
+  <i class="bi bi-chevron-right"></i>
+  <span>{{ editando() ? 'Editar ' + (codigoActual() ?? '') : 'Nuevo ticket' }}</span>
+</nav>
+
+<header class="encabezado">
+  <div>
+    <h1>{{ editando() ? 'Editar ' + (codigoActual() ?? 'ticket') : 'Nuevo ticket de trabajo' }}</h1>
+    @if (historiaElegida(); as h) {
+      <p>Dentro de <app-tipo-ticket tipo="HIST" /> {{ h.codigo }} · {{ h.titulo }}</p>
+    }
+  </div>
+</header>
+
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (preparacion(); as p) {
+  @if (!fase() && editando()) {
+    <p class="tarjeta vacio">Su historia ya no está Lista, Lista para desarrollo o En desarrollo: el ticket ya no se edita.</p>
+  } @else if (!fase()) {
+    <p class="tarjeta vacio">
+      Aún no hay historias Listas o En desarrollo. Un ticket de trabajo siempre vive dentro de una historia:
+      <a [routerLink]="['/proyectos', id(), 'fases']">ve a Fases e historias</a>.
+    </p>
+  } @else {
+    <div class="columnas">
+      <form id="form-ticket" class="secciones" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+        <!-- ─── Historia ─── -->
+        <section class="tarjeta seccion formulario">
+          <div>
+            <h2>Historia a la que pertenece</h2>
+            <p class="ayuda">
+              {{ editando() ? 'Ya no cambia: su código y su rama salieron de ahí.'
+                : 'Todo ticket de trabajo vive dentro de una historia. Si entras desde la historia, ya viene seleccionada.' }}
+            </p>
+          </div>
+          @if (!editando()) {
+            <div class="fila historia-fila">
+              <label class="campo">
+                <span>Fase <b>*</b></span>
+                <select (change)="elegirFase(+$any($event.target).value)">
+                  @for (f of p.fases; track f.id) {
+                    @if (f.historias.length) {
+                      <option [value]="f.id" [selected]="f.id === form.controls.faseId.value">{{ f.titulo }}</option>
+                    }
+                  }
+                </select>
+              </label>
+              <label class="campo">
+                <span>Historia <b>*</b></span>
+                <select (change)="elegirHistoria(form.controls.faseId.value!, +$any($event.target).value)"
+                        [class.con-error]="invalido('historiaId')">
+                  @for (h of fase()!.historias; track h.id) {
+                    <option [value]="h.id" [selected]="h.id === form.controls.historiaId.value">{{ h.codigo }} · {{ h.titulo }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+          }
+          @if (historiaElegida(); as h) {
+            <div class="tarjeta-historia">
+              <div class="th-arriba">
+                <app-tipo-ticket tipo="HIST" />
+                <strong>{{ h.codigo }} · {{ h.titulo }}</strong>
+                <span class="etiqueta-lista">{{ h.estado }}</span>
+              </div>
+              @if (h.enunciado) {
+                <p>{{ h.enunciado }}.</p>
+              }
+              <small>
+                Analista: {{ h.analistaNombre }} · {{ h.criterios.length }} criterios de aceptación ·
+                Repositorios: {{ modulos().length ? '' : '—' }}@for (m of modulos(); track m.id; let ultimo = $last) {{{ m.corto }}{{ ultimo ? '' : ', ' }}} ·
+                {{ h.tickets }} {{ h.tickets === 1 ? 'ticket creado' : 'tickets creados' }}
+              </small>
+            </div>
+          }
+        </section>
+
+        <!-- ─── Tipo: al editar ya no cambia ─── -->
+        @if (!editando()) {
+          <section class="tarjeta seccion formulario">
+            <div>
+              <h2>Tipo de ticket</h2>
+              <p class="ayuda">Define el flujo que seguirá y el nombre de la rama.</p>
+            </div>
+            <div class="tipos" role="radiogroup" aria-label="Tipo de ticket">
+              @for (t of tipos; track t.tipo) {
+                <button type="button" class="tipo" role="radio" [class.elegido]="form.controls.tipo.value === t.tipo"
+                        [attr.aria-checked]="form.controls.tipo.value === t.tipo" (click)="form.controls.tipo.setValue(t.tipo)">
+                  <app-tipo-ticket [tipo]="t.tipo" />
+                  <span><strong>{{ t.nombre }}</strong><small>{{ t.descripcion }}</small></span>
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- ─── Qué se hará ─── -->
+        <section class="tarjeta seccion formulario">
+          <h2>Qué se hará</h2>
+          <label class="campo">
+            <span>Título <b>*</b></span>
+            <input formControlName="titulo" placeholder="Implementar servicio de consulta de pedidos en Spring Boot"
+                   [class.con-error]="invalido('titulo')" />
+            @if (invalido('titulo')) {
+              <small class="mensaje-campo">Escribe qué se hará.</small>
+            }
+          </label>
+          <label class="campo">
+            <span>Responsable <b>*</b></span>
+            <select formControlName="responsableId" [class.con-error]="invalido('responsableId')">
+              <option [ngValue]="null" disabled>Elige al Desarrollador…</option>
+              @for (e of desarrolladores(); track e.id) {
+                <option [ngValue]="e.id">{{ e.nombreCompleto }}</option>
+              }
+            </select>
+            @if (!desarrolladores().length) {
+              <small class="mensaje-campo">El proyecto no tiene Desarrolladores. Pídele al Administrador que agregue uno al equipo.</small>
+            } @else if (invalido('responsableId')) {
+              <small class="mensaje-campo">Elige al Desarrollador que lo hará.</small>
+            } @else {
+              <small class="pista">Solo Desarrolladores del equipo del proyecto.</small>
+            }
+          </label>
+          <label class="campo">
+            <span>Descripción técnica</span>
+            <textarea formControlName="descripcion" placeholder="Clases, endpoints, reglas a validar…"></textarea>
+          </label>
+          <label class="campo">
+            <span>Repositorio <b>*</b></span>
+            <select formControlName="moduloId" [class.con-error]="invalido('moduloId')">
+              @for (m of modulos(); track m.id) {
+                <option [ngValue]="m.id">{{ m.largo }} · {{ m.nombre }}</option>
+              } @empty {
+                <option [ngValue]="null">La fase no tiene repositorios</option>
+              }
+            </select>
+            <small class="pista">Un ticket pertenece a un solo repositorio. Lo de otro repositorio va en otro ticket.</small>
+          </label>
+          <div class="campo">
+            <span>Capas que toca</span>
+            <div class="capas">
+              @for (c of p.capas; track c) {
+                <button type="button" class="capa" [class.elegida]="capas().includes(c)" [attr.aria-pressed]="capas().includes(c)"
+                        (click)="alternarCapa(c)">{{ c }}</button>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- ─── Criterios ─── -->
+        @if (historiaElegida(); as h) {
+          <section class="tarjeta seccion formulario">
+            <div>
+              <h2>Criterios de la historia que cubre</h2>
+              <p class="ayuda">Así se sabe qué falta: los que no cubra ningún ticket quedan marcados en la historia.</p>
+            </div>
+            <ul class="criterios">
+              @for (c of h.criterios; track c.id) {
+                <li [class.elegido]="criterioIds().includes(c.id)">
+                  <label>
+                    <input type="checkbox" [checked]="criterioIds().includes(c.id)" (change)="alternarCriterio(c.id)" />
+                    <span>{{ c.descripcion }}</span>
+                  </label>
+                  @if (c.cubiertoPor && c.cubiertoPor !== codigoActual()) {
+                    <span class="cubierto">Lo cubre {{ c.cubiertoPor }}</span>
+                  }
+                </li>
+              } @empty {
+                <li class="vacio-lista">La historia aún no tiene criterios de aceptación.</li>
+              }
+            </ul>
+          </section>
+        }
+
+        <!-- ─── Subtareas: al editar se agregan y quitan desde el detalle ─── -->
+        @if (!editando()) {
+          <section class="tarjeta seccion formulario">
+            <div>
+              <h2>Subtareas</h2>
+              <p class="ayuda">Lista de pasos para quien lo desarrolla. Se van palomeando, no cambian el estado del ticket.</p>
+            </div>
+            <app-lista-editable [(items)]="subtareas" placeholder="Agregar subtarea…" />
+          </section>
+        }
+
+        <!-- ─── Dependencias ─── -->
+        <section class="tarjeta seccion formulario">
+          <div>
+            <h2>Dependencias</h2>
+            <p class="ayuda">Si depende de otro ticket, no se podrá iniciar hasta que ese se cierre.</p>
+          </div>
+          <ul class="dependencias">
+            @for (d of dependencias(); track d.id) {
+              <li>
+                <i class="bi bi-lock"></i>
+                <span class="ayuda">Depende de</span>
+                <app-tipo-ticket [tipo]="d.codigo.split('-')[0]" />
+                <strong>{{ d.codigo }} · {{ d.titulo }}</strong>
+                <span class="estado">{{ d.estadoTexto }}</span>
+                <button type="button" class="quitar" (click)="quitarDependencia(d.id)" title="Quitar dependencia">
+                  <i class="bi bi-x-lg"></i><span class="solo-lectores">Quitar {{ d.codigo }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+          @if (dependenciasDisponibles().length) {
+            <label class="agregar-select">
+              <i class="bi bi-plus-lg"></i>
+              <select (change)="agregarDependencia($any($event.target).value); $any($event.target).value = ''" aria-label="Agregar dependencia">
+                <option value="">Agregar dependencia…</option>
+                @for (t of dependenciasDisponibles(); track t.id) {
+                  <option [value]="t.id">{{ t.codigo }} · {{ t.titulo }} ({{ t.estadoTexto }})</option>
+                }
+              </select>
+            </label>
+          }
+        </section>
+
+        @if (error()) {
+          <p class="error" role="alert">{{ error() }}</p>
+        }
+        <div class="pie-formulario">
+          <a class="boton boton-secundario"
+             [routerLink]="editando() ? ['/proyectos', id(), 'tickets', ticketId()] : ['/proyectos', id(), 'fases']">Cancelar</a>
+          <button type="submit" form="form-ticket" class="boton boton-primario" [disabled]="enviando() || cargando() || !historiaElegida()">
+            @if (editando()) {
+              {{ enviando() ? 'Guardando…' : 'Guardar cambios' }}
+            } @else {
+              {{ enviando() ? 'Creando…' : 'Crear ticket' }}
+            }
+          </button>
+        </div>
+      </form>
+
+      <aside class="lateral">
+        <!-- ─── Detalles ─── -->
+        <section class="tarjeta seccion formulario" [formGroup]="form">
+          <h2>Detalles</h2>
+          <div class="fila">
+            <label class="campo">
+              <span>Prioridad</span>
+              <select formControlName="prioridad">
+                <option value="ALTA">Alta</option>
+                <option value="MEDIA">Media</option>
+                <option value="BAJA">Baja</option>
+              </select>
+            </label>
+            <label class="campo">
+              <span>Estimación</span>
+              <div class="entrada" [class.con-error]="invalido('estimacionHoras')">
+                <input type="number" formControlName="estimacionHoras" min="0.5" max="999" step="0.5" placeholder="6" />
+                <span class="sufijo">h</span>
+              </div>
+            </label>
+          </div>
+          <label class="campo">
+            <span>Fecha límite</span>
+            <input type="date" formControlName="fechaLimite" />
+          </label>
+        </section>
+
+        <!-- ─── Desarrollo ─── -->
+        <section class="tarjeta seccion">
+          <h2>Desarrollo</h2>
+          <p class="ayuda">La rama se crea en el repositorio al presionar Iniciar.</p>
+          <div class="rama">
+            <i class="bi bi-git"></i>
+            <code>{{ rama() }}</code>
+            <button type="button" (click)="copiarRama()" [title]="copiada() ? 'Copiada' : 'Copiar'">
+              <i class="bi" [class.bi-clipboard]="!copiada()" [class.bi-check2]="copiada()"></i>
+              <span class="solo-lectores">Copiar nombre de la rama</span>
+            </button>
+          </div>
+          @if (modulo(); as m) {
+            <small class="repo">{{ m.nombre }}{{ m.tecnologia ? ' · ' + m.tecnologia : '' }} · desde {{ m.ramaBase }}</small>
+          }
+        </section>
+
+        <!-- ─── Flujo ─── -->
+        <section class="tarjeta seccion">
+          <h2>Flujo que seguirá</h2>
+          <ol class="flujo">
+            @for (paso of flujo(); track paso.estado; let primero = $first) {
+              <li [class.actual]="primero">
+                <span class="paso-titulo">
+                  <strong>{{ paso.estado }}</strong>
+                  @if (paso.rol; as rol) {
+                    <span class="rol tono-{{ tonoRol[rol] ?? 'gris' }}">{{ rol }}</span>
+                  }
+                </span>
+                @if (paso.detalle) {
+                  <small>{{ paso.detalle }}</small>
+                }
+              </li>
+            }
+          </ol>
+        </section>
+
+        <!-- ─── Resumen ─── -->
+        <section class="tarjeta seccion resumen">
+          <h2>Resumen</h2>
+          <dl>
+            <div><dt>ID</dt><dd>{{ codigo() }}</dd></div>
+            <div><dt>Historia</dt><dd>{{ historiaElegida()?.codigo ?? '—' }}</dd></div>
+            <div><dt>Fase</dt><dd>Fase {{ fase()?.numero }}</dd></div>
+            <div><dt>Criterios que cubre</dt><dd>{{ criterioIds().length }} de {{ historiaElegida()?.criterios?.length ?? 0 }}</dd></div>
+          </dl>
+        </section>
+      </aside>
+    </div>
+  }
+} @else if (error()) {
+  <p class="error-carga">{{ error() }} <a [routerLink]="['/proyectos', id()]">Volver al proyecto</a></p>
+}

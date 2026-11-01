@@ -1,0 +1,124 @@
+<app-modal [titulo]="titulo()" [subtitulo]="subtitulo()" (cerrar)="cancelar.emit()">
+  <form id="form-confirmacion-fase" class="formulario" (submit)="$event.preventDefault(); enviar()" novalidate>
+    @switch (accion()) {
+      @case ('PAUSAR') {
+        <label class="campo">
+          <span>Motivo <b>*</b></span>
+          <textarea #primero rows="3" [class.con-error]="faltaMotivo()"
+                    placeholder="Ej. esperamos los textos legales del cliente para las facturas"
+                    (input)="motivo.set($any($event.target).value)"></textarea>
+          @if (faltaMotivo()) {
+            <small class="mensaje-campo">Escribe el motivo.</small>
+          } @else {
+            <small class="pista">Se muestra a todo el equipo en la fase.</small>
+          }
+        </label>
+        <label class="campo">
+          <span>Reanudar el (opcional)</span>
+          <input type="date" [min]="manana" (input)="reanudarEl.set($any($event.target).value)" />
+          <small class="pista">Queda anotado en la fase como la fecha prevista para seguir.</small>
+        </label>
+        <p class="nota tono-naranja">
+          <i class="bi bi-info-circle"></i> Los tickets en progreso no se detienen; solo se bloquea iniciar nuevos.
+        </p>
+      }
+
+      @case ('CANCELAR') {
+        <p class="nota tono-rojo">
+          <i class="bi bi-exclamation-triangle"></i>
+          Se cancelarán {{ fase().aCancelar.historias }} {{ fase().aCancelar.historias === 1 ? 'historia' : 'historias' }}
+          y {{ fase().aCancelar.tickets }} {{ fase().aCancelar.tickets === 1 ? 'ticket abierto' : 'tickets abiertos' }}.
+          Las ramas no se borran.
+        </p>
+        <label class="campo">
+          <span>Motivo <b>*</b></span>
+          <textarea #primero rows="3" [class.con-error]="faltaMotivo()"
+                    placeholder="Ej. el cliente pospuso el portal móvil para el próximo año"
+                    (input)="motivo.set($any($event.target).value)"></textarea>
+          @if (faltaMotivo()) {
+            <small class="mensaje-campo">Escribe el motivo.</small>
+          } @else {
+            <small class="pista">Solo el Admin podrá reabrirla después.</small>
+          }
+        </label>
+      }
+
+      @case ('SUBIR_A_MAIN') {
+        <ul class="resumen">
+          <li>{{ fase().historiasQueCuentan }} {{ fase().historiasQueCuentan === 1 ? 'historia' : 'historias' }}
+            · {{ fase().ticketsTotal }} tickets</li>
+          @for (m of fase().modulos; track m.nombre) {
+            <li>{{ m.nombre }}: develop → main · tag {{ fase().versionRelease }}</li>
+          }
+        </ul>
+        <label class="campo">
+          <span>Para confirmar, escribe la versión <b>*</b></span>
+          <input #primero class="mono" type="text" autocomplete="off" [placeholder]="fase().versionRelease"
+                 [class.con-error]="intentado() && !versionCoincide()" (input)="version.set($any($event.target).value)" />
+          <small class="pista">El botón se activa cuando el texto coincide.</small>
+        </label>
+      }
+
+      @case ('REVERTIR') {
+        <p class="nota tono-rojo">
+          <i class="bi bi-exclamation-triangle"></i>
+          La Fase {{ fase().numero }} pasará a Revertida y sus historias volverán a Integrada.
+        </p>
+        <label class="campo">
+          <span>¿Qué falló? <b>*</b></span>
+          <textarea #primero rows="3" [class.con-error]="faltaMotivo()"
+                    placeholder="Ej. error 500 al descargar facturas en PDF desde la app"
+                    (input)="motivo.set($any($event.target).value)"></textarea>
+          @if (faltaMotivo()) {
+            <small class="mensaje-campo">Escribe qué falló.</small>
+          } @else {
+            <small class="pista">Con esto se crea automáticamente un BUGS de prioridad alta en la Fase {{ fase().numero }}.</small>
+          }
+        </label>
+        <label class="campo">
+          <span>Asignar el bug a <b>*</b></span>
+          <select [class.con-error]="faltaAsignar()" (change)="elegirResponsable($any($event.target).value)">
+            <option value="">Elige a alguien del equipo</option>
+            @for (p of fase().equipo; track p.id) {
+              <option [value]="p.id">{{ p.nombreCompleto }} · {{ p.roles }}</option>
+            }
+          </select>
+          @if (faltaAsignar()) {
+            <small class="mensaje-campo">Elige a quién se asigna.</small>
+          }
+        </label>
+      }
+    }
+  </form>
+
+  <div pie class="pie-modal">
+    <div class="botones">
+      <button type="button" class="boton boton-secundario" (click)="cancelar.emit()">
+        {{ accion() === 'CANCELAR' ? 'Volver' : 'Cancelar' }}
+      </button>
+      @switch (accion()) {
+        @case ('PAUSAR') {
+          <button type="submit" form="form-confirmacion-fase" class="boton boton-primario" [disabled]="enviando()">
+            <i class="bi bi-pause-fill"></i> {{ enviando() ? 'Pausando…' : 'Pausar fase' }}
+          </button>
+        }
+        @case ('CANCELAR') {
+          <button type="submit" form="form-confirmacion-fase" class="boton boton-peligro" [disabled]="enviando()">
+            <i class="bi bi-x-lg"></i> {{ enviando() ? 'Cancelando…' : 'Cancelar fase' }}
+          </button>
+        }
+        @case ('SUBIR_A_MAIN') {
+          <button type="submit" form="form-confirmacion-fase" class="boton boton-primario"
+                  [disabled]="enviando() || !versionCoincide()">
+            <i class="bi bi-sign-merge-right"></i> {{ enviando() ? 'Subiendo…' : 'Subir a main' }}
+          </button>
+        }
+        @case ('REVERTIR') {
+          <button type="submit" form="form-confirmacion-fase" class="boton boton-peligro" [disabled]="enviando()">
+            <i class="bi bi-arrow-counterclockwise"></i> {{ enviando() ? 'Revirtiendo…' : 'Revertir producción' }}
+          </button>
+        }
+      }
+    </div>
+  </div>
+</app-modal>

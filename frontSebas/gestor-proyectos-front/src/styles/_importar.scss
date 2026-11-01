@@ -1,0 +1,291 @@
+// Pantallas de importar por JSON (historias de una fase, tickets de una historia): pestañas, prompt, editor y barra.
+
+// El :host lo pone cada página al hacer @use.
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+h1 { font-size: 1.9rem; }
+
+.migas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--texto-suave);
+
+  a {
+    color: var(--morado);
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  i { font-size: 0.75rem; }
+}
+
+.encabezado {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+
+  p {
+    margin: 0.3rem 0 0;
+    color: var(--texto-suave);
+  }
+}
+
+.icono {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--morado-suave);
+  color: var(--morado);
+  font-size: 1.2rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.1rem 1.25rem 1.25rem;
+}
+
+// ─── Pestañas ────────────────────────────────────────────────────────────────
+.pestanas {
+  display: flex;
+  gap: 0.4rem;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--texto-suave);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover { color: var(--tinta); }
+
+    &.activa {
+      background: var(--morado);
+      color: var(--sobre-color);
+    }
+  }
+}
+
+.pasos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  li + li::before {
+    margin-right: 0.8rem;
+    content: '→';
+  }
+
+  span {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--morado-suave);
+    color: var(--morado);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+}
+
+// ─── Bloques de código (prompt y editor) ─────────────────────────────────────
+.codigo-bloque {
+  margin: 0;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--fondo-pagina);
+  color: var(--tinta);
+  font-family: var(--fuente-mono);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.prompt {
+  max-height: 460px;
+  overflow: auto;
+  padding: 1rem 1.1rem;
+  white-space: pre-wrap;
+
+  .dato { color: var(--ambar); }
+}
+
+.editor {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  height: 420px;
+  overflow: hidden;
+
+  .numeros {
+    margin: 0;
+    padding: 0.85rem 0.6rem 0.85rem 0.9rem;
+    overflow: hidden;
+    border-right: 1px solid var(--borde);
+    color: var(--texto-suave);
+    font: inherit;
+    text-align: right;
+    user-select: none;
+  }
+
+  textarea,
+  .solo-lectura {
+    margin: 0;
+    padding: 0.85rem 1rem;
+    overflow: auto;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    white-space: pre;
+    resize: none;
+  }
+}
+
+.pie-bloque {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+
+  small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--texto-suave);
+  }
+
+  .ok { color: var(--verde-texto); font-weight: 600; }
+  .mal { color: var(--rojo-texto); font-weight: 600; }
+}
+
+.pista {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.boton.chico { padding: 0.4rem 0.85rem; font-size: 0.88rem; }
+
+// ─── JSON de historias ───────────────────────────────────────────────────────
+.opciones-json {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+}
+
+.cuales {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 0.5rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  color: var(--tinta);
+  font-weight: 600;
+
+  select {
+    padding: 0.4rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--tinta);
+    font: inherit;
+    cursor: pointer;
+  }
+}
+
+.incluir-titulo { color: var(--texto-suave); }
+
+.incluir {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: none;
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+
+  &.activo {
+    border-color: var(--morado-borde);
+    background: var(--morado-suave);
+    color: var(--morado);
+    font-weight: 600;
+  }
+}
+
+// ─── Barra de abajo ──────────────────────────────────────────────────────────
+.barra {
+  position: sticky;
+  bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+}
+
+.analista {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+
+  select {
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    background: var(--blanco);
+    color: var(--tinta);
+    font: inherit;
+    font-weight: 600;
+  }
+}
+
+.resumen {
+  margin-left: auto;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.aviso { margin: 0; }

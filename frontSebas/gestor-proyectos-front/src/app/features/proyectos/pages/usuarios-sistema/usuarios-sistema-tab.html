@@ -1,0 +1,75 @@
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else {
+  <div class="intro">
+    <p>
+      Quiénes van a usar el sistema que construimos: no el equipo, sino sus usuarios (Administrador, Escuela, Alumno…).
+      Son el "Como" de las historias y la IA los usa al proponerlas.
+    </p>
+  </div>
+
+  <section class="tarjeta bloque">
+    <div class="bloque-cabecera">
+      <h2>Usuarios del sistema · {{ usuarios().length }}</h2>
+      @if (puedeEditar()) {
+        <button type="button" class="boton boton-suave" (click)="agregar()" [disabled]="usuarios().length >= maximo">
+          <i class="bi bi-plus-lg"></i> Agregar usuario
+        </button>
+      }
+    </div>
+
+    @if (puedeEditar()) {
+      <ol class="lista">
+        @for (u of usuarios(); track $index; let i = $index; let ultimo = $last) {
+          <li class="fila">
+            <span class="numero">{{ i + 1 }}</span>
+            <input class="nombre" type="text" maxlength="80" placeholder="Ej. Alumno" [value]="u.nombre"
+                   (input)="cambiar(i, 'nombre', $any($event.target).value)" [attr.aria-label]="'Nombre del usuario ' + (i + 1)" />
+            <input class="descripcion" type="text" maxlength="300" placeholder="Qué hace en el sistema (opcional)"
+                   [value]="u.descripcion" (input)="cambiar(i, 'descripcion', $any($event.target).value)"
+                   [attr.aria-label]="'Qué hace ' + (u.nombre || 'el usuario ' + (i + 1))" />
+            <span class="botones">
+              <button type="button" class="icono" (click)="mover(i, -1)" [disabled]="i === 0" title="Subir">
+                <i class="bi bi-arrow-up"></i><span class="solo-lectores">Subir</span>
+              </button>
+              <button type="button" class="icono" (click)="mover(i, 1)" [disabled]="ultimo" title="Bajar">
+                <i class="bi bi-arrow-down"></i><span class="solo-lectores">Bajar</span>
+              </button>
+              <button type="button" class="icono quitar" (click)="quitar(i)" title="Quitar">
+                <i class="bi bi-trash"></i><span class="solo-lectores">Quitar</span>
+              </button>
+            </span>
+          </li>
+        } @empty {
+          <li class="vacio">Aún no hay usuarios del sistema. Agrega quiénes lo van a usar.</li>
+        }
+      </ol>
+
+      <div class="pie">
+        @if (problema(); as p) {
+          <small class="mal"><i class="bi bi-exclamation-circle"></i> {{ p }}</small>
+        }
+        @if (hayCambios()) {
+          <button type="button" class="boton boton-secundario" (click)="descartar()" [disabled]="enviando()">Descartar cambios</button>
+        }
+        <button type="button" class="boton boton-primario" (click)="guardar()"
+                [disabled]="!hayCambios() || !!problema() || enviando()">
+          {{ enviando() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    } @else {
+      <ul class="lista solo-ver">
+        @for (u of usuarios(); track $index) {
+          <li>
+            <strong>{{ u.nombre }}</strong>
+            @if (u.descripcion) { <span>{{ u.descripcion }}</span> }
+          </li>
+        } @empty {
+          <li class="vacio">Aún no hay usuarios del sistema.</li>
+        }
+      </ul>
+    }
+  </section>
+}

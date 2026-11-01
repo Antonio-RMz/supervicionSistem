@@ -1,0 +1,65 @@
+<section class="pagina">
+  <h1>Hola, {{ usuario()?.nombre }}</h1>
+
+  @if (store.cargando()) {
+    <p class="cargando">Cargando tus proyectos…</p>
+  } @else if (store.error()) {
+    <div class="error-carga">
+      <p>No pudimos cargar tus proyectos.</p>
+      <button type="button" class="boton boton-secundario" (click)="reintentar()">Intentar de nuevo</button>
+    </div>
+  } @else {
+    <p class="resumen">{{ resumen() }}</p>
+
+    <div class="tarjetas">
+      @for (proyecto of store.proyectos(); track proyecto.id; let i = $index) {
+        <article class="tarjeta proyecto">
+          <header>
+            <span class="codigo tono-{{ tono(i) }}">{{ proyecto.codigo }}</span>
+            <div class="titulo">
+              <h2>{{ proyecto.nombre }}</h2>
+              <div class="chips">
+                @for (modulo of proyecto.modulos; track modulo.tipo) {
+                  <app-chip-modulo [texto]="modulo.nombreCorto" [icono]="modulo.icono" />
+                }
+              </div>
+            </div>
+            <app-etiqueta-estado [etiqueta]="proyecto.etiqueta" />
+          </header>
+
+          <div class="avance">
+            <span>Avance del proyecto</span>
+            <strong>{{ proyecto.avance }}%</strong>
+          </div>
+          <app-barra-avance [valor]="proyecto.avance" [tono]="tono(i)" [gruesa]="true" />
+
+          <ul class="datos">
+            <li>
+              <i class="bi bi-flag"></i>
+              @if (proyecto.faseActual; as fase) {
+                Ahora: Fase {{ fase.numero }} · {{ fase.nombre }}
+              } @else {
+                Todas las fases entregadas
+              }
+            </li>
+            <li><i class="bi bi-calendar3"></i> Próxima entrega: {{ proximaEntrega(proyecto) }}</li>
+          </ul>
+
+          <footer>
+            @if (proyecto.demosPendientes > 0) {
+              <span class="demos">
+                <i class="bi bi-eye"></i>
+                {{ proyecto.demosPendientes }} {{ proyecto.demosPendientes === 1 ? 'demo' : 'demos' }} por revisar
+              </span>
+            }
+            <a class="boton boton-primario" [routerLink]="['/portal/proyectos', proyecto.id]">
+              Ver avance <i class="bi bi-arrow-right"></i>
+            </a>
+          </footer>
+        </article>
+      } @empty {
+        <p class="vacio">Todavía no hay proyectos registrados para tu empresa. Tu Analista te avisará cuando inicie el primero.</p>
+      }
+    </div>
+  }
+</section>

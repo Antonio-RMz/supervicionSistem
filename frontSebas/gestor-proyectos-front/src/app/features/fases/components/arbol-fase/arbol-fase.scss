@@ -1,0 +1,363 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  // Separación entre un nodo y sus hijos, y entre hermanos: las líneas se dibujan en esos huecos.
+  --hueco: 56px;
+  --entre: 14px;
+  --linea: var(--borde-fuerte);
+}
+
+// ─── Herramientas ────────────────────────────────────────────────────────────
+.herramientas {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.grupo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+// Mismos que en las páginas de detalle (styles/_detalle.scss), que no son globales.
+.boton.chico { padding: 0.45rem 0.9rem; }
+
+.tipo-fila {
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.filtro {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.leyenda {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+}
+
+.punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tono-solido);
+}
+
+.zoom {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+
+  span {
+    min-width: 3.4rem;
+    color: var(--tinta);
+    font-size: 0.88rem;
+    text-align: center;
+  }
+
+  button {
+    padding: 0.4rem 0.6rem;
+    border: none;
+    background: none;
+    color: var(--texto-suave);
+    cursor: pointer;
+
+    &:disabled { opacity: 0.4; cursor: default; }
+  }
+
+  .centrar { border-left: 1px solid var(--borde); }
+}
+
+// ─── Lienzo y panel ──────────────────────────────────────────────────────────
+.columnas-arbol {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.lienzo {
+  min-height: 560px;
+  max-height: calc(100vh - 260px);
+  padding: 1.5rem;
+  // El diagrama se mueve con la manita, no con barras
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  // Mientras se arrastra, que no se seleccione texto
+  user-select: none;
+
+  &.arrastrando { cursor: grabbing; }
+  background-color: var(--blanco);
+  background-image: radial-gradient(var(--borde) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.arbol {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  min-height: 100%;
+}
+
+// ─── Líneas: cada hijo dibuja su tramo horizontal y su parte de la línea vertical ──
+.rama {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--entre);
+  padding-left: var(--hueco);
+
+  // Del padre a la línea vertical
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: calc(var(--hueco) / 2);
+    border-top: 2px solid var(--linea);
+  }
+}
+
+.hoja {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  // De la línea vertical al hijo
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: calc(var(--hueco) / -2);
+    width: calc(var(--hueco) / 2);
+    border-top: 2px solid var(--linea);
+  }
+
+  // Su tramo de la línea vertical, hasta la mitad del hueco con sus hermanos
+  &::after {
+    content: '';
+    position: absolute;
+    top: calc(var(--entre) / -2);
+    bottom: calc(var(--entre) / -2);
+    left: calc(var(--hueco) / -2);
+    border-left: 2px solid var(--linea);
+  }
+
+  &:first-child::after { top: 50%; }
+  &:last-child::after { bottom: 50%; }
+  &:only-child::after { display: none; }
+}
+
+// ─── Nodos ───────────────────────────────────────────────────────────────────
+.nodo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--blanco);
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover { border-color: var(--borde-fuerte); }
+
+  &.elegido {
+    border-color: var(--morado);
+    box-shadow: 0 0 0 3px var(--morado-suave);
+  }
+
+  strong { font-weight: 600; }
+  small { color: var(--texto-suave); font-size: 0.8rem; }
+}
+
+.nodo-arriba,
+.nodo-abajo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.nodo-abajo { justify-content: space-between; }
+
+.codigo {
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.nodo-fase {
+  width: 190px;
+  flex: none;
+
+  strong { font-size: 1rem; }
+}
+
+.nodo-historia {
+  width: 210px;
+  flex: none;
+
+  app-avatar { margin-left: auto; }
+
+  &.sin-historia { cursor: default; }
+}
+
+.flecha {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+
+.nodo-ticket {
+  width: 220px;
+  // El color de la etapa, en el borde izquierdo
+  border-left: 3px solid var(--etapa, var(--borde));
+
+  .derecha { margin-left: auto; }
+
+  .nodo-abajo strong {
+    overflow: hidden;
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &.etapa-por-hacer { --etapa: #94a3b8; }
+  &.etapa-en-progreso { --etapa: var(--morado); }
+  &.etapa-en-qa { --etapa: #ea580c; }
+  &.etapa-cerrada { --etapa: var(--verde); }
+}
+
+.nodo-nuevo {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  padding: 1.1rem 0.9rem;
+  border-style: dashed;
+  border-width: 2px;
+  color: var(--morado);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.vacio {
+  margin: 0 0 0 1.5rem;
+  color: var(--texto-suave);
+}
+
+// ─── Panel Seleccionado ──────────────────────────────────────────────────────
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+
+  h3 {
+    margin: 0;
+    color: var(--tinta);
+    font-size: 1.15rem;
+  }
+
+  dl {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin: 0;
+
+    div {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    dt { color: var(--texto-suave); }
+
+    dd {
+      margin: 0;
+      color: var(--tinta);
+      text-align: right;
+    }
+  }
+}
+
+.panel-titulo {
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.panel-arriba {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.siguiente {
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-size: 0.9rem;
+
+  &.mia { color: var(--morado); font-weight: 600; }
+}
+
+.abrir {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.ayuda {
+  margin: 0;
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 1100px) {
+  .columnas-arbol { grid-template-columns: 1fr; }
+  .lienzo { max-height: none; }
+}

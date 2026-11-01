@@ -1,0 +1,174 @@
+<header class="encabezado">
+  <div>
+    <h1>Mis tickets</h1>
+    <p>Lo que espera una acción tuya.</p>
+  </div>
+</header>
+
+<div class="filtros">
+  <label class="buscar">
+    <i class="bi bi-search"></i>
+    <span class="solo-lectores">Buscar</span>
+    <input type="search" placeholder="Buscar por ID o título…" [value]="filtros().texto"
+           (input)="filtrar('texto', $any($event.target).value)" />
+  </label>
+
+  <label class="filtro" [class.activo]="filtros().tipo">
+    <span>Tipo:</span>
+    <select (change)="filtrar('tipo', $any($event.target).value)">
+      <option value="" [selected]="!filtros().tipo">todos</option>
+      @for (tipo of opciones().tipos; track tipo) {
+        <option [value]="tipo" [selected]="filtros().tipo === tipo">{{ tipo }}</option>
+      }
+    </select>
+  </label>
+  <label class="filtro" [class.activo]="filtros().estado">
+    <span>Estado:</span>
+    <select (change)="filtrar('estado', $any($event.target).value)">
+      <option value="" [selected]="!filtros().estado">todos</option>
+      @for (estado of opciones().estados; track estado.valor) {
+        <option [value]="estado.valor" [selected]="filtros().estado === estado.valor">{{ estado.texto }}</option>
+      }
+    </select>
+  </label>
+  <label class="filtro" [class.activo]="filtros().prioridad">
+    <span>Prioridad:</span>
+    <select (change)="filtrar('prioridad', $any($event.target).value)">
+      <option value="" [selected]="!filtros().prioridad">todas</option>
+      @for (prioridad of opciones().prioridades; track prioridad) {
+        <option [value]="prioridad" [selected]="filtros().prioridad === prioridad">{{ textoPrioridad(prioridad) }}</option>
+      }
+    </select>
+  </label>
+  <label class="filtro" [class.activo]="filtros().fase">
+    <span>Fase:</span>
+    <select (change)="filtrar('fase', $any($event.target).value)">
+      <option value="" [selected]="!filtros().fase">todas</option>
+      @for (fase of opciones().fases; track fase) {
+        <option [value]="fase" [selected]="filtros().fase === fase">{{ fase }}</option>
+      }
+    </select>
+  </label>
+  <label class="filtro" [class.activo]="filtros().historia">
+    <span>Historia:</span>
+    <select (change)="filtrar('historia', $any($event.target).value)">
+      <option value="" [selected]="!filtros().historia">todas</option>
+      @for (historia of opciones().historias; track historia) {
+        <option [value]="historia" [selected]="filtros().historia === historia">{{ historia }}</option>
+      }
+    </select>
+  </label>
+
+  <div class="vistas" role="group" aria-label="Vista">
+    <button type="button" [class.activa]="vista() === 'lista'" [attr.aria-pressed]="vista() === 'lista'"
+            (click)="cambiarVista('lista')" title="Lista">
+      <i class="bi bi-list-ul"></i><span class="solo-lectores">Lista</span>
+    </button>
+    <button type="button" [class.activa]="vista() === 'tablero'" [attr.aria-pressed]="vista() === 'tablero'"
+            (click)="cambiarVista('tablero')" title="Tablero">
+      <i class="bi bi-kanban"></i><span class="solo-lectores">Tablero</span>
+    </button>
+  </div>
+</div>
+
+@if (!proyectos.cargando() && !proyectos.proyectos().length) {
+  <p class="vacio tarjeta">Aún no eres miembro de ningún proyecto. Pídele al Líder que te agregue.</p>
+} @else if (error()) {
+  <p class="error-carga">No pudimos cargar tus tickets. Intenta recargar la página.</p>
+} @else if (cargando() && !tickets().length) {
+  <p class="cargando">Cargando…</p>
+} @else if (vista() === 'lista') {
+  <div class="tarjeta tabla-contenedor" [class.recargando]="cargando()">
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Historia / Fase</th>
+          <th>Estado</th>
+          <th>Prioridad</th>
+          <th>Responsable</th>
+          <th>Siguiente paso</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of visibles(); track t.tipo + t.id) {
+          <tr>
+            <td><app-tipo-ticket [tipo]="t.tipo" /></td>
+            <td class="codigo">{{ t.codigo }}</td>
+            <td class="titulo">
+              <a class="enlace-titulo"
+                 [routerLink]="['/proyectos', proyectos.actual()?.id, t.tipo === 'HIST' ? 'historias' : 'tickets', t.id]">{{ t.titulo }}</a>
+            </td>
+            <td class="contexto">{{ t.historiaOFase }}</td>
+            <td><span class="estado" [class.rechazo]="t.rechazadaEnQa">{{ t.estadoTexto }}</span></td>
+            <td><app-etiqueta-estado [etiqueta]="t.etiquetaPrioridad" /></td>
+            <td>
+              @if (t.responsable; as r) {
+                <span class="responsable">
+                  <app-avatar [iniciales]="r.iniciales" [tono]="r.tono" class="chico" />
+                  {{ r.nombre }}
+                </span>
+              } @else {
+                <span class="sin-asignar">Sin asignar</span>
+              }
+            </td>
+            <td>
+              @if (t.accion) {
+                <span class="pendiente" [class.mia]="t.meToca" [class.corregir]="t.rechazadaEnQa"
+                      [title]="t.meToca ? 'Te toca: se hace al entrar al ticket' : 'Le toca a otra persona'">{{ t.accion }}</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="8" class="sin-resultados">
+              @if (hayFiltros()) {
+                Ningún ticket coincide con los filtros. <button type="button" class="enlace" (click)="limpiarFiltros()">Quitar filtros</button>
+              } @else {
+                <i class="bi bi-check2-circle"></i> Nada esperando tu acción en {{ proyectos.actual()?.nombre }}.
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else {
+  <div class="tablero" [class.recargando]="cargando()">
+    @for (columna of columnas(); track columna.estado) {
+      <section class="columna">
+        <h2>{{ columna.titulo }} <span>{{ columna.tickets.length }}</span></h2>
+        @for (t of columna.tickets; track t.tipo + t.id) {
+          <article class="tarjeta ficha" [class.mia]="t.meToca">
+            <div class="ficha-arriba">
+              <app-tipo-ticket [tipo]="t.tipo" />
+              <span class="codigo">{{ t.codigo }}</span>
+              <app-etiqueta-estado [etiqueta]="t.etiquetaPrioridad" class="prioridad" />
+            </div>
+            <p><a class="enlace-titulo"
+                  [routerLink]="['/proyectos', proyectos.actual()?.id, t.tipo === 'HIST' ? 'historias' : 'tickets', t.id]">{{ t.titulo }}</a></p>
+            <div class="ficha-abajo">
+              <span class="contexto">{{ t.historiaOFase }}</span>
+              @if (t.responsable; as r) {
+                <app-avatar [iniciales]="r.iniciales" [tono]="r.tono" class="chico" [title]="r.nombre" />
+              }
+            </div>
+            @if (t.meToca && t.accion) {
+              <span class="pendiente mia" [class.corregir]="t.rechazadaEnQa"><i class="bi bi-arrow-right-short"></i> {{ t.accion }}</span>
+            }
+          </article>
+        }
+      </section>
+    } @empty {
+      <p class="sin-resultados tarjeta">No hay tickets aquí.</p>
+    }
+  </div>
+}
+
+@if (!error() && !cargando()) {
+  <p class="nota">
+    Mostrando {{ visibles().length }} de {{ meTocan().length }} tickets · Las acciones se hacen al entrar a cada ticket.
+  </p>
+}

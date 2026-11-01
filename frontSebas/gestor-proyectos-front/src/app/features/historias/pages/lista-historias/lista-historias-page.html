@@ -1,0 +1,95 @@
+<header class="encabezado">
+  <div>
+    <h1>Historias</h1>
+    <p>Todas las historias de usuario de {{ listado()?.proyectoNombre ?? 'el proyecto' }}. Abre una para ver su detalle.</p>
+  </div>
+</header>
+
+@if (!proyectos.actual() && !cargando()) {
+  <p class="vacio">Aún no estás en ningún proyecto.</p>
+} @else if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (error()) {
+  <p class="error-carga">{{ error() }}</p>
+} @else if (listado(); as l) {
+  <div class="filtros">
+    <label class="buscar">
+      <i class="bi bi-search"></i>
+      <span class="solo-lectores">Buscar</span>
+      <input type="search" placeholder="Buscar por HU-0000 o título…" [value]="texto()"
+             (input)="texto.set($any($event.target).value)" />
+    </label>
+    <label class="filtro" [class.activo]="fase()">
+      <span>Fase:</span>
+      <select (change)="fase.set($any($event.target).value)">
+        <option value="" [selected]="!fase()">todas</option>
+        @for (f of opciones().fases; track f[0]) {
+          <option [value]="f[0]" [selected]="fase() === f[0]">{{ f[1] }}</option>
+        }
+      </select>
+    </label>
+    <label class="filtro" [class.activo]="estado()">
+      <span>Estado:</span>
+      <select (change)="estado.set($any($event.target).value)">
+        <option value="" [selected]="!estado()">todos</option>
+        @for (e of opciones().estados; track e[0]) {
+          <option [value]="e[0]" [selected]="estado() === e[0]">{{ e[1] }}</option>
+        }
+      </select>
+    </label>
+    @if (texto() || fase() || estado()) {
+      <button type="button" class="limpiar" (click)="limpiar()"><i class="bi bi-x-lg"></i> Limpiar</button>
+    }
+    <span class="cuenta">{{ filtradas().length }} de {{ l.historias.length }}</span>
+  </div>
+
+  <div class="tarjeta tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>Historia</th>
+          <th>Fase</th>
+          <th>Estado</th>
+          <th>Analista</th>
+          <th>Tickets</th>
+          <th>Actualizada</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (h of filtradas(); track h.id) {
+          <tr>
+            <td>
+              <a class="historia" [routerLink]="['/proyectos', l.proyectoId, 'historias', h.id]">
+                <app-tipo-ticket tipo="HIST" />
+                <span>
+                  <strong>{{ h.codigo }} · {{ h.titulo }}</strong>
+                  <small>
+                    Prioridad {{ h.prioridad.texto.toLowerCase() }}{{ h.puntos ? ' · ' + h.puntos + ' puntos' : '' }}
+                  </small>
+                </span>
+              </a>
+            </td>
+            <td>
+              <a class="enlace-fase" [routerLink]="['/proyectos', l.proyectoId, 'fases', h.faseId]">{{ h.fase }}</a>
+            </td>
+            <td><app-etiqueta-estado [etiqueta]="h.etiqueta" /></td>
+            <td>{{ h.analista }}</td>
+            <td>
+              <div class="avance">
+                <span>{{ h.ticketsTerminados }} de {{ h.ticketsTotal }}</span>
+                <app-barra-avance [valor]="h.avance" />
+              </div>
+            </td>
+            <td class="suave">{{ h.actualizada }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="vacio">
+              {{ l.historias.length ? 'Ninguna historia coincide con los filtros.' : 'El proyecto aún no tiene historias.' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

@@ -1,0 +1,204 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+h2 {
+  font-size: 1.15rem;
+
+  small {
+    margin-left: 0.4rem;
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+    font-weight: 400;
+  }
+}
+
+.cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.codigo {
+  color: var(--morado);
+  font-family: var(--fuente-mono);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+// ─── Lista de fases ──────────────────────────────────────────────────────────
+.fases {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fase {
+  overflow: hidden;
+
+  &.abierta { border-color: var(--morado-borde); }
+}
+
+.fase-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto 160px auto;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.7rem 1rem;
+}
+
+.desplegar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.flechita {
+  color: var(--texto-suave);
+  transition: transform 0.15s;
+
+  .abierta & { transform: rotate(90deg); }
+}
+
+.marca {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 700;
+
+  &.listo { background: var(--verde); color: var(--sobre-color); }
+  &.actual { background: var(--morado); color: var(--sobre-color); }
+}
+
+.fase-nombre {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    overflow: hidden;
+    font-family: var(--fuente-titulos);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small { color: var(--texto-suave); font-size: 0.8rem; }
+}
+
+.conteo {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.avance-fase {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  app-barra-avance { flex: 1; }
+  strong { min-width: 2.6rem; font-size: 0.9rem; text-align: right; }
+}
+
+.ir {
+  color: var(--morado);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover { text-decoration: underline; }
+}
+
+// ─── Historias de la fase desplegada ─────────────────────────────────────────
+.historias {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 1rem 0.6rem 3.4rem;
+  border-top: 1px solid var(--borde);
+}
+
+.historia {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.5rem 0.5rem;
+  border-radius: 8px;
+  color: var(--tinta);
+  text-decoration: none;
+
+  & + & { border-top: 1px solid var(--borde); }
+
+  &:hover {
+    background: var(--morado-suave);
+
+    .titulo { color: var(--morado); }
+  }
+
+  .titulo {
+    overflow: hidden;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > .bi { color: var(--texto-suave); }
+}
+
+app-avatar.chico ::ng-deep .avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 0.65rem;
+}
+
+.nueva {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  color: var(--morado);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover { background: var(--morado-suave); }
+}
+
+.vacio {
+  margin: 0;
+  padding: 1rem;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .fase-fila { grid-template-columns: minmax(0, 1fr) auto; }
+  .conteo, .avance-fase, .ir { display: none; }
+  .historias { padding-left: 1rem; }
+  .historia { grid-template-columns: auto minmax(0, 1fr) auto auto auto; }
+  .historia app-avatar { display: none; }
+}

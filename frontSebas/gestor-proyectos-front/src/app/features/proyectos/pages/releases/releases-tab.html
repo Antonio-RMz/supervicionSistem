@@ -1,0 +1,162 @@
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else if (releases(); as r) {
+  @let proyectoId = store.resumen()?.id;
+  <div class="arriba">
+    <!-- ─── Listo para integrar ─── -->
+    <section class="tarjeta bloque">
+      <div class="bloque-cabecera">
+        <h2>Listo para integrar</h2>
+        <span class="cuenta">{{ r.listasParaIntegrar.length }}</span>
+      </div>
+      <p class="pista">Historias aceptadas por el Analista que esperan entrar a develop. Solo el Líder ve el botón.</p>
+      <ul class="filas">
+        @for (h of r.listasParaIntegrar; track h.id) {
+          <li>
+            <app-tipo-ticket tipo="HIST" />
+            <span class="codigo">{{ h.codigo }}</span>
+            <a class="nombre enlace-titulo" [routerLink]="['/proyectos', proyectoId, 'historias', h.id]">{{ h.titulo }}</a>
+            <span class="pastilla tono-verde">Aceptada</span>
+            @if (r.puedeIntegrar) {
+              <a class="boton boton-primario chico" [routerLink]="['/proyectos', proyectoId, 'historias', h.id, 'integrar']">
+                <i class="bi bi-sign-merge-right"></i> Integrar a develop
+              </a>
+            }
+          </li>
+        } @empty {
+          <li class="vacio">Ninguna historia espera integrarse.</li>
+        }
+      </ul>
+    </section>
+
+    <!-- ─── Próximo release ─── -->
+    <section class="tarjeta bloque">
+      <div class="bloque-cabecera">
+        <h2>Próximo release</h2>
+        @if (proxima(); as f) {
+          <span class="pastilla tono-gris">Fase {{ f.numero }}</span>
+        }
+      </div>
+      @if (proxima(); as f) {
+        <p class="version">
+          <i class="bi bi-tag"></i>
+          {{ f.versionRelease ?? 'Sin versión' }} · cierre de {{ f.titulo }}
+        </p>
+        <app-barra-avance [valor]="f.avance" [gruesa]="true" />
+        <div class="metricas">
+          <span>{{ f.ticketsTerminados }} de {{ f.ticketsTotal }} tickets listos</span>
+          <span>{{ f.historiasIntegradas }} de {{ f.historiasQueCuentan }} historias integradas</span>
+          <span>Criterios {{ f.criteriosCumplidos }} de {{ f.criterios.length }}</span>
+          @if (f.fechaFin) {
+            <span>Fecha: {{ diaYMes(f.fechaFin) }}</span>
+          }
+        </div>
+        <a class="boton boton-secundario chico" [routerLink]="['/proyectos', proyectoId, 'fases', f.id, 'release']">
+          <i class="bi bi-arrow-right"></i> Ver release
+        </a>
+      } @else {
+        <p class="pista">No hay una fase en curso ni planeada. Crea una fase para preparar el siguiente release.</p>
+      }
+    </section>
+  </div>
+
+  <!-- ─── Parche en preparación ─── -->
+  @if (r.parche; as p) {
+    <section class="tarjeta bloque">
+      <div class="bloque-cabecera">
+        <h2>Parche en preparación · Mantenimiento</h2>
+        <span class="pastilla tono-rojo">{{ p.version }}</span>
+      </div>
+      <div class="parche">
+        <i class="bi bi-wrench"></i>
+        <span class="nombre">{{ p.resumen }}</span>
+        @if (p.mantenimientoFaseId) {
+          <a class="boton boton-secundario chico" [routerLink]="['/proyectos', proyectoId, 'mantenimiento']">
+            <i class="bi bi-arrow-right"></i> Ir a Mantenimiento
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ─── Publicados en producción ─── -->
+  <section class="tarjeta publicados">
+    <h2>Publicados en producción</h2>
+    <div class="tabla">
+      <table>
+        <thead>
+          <tr><th>Versión</th><th>Origen</th><th>Fecha</th><th>Contenido</th><th>Publicó</th><th><span class="solo-lectores">Acciones</span></th></tr>
+        </thead>
+        <tbody>
+          @for (p of r.publicados; track p.id) {
+            <tr [class.en-produccion]="p.enProduccion" [class.revertida]="p.revertida">
+              <td class="version-celda"><i class="bi bi-tag"></i> {{ p.version }}</td>
+              <td>
+                <span class="origen">
+                  @if (p.esFase) {
+                    <span class="tipo-fila">FASE</span>
+                  } @else {
+                    <i class="bi bi-wrench"></i>
+                  }
+                  {{ p.origen }}
+                  @if (p.enProduccion) {
+                    <span class="pastilla tono-verde">En producción</span>
+                  } @else if (p.revertida) {
+                    <span class="pastilla tono-rojo">Revertida</span>
+                  }
+                </span>
+              </td>
+              <td>{{ p.fecha }}</td>
+              <td>{{ p.contenido }}</td>
+              <td>{{ p.publicadoPor }}</td>
+              <td class="acciones">
+                @if (p.esFase) {
+                  <a class="boton boton-secundario chico" [routerLink]="['/proyectos', proyectoId, 'fases', p.faseId, 'release']">
+                    <i class="bi bi-file-earmark-text"></i> Notas
+                  </a>
+                } @else {
+                  <button type="button" class="boton boton-secundario chico" (click)="notas.set(p)">
+                    <i class="bi bi-file-earmark-text"></i> Notas
+                  </button>
+                }
+                @if (p.enProduccion && p.esFase && puedeRevertir()) {
+                  <a class="boton boton-peligro-suave chico" [routerLink]="['/proyectos', proyectoId, 'fases', p.faseId, 'release']"
+                     [queryParams]="{ accion: 'revertir' }">
+                    <i class="bi bi-arrow-counterclockwise"></i> Revertir
+                  </a>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="vacio">Aún no se ha publicado nada en producción.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <p class="pista pie">
+    Solo la versión que está en producción se puede revertir, y solo el Líder o el Admin ven ese botón.
+    Revertir pide motivo y crea un bug en Mantenimiento.
+  </p>
+
+  @if (notas(); as n) {
+    <app-modal [titulo]="'Notas del parche ' + n.version" [subtitulo]="n.fecha + ' · publicó ' + n.publicadoPor" (cerrar)="notas.set(null)">
+      <p class="seccion-notas">Correcciones</p>
+      <ul class="bugs">
+        @for (b of n.bugs; track b.id) {
+          <li>
+            <app-tipo-ticket tipo="BUGS" />
+            <a class="enlace-titulo" [routerLink]="['/proyectos', proyectoId, 'tickets', b.id]" (click)="notas.set(null)">{{ b.codigo }} · {{ b.titulo }}</a>
+          </li>
+        } @empty {
+          <li class="pista">No encontramos los bugs de este parche.</li>
+        }
+      </ul>
+      <div pie class="botones">
+        <button type="button" class="boton boton-secundario" (click)="notas.set(null)">Cerrar</button>
+      </div>
+    </app-modal>
+  }
+}

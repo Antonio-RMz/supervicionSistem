@@ -1,0 +1,171 @@
+@if (cargando()) {
+  <p class="cargando">Cargando el avance…</p>
+} @else if (error()) {
+  <div class="error-carga">
+    <p>{{ error() }}</p>
+    <a class="boton boton-secundario" routerLink="/portal/proyectos">Ver mis proyectos</a>
+  </div>
+} @else if (avance(); as datos) {
+  <!-- Encabezado -->
+  <section class="encabezado">
+    <div>
+      <h1>{{ datos.nombre }}</h1>
+      <div class="chips">
+        @for (modulo of datos.modulos; track modulo.tipo) {
+          <app-chip-modulo [texto]="modulo.nombreLargo" [icono]="modulo.icono" />
+        }
+      </div>
+    </div>
+    <div class="avance-total">
+      <div class="avance-total-texto">
+        <span>Avance del proyecto</span>
+        <strong>{{ datos.avance }}%</strong>
+      </div>
+      <app-barra-avance [valor]="datos.avance" [gruesa]="true" />
+    </div>
+  </section>
+
+  <!-- Demo por revisar -->
+  @if (datos.demoPendiente; as demo) {
+    <section class="demo">
+      <i class="bi bi-eye"></i>
+      <div>
+        <strong>Tienes una demo por revisar: {{ demo.titulo }}</strong>
+        <p>Tu visto bueno es necesario para entregar esta fase.</p>
+      </div>
+      @if (demo.url) {
+        <a class="boton boton-primario" [href]="demo.url" target="_blank" rel="noopener">Revisar demo</a>
+      }
+    </section>
+  }
+
+  <!-- Fases -->
+  <section class="tarjeta bloque">
+    <h2>Fases</h2>
+    <div class="fases">
+      @for (fase of datos.fases; track fase.id) {
+        <article class="fase" [class.actual]="esActual(fase, datos)">
+          <div class="fase-cabecera">
+            <span>Fase {{ fase.numero }}</span>
+            <app-etiqueta-estado [etiqueta]="fase.etiqueta" />
+          </div>
+          <h3>{{ fase.nombre }}</h3>
+          <app-barra-avance [valor]="fase.avance" [tono]="tonoFase(fase)" />
+          <small>{{ fechaFase(fase) }}</small>
+        </article>
+      }
+    </div>
+  </section>
+
+  <div class="columnas">
+    <!-- Fase actual -->
+    @if (datos.faseActual; as fase) {
+      <section class="tarjeta bloque fase-actual">
+        <div class="fase-actual-cabecera">
+          <h2>Fase {{ fase.numero }} · {{ fase.nombre }}</h2>
+          <app-etiqueta-estado [etiqueta]="fase.etiqueta" />
+        </div>
+        @if (fase.objetivo) {
+          <p class="objetivo">{{ fase.objetivo }}</p>
+        }
+
+        @if (datos.modulosFaseActual.length) {
+          <div class="modulos">
+            @for (item of datos.modulosFaseActual; track item.modulo.tipo) {
+              <div class="modulo">
+                <div class="modulo-texto">
+                  <span><i class="bi {{ item.modulo.icono }}"></i> {{ item.modulo.nombreLargo }}</span>
+                  <strong>{{ item.avance }}%</strong>
+                </div>
+                <app-barra-avance [valor]="item.avance" />
+              </div>
+            }
+          </div>
+        }
+
+        <h3 class="subtitulo">Lo que incluye</h3>
+        <ul class="historias">
+          @for (historia of datos.historias; track historia.titulo) {
+            <li>
+              <div>
+                <strong>{{ historia.titulo }}</strong>
+                @if (historia.descripcion) {
+                  <p>{{ historia.descripcion }}</p>
+                }
+              </div>
+              <app-etiqueta-estado [etiqueta]="historia.etiqueta" />
+            </li>
+          } @empty {
+            <li class="sin-historias">Tu Analista está definiendo lo que incluirá esta fase.</li>
+          }
+        </ul>
+      </section>
+    } @else {
+      <section class="tarjeta bloque fase-actual">
+        <h2>¡Todas las fases están entregadas!</h2>
+        <p class="objetivo">Gracias por trabajar con nosotros. Si necesitas algo nuevo, abre una solicitud.</p>
+      </section>
+    }
+
+    <!-- Columna derecha -->
+    <aside class="lateral">
+      @if (datos.faseActual; as fase) {
+        <section class="tarjeta bloque">
+          <h2>Próxima entrega</h2>
+          <div class="entrega">
+            <i class="bi bi-calendar3"></i>
+            <div>
+              <strong>{{ fechaLarga(fase.fechaFin) }}</strong>
+              <span>
+                Fase {{ fase.numero }}
+                @if (fase.version) { · versión {{ versionSinV(fase.version) }} }
+              </span>
+            </div>
+          </div>
+        </section>
+      }
+
+      <section class="tarjeta bloque">
+        <div class="lateral-cabecera">
+          <h2>Versiones entregadas</h2>
+          <a routerLink="/portal/versiones">Ver todas</a>
+        </div>
+        <ul class="versiones">
+          @for (version of datos.versiones.slice(0, 3); track version.version) {
+            <li>
+              <i class="bi bi-tag"></i>
+              <div>
+                <strong>{{ version.version }} · {{ fechaCorta(version.fecha) }}</strong>
+                @if (version.resumen) {
+                  <span>{{ version.resumen }}</span>
+                }
+              </div>
+            </li>
+          } @empty {
+            <li class="sin-versiones">Aún no hay versiones entregadas.</li>
+          }
+        </ul>
+      </section>
+
+      <section class="tarjeta bloque">
+        <h2>¿Dudas o algo nuevo?</h2>
+        <p class="contacto">
+          @if (datos.contacto; as contacto) {
+            Tu contacto es {{ contacto.nombre }} ({{ contacto.rol }}).
+          }
+          Las solicitudes nuevas se revisan y, si proceden, se planean en una fase.
+        </p>
+        <div class="acciones">
+          @if (datos.contacto; as contacto) {
+            <a class="boton boton-secundario" [href]="'mailto:' + contacto.correo">
+              <i class="bi bi-chat-square-text"></i> Comentar
+            </a>
+          }
+          <a class="boton boton-primario" routerLink="/portal/solicitudes">
+            <i class="bi bi-plus-lg"></i> Nueva solicitud
+          </a>
+        </div>
+      </section>
+    </aside>
+  </div>
+}

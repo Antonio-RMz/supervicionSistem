@@ -1,0 +1,85 @@
+<div class="dashboard-page">
+
+  <!-- Saludo -->
+  <div class="dash-greeting">
+    @if (session.usuario(); as user) {
+      <h1 class="greeting-title">Bienvenido, {{ user.nombre }}</h1>
+    } @else {
+      <h1 class="greeting-title">Dashboard</h1>
+    }
+    <p class="greeting-sub">Aquí verás el resumen de actividad de tus proyectos.</p>
+  </div>
+
+  <!-- Banner próximamente -->
+  <div class="coming-soon-banner">
+    <div class="cs-icon">
+      <i class="bi bi-bar-chart-line-fill"></i>
+    </div>
+    <div class="cs-body">
+      <h2 class="cs-title">Dashboard en construcción</h2>
+      <p class="cs-desc">
+        Pronto tendrás acceso a métricas, resúmenes y actividad reciente de todos tus proyectos en un solo lugar.
+      </p>
+      <a class="cs-cta" routerLink="/pro">
+        <i class="bi bi-kanban-fill"></i> Ir a Proyectos
+      </a>
+    </div>
+  </div>
+
+  <!-- Widgets placeholder -->
+  <div class="widgets-grid">
+
+    <div class="widget-card widget-placeholder">
+      <div class="widget-icon" style="background:#eef0ff; color:#4361ee">
+        <i class="bi bi-folder2-open"></i>
+      </div>
+      <div class="widget-info">
+        <span class="widget-label">Proyectos activos</span>
+        <span class="widget-value">—</span>
+      </div>
+    </div>
+
+    <div class="widget-card widget-placeholder">
+      <div class="widget-icon" style="background:#fef3c7; color:#92400e">
+        <i class="bi bi-list-check"></i>
+      </div>
+      <div class="widget-info">
+        <span class="widget-label">Tareas pendientes</span>
+        <span class="widget-value">—</span>
+      </div>
+    </div>
+
+    <div class="widget-card widget-placeholder">
+      <div class="widget-icon" style="background:#d1fae5; color:#065f46">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+      <div class="widget-info">
+        <span class="widget-label">Completadas hoy</span>
+        <span class="widget-value">—</span>
+      </div>
+    </div>
+
+    <div class="widget-card widget-placeholder">
+      <div class="widget-icon" style="background:#dbeafe; color:#1e40af">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div class="widget-info">
+        <span class="widget-label">Equipo activo</span>
+        <span class="widget-value">—</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Próximas funciones -->
+  <div class="upcoming-section">
+    <h3 class="upcoming-title">Próximamente</h3>
+    <ul class="upcoming-list">
+      <li><i class="bi bi-graph-up-arrow"></i> Gráficas de progreso por proyecto</li>
+      <li><i class="bi bi-clock-history"></i> Actividad reciente del equipo</li>
+      <li><i class="bi bi-bell"></i> Notificaciones y alertas de tareas</li>
+      <li><i class="bi bi-calendar3"></i> Calendario de sprints y releases</li>
+    </ul>
+  </div>
+
+</div>

@@ -1,0 +1,56 @@
+// ─── Host ─────────────────────────────────────────────────────────────────────
+// Positioned by the card (position: absolute on host via card context)
+:host {
+  position: absolute;
+  top:  12px;
+  left: -8px;
+  z-index: 2;
+  display: block;
+}
+
+// ─── Ribbon body ──────────────────────────────────────────────────────────────
+.tr-ribbon {
+  display:     inline-flex;
+  align-items: center;
+  gap:         0.22rem;
+
+  padding: 0.32rem 1.3rem 0.32rem 0.82rem;
+
+  background: var(--rb, #f1f5f9);
+  color:      var(--rc, #475569);
+
+  font-size:      0.7rem;
+  font-weight:    800;
+  letter-spacing: 0.05em;
+  white-space:    nowrap;
+  text-transform: uppercase;
+
+  // Pennant / pointed-right shape
+  clip-path: polygon(
+    0 0,
+    calc(100% - 9px) 0,
+    100% 50%,
+    calc(100% - 9px) 100%,
+    0 100%
+  );
+
+  // Shadow follows the clipped shape (not box-shadow which would be hidden)
+  filter: drop-shadow(1px 2px 5px rgba(0, 0, 0, 0.22));
+
+  transition: filter 0.25s ease, transform 0.25s ease;
+
+  i { font-size: 0.65rem; }
+}
+
+// ─── Fold crease ──────────────────────────────────────────────────────────────
+// Small dark triangle below-left simulating the ribbon folding around the corner
+.tr-crease {
+  position: absolute;
+  top:  calc(100% - 2px);   // just below the ribbon
+  left: 0;
+  width:  8px;
+  height: 5px;
+  opacity: 0.35;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  transition: opacity 0.25s ease;
+}

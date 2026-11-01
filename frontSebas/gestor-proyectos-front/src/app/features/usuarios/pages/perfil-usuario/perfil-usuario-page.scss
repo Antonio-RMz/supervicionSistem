@@ -1,0 +1,267 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.15rem; }
+
+.migas {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--texto-suave);
+
+  a {
+    color: var(--morado);
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+
+  i { font-size: 0.75rem; }
+}
+
+// ─── Cabecera ────────────────────────────────────────────────────────────────
+.cabecera {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+}
+
+.quien {
+  flex: 1;
+  min-width: 260px;
+}
+
+.nombre {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.datos {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.45rem 0 0;
+  color: var(--texto-suave);
+}
+
+.punto { color: var(--borde-fuerte); }
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.peligro {
+  color: var(--rojo);
+  &:hover:not(:disabled) { border-color: var(--rojo-borde); }
+}
+
+.exito {
+  color: var(--verde-texto);
+  &:hover:not(:disabled) { border-color: var(--verde-borde); }
+}
+
+.error-estado {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--rojo-texto);
+  text-align: right;
+}
+
+// ─── Métricas ────────────────────────────────────────────────────────────────
+.metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+}
+
+.metrica {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem 1.5rem;
+
+  span,
+  small { color: var(--texto-suave); }
+
+  strong {
+    color: var(--tinta);
+    font-size: 2.1rem;
+    line-height: 1.1;
+
+    &.destacada { color: var(--morado); }
+  }
+}
+
+// ─── Columnas ────────────────────────────────────────────────────────────────
+.columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.derecha {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.bloque {
+  padding: 1.5rem 1.75rem;
+}
+
+.grupo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  span {
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  &.verde { color: var(--verde-texto); }
+  &.morado { color: var(--morado); }
+  &.gris { color: var(--texto-suave); }
+}
+
+.lista {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--borde);
+  }
+}
+
+.codigo {
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.titulo {
+  flex: 1;
+  min-width: 0;
+  color: var(--tinta);
+  font-weight: 500;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.estado {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--fondo);
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.lado {
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.accion {
+  color: var(--morado);
+  font-weight: 500;
+
+  &.rechazo { color: var(--rojo); }
+}
+
+.sin-items {
+  color: var(--texto-suave);
+}
+
+// ─── Lo que hizo ─────────────────────────────────────────────────────────────
+.dia {
+  margin: 1rem 0 0.5rem;
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hechos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .texto {
+    flex: 1;
+    color: var(--tinta);
+  }
+
+  small { color: var(--texto-suave); }
+}
+
+.marca {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tono-solido);
+}
+
+.proyectos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--tinta);
+  }
+
+  small {
+    color: var(--texto-suave);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 1200px) {
+  .columnas { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .lista li { flex-wrap: wrap; }
+  .titulo { flex-basis: 100%; order: 3; white-space: normal; }
+  .bloque, .cabecera { padding: 1.25rem; }
+}

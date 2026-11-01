@@ -1,0 +1,102 @@
+<header class="cabecera">
+  <app-avatar [iniciales]="usuario().iniciales" [tono]="usuario().tonoAvatar" />
+  <div class="quien">
+    <h2>{{ usuario().nombreCompleto }}</h2>
+    <small>{{ usuario().correo }}</small>
+  </div>
+  <button type="button" class="cerrar" (click)="cerrar.emit()" title="Cerrar">
+    <i class="bi bi-x-lg"></i>
+    <span class="solo-lectores">Cerrar</span>
+  </button>
+</header>
+
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else {
+  <section>
+    <h3>Roles</h3>
+    <p class="ayuda">Puede tener varios; sus permisos se suman.</p>
+    <ul class="roles">
+      @for (rol of roles(); track rol.codigo) {
+        <li>
+          <label>
+            <input type="checkbox" [checked]="tieneRol(rol.codigo)"
+                   (change)="alternarRol(rol.codigo, $any($event.target).checked)" />
+            {{ rol.nombre }}
+          </label>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="extras">
+    <h3>Permisos extra</h3>
+    <p class="ayuda">Ajustes puntuales sobre lo que dan sus roles.</p>
+
+    <ul>
+      @for (extra of extras(); track extra.permisoCodigo + '-' + extra.proyectoId; let i = $index) {
+        <li class="extra">
+          <div>
+            <strong>{{ extra.permisoNombre }}</strong>
+            <small>{{ extra.proyectoNombre }}</small>
+          </div>
+          <span class="estado" [class.quitado]="!extra.otorgado">{{ extra.otorgado ? 'Otorgado' : 'Quitado' }}</span>
+          <button type="button" class="quitar" (click)="quitarExtra(i)" title="Quitar ajuste">
+            <i class="bi bi-x-lg"></i>
+            <span class="solo-lectores">Quitar {{ extra.permisoNombre }}</span>
+          </button>
+        </li>
+      } @empty {
+        <li class="sin-extras">Solo tiene lo que dan sus roles.</li>
+      }
+    </ul>
+
+    @if (agregando()) {
+      <div class="agregar-form">
+        <label>
+          <span>Permiso</span>
+          <select (change)="nuevoPermiso.set($any($event.target).value)">
+            @for (permiso of permisos(); track permiso.codigo) {
+              <option [value]="permiso.codigo" [selected]="permiso.codigo === nuevoPermiso()">{{ permiso.nombre }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          <span>Dónde</span>
+          <select (change)="nuevoProyecto.set($any($event.target).value ? +$any($event.target).value : null)">
+            <option value="" [selected]="nuevoProyecto() === null">Todos los proyectos</option>
+            @for (proyecto of proyectos(); track proyecto.id) {
+              <option [value]="proyecto.id" [selected]="proyecto.id === nuevoProyecto()">{{ proyecto.nombre }}</option>
+            }
+          </select>
+        </label>
+        <div class="otorgar" role="radiogroup" aria-label="Otorgar o quitar">
+          <label><input type="radio" name="otorgado" [checked]="nuevoOtorgado()" (change)="nuevoOtorgado.set(true)" /> Otorgar</label>
+          <label><input type="radio" name="otorgado" [checked]="!nuevoOtorgado()" (change)="nuevoOtorgado.set(false)" /> Quitar</label>
+        </div>
+        @if (nuevoRepetido()) {
+          <small class="aviso">Ese permiso ya está ajustado en ese alcance.</small>
+        }
+        <div class="agregar-botones">
+          <button type="button" class="boton boton-secundario" (click)="agregando.set(false)">Cancelar</button>
+          <button type="button" class="boton boton-primario" [disabled]="nuevoRepetido()" (click)="agregar()">Agregar</button>
+        </div>
+      </div>
+    } @else {
+      <button type="button" class="boton boton-secundario agregar" (click)="abrirAgregar()">
+        <i class="bi bi-plus-lg"></i> Agregar permiso
+      </button>
+    }
+  </section>
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  <footer>
+    <button type="button" class="boton boton-secundario" (click)="cerrar.emit()">Cancelar</button>
+    <button type="button" class="boton boton-primario" [disabled]="guardando()" (click)="guardar()">
+      {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+    </button>
+  </footer>
+}

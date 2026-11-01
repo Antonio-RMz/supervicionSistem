@@ -1,0 +1,128 @@
+@if (store.resumen(); as p) {
+  <section class="metricas">
+    <article class="tarjeta metrica">
+      <span>Fase actual</span>
+      @if (p.faseActual; as f) {
+        <strong>Fase {{ f.numero }}</strong>
+        <small>{{ f.nombre }}{{ f.fechaFin ? ' · termina ' + diaYMes(f.fechaFin) : '' }}</small>
+      } @else {
+        <strong>—</strong>
+        <small>Aún no tiene fases</small>
+      }
+    </article>
+    <article class="tarjeta metrica">
+      <span>Tickets abiertos</span>
+      <strong>{{ p.ticketsAbiertos }}</strong>
+      <small>{{ dashboard()?.pendientesMios ?? 0 }} te tocan a ti</small>
+    </article>
+    <article class="tarjeta metrica">
+      <span>Bugs abiertos</span>
+      <strong [class.alerta]="p.bugsAbiertos">{{ p.bugsAbiertos }}</strong>
+      <small>{{ p.bugsEnProduccion }} en producción</small>
+    </article>
+    <article class="tarjeta metrica">
+      <span>Próximo release</span>
+      <strong>{{ p.faseActual?.versionRelease ?? '—' }}</strong>
+      <small>{{ p.ticketsListos }} de {{ p.ticketsFaseActual }} tickets listos</small>
+    </article>
+    <article class="tarjeta metrica">
+      <span>Ritmo</span>
+      <strong class="tono-{{ p.ritmo.tono }} ritmo">{{ p.ritmo.texto }}</strong>
+      <small>{{ p.ritmo.detalle }}</small>
+    </article>
+  </section>
+
+  <div class="columnas">
+    <div class="izquierda">
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Te toca a ti en este proyecto</h2>
+          <a routerLink="/mis-tickets">Mis tickets</a>
+        </div>
+        <ul class="lista">
+          @for (item of dashboard()?.teToca ?? []; track item.tipo + item.id) {
+            <li>
+              <app-tipo-ticket [tipo]="item.tipo" />
+              <span class="codigo">{{ item.codigo }}</span>
+              <a class="titulo-item enlace-titulo"
+                 [routerLink]="['/proyectos', store.resumen()?.id, item.tipo === 'HIST' ? 'historias' : 'tickets', item.id]">{{ item.titulo }}</a>
+              <span class="pendiente"><i class="bi bi-arrow-right-short"></i> {{ item.accion }}</span>
+            </li>
+          } @empty {
+            <li class="sin-items"><i class="bi bi-check2-circle"></i> Nada pendiente por ahora.</li>
+          }
+        </ul>
+      </section>
+
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Detenidos</h2>
+          @if (p.detenidos.length) {
+            <span class="cuenta-roja">{{ p.detenidos.length }}</span>
+          }
+        </div>
+        <ul class="lista">
+          @for (d of p.detenidos; track d.ticketId) {
+            <li class="detenido">
+              <i class="bi" [class.bi-slash-circle]="d.bloqueado" [class.bi-clock]="!d.bloqueado"
+                 [class.rojo]="d.bloqueado" [class.naranja]="!d.bloqueado"></i>
+              <span class="codigo">{{ d.codigo }}</span>
+              <div>
+                <strong>{{ d.titulo }}</strong>
+                <small [class.rojo]="d.bloqueado" [class.naranja]="!d.bloqueado">{{ d.detalle }}</small>
+              </div>
+            </li>
+          } @empty {
+            <li class="sin-items"><i class="bi bi-check2-circle"></i> Nada detenido.</li>
+          }
+        </ul>
+      </section>
+    </div>
+
+    <aside class="derecha">
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Salud del proyecto</h2>
+          <span class="etiqueta tono-{{ p.ritmo.tono }}">{{ p.ritmo.texto }}</span>
+        </div>
+        <dl class="datos">
+          <div><dt>Rechazos en QA este mes</dt><dd>{{ p.salud.rechazosQaMes }}</dd></div>
+          <div><dt>Tiempo promedio en QA</dt><dd>{{ p.salud.diasPromedioEnQa }}</dd></div>
+          <div><dt>Horas estimadas / reales</dt><dd>{{ p.salud.horas }}</dd></div>
+          <div><dt>Historias sin tickets</dt><dd>{{ p.salud.historiasSinTickets }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="tarjeta bloque">
+        <div class="bloque-cabecera">
+          <h2>Repositorios</h2>
+        </div>
+        <ul class="modulos">
+          @for (m of p.modulos; track m.id) {
+            <li>
+              <i class="bi {{ m.icono }}"></i>
+              <span>{{ m.nombre }}</span>
+              <small><span class="punto tono-{{ m.ci.tono }}"></span> {{ m.ci.texto }}</small>
+            </li>
+          } @empty {
+            <li class="sin-items">Sin repositorios.</li>
+          }
+        </ul>
+      </section>
+
+      <section class="tarjeta bloque">
+        <h2>Actividad reciente</h2>
+        <ul class="actividad">
+          @for (m of dashboard()?.actividad ?? []; track $index) {
+            <li>
+              <span>{{ m.descripcion }}</span>
+              <small>{{ haceCuanto(m.fecha) }}</small>
+            </li>
+          } @empty {
+            <li class="sin-items">Sin movimientos todavía.</li>
+          }
+        </ul>
+      </section>
+    </aside>
+  </div>
+}

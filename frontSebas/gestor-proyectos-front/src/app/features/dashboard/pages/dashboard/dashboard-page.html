@@ -1,0 +1,24 @@
+<header class="encabezado">
+  <div>
+    <h1>Hola, {{ usuario()?.nombre }}</h1>
+    <p class="saludo">{{ saludo() }}</p>
+  </div>
+</header>
+
+@if (!proyectos.cargando() && !proyectos.proyectos().length) {
+  <p class="vacio tarjeta">Aún no eres miembro de ningún proyecto. Pídele al Líder que te agregue.</p>
+} @else if (error()) {
+  <p class="error-carga">No pudimos cargar el Dashboard. Intenta recargar la página.</p>
+} @else if (cargando() && !datos()) {
+  <p class="cargando">Cargando…</p>
+} @else if (datos(); as d) {
+  <section class="metricas" [class.recargando]="cargando()">
+    @for (m of d.metricas; track m.titulo) {
+      <article class="tarjeta metrica">
+        <span>{{ m.titulo }}</span>
+        <strong [class.alerta]="m.alerta">{{ m.valor }}</strong>
+        <small [class.alerta]="m.alerta">{{ m.detalle }}</small>
+      </article>
+    }
+  </section>
+}

@@ -1,0 +1,275 @@
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else if (fase(); as f) {
+  @if (release(); as r) {
+    <nav class="migas" aria-label="Ruta">
+      <a [routerLink]="['/proyectos', f.proyectoId, 'fases']">{{ f.proyectoNombre }}</a>
+      <i class="bi bi-chevron-right"></i>
+      <a [routerLink]="['/proyectos', f.proyectoId, 'fases', f.id]">{{ f.titulo }}</a>
+      <i class="bi bi-chevron-right"></i>
+      <span>Release {{ r.version }}</span>
+    </nav>
+
+    <header class="encabezado">
+      <div>
+        <div class="titulo">
+          <i class="bi bi-tag icono-release"></i>
+          <h1>Release {{ r.version }}</h1>
+          <span class="tipo-fila">FASE</span>
+          <span class="cierre">Cierre de {{ f.titulo }}</span>
+          <app-etiqueta-estado [etiqueta]="etiqueta()" />
+        </div>
+        <p>
+          Cerrar la fase es publicar: develop se sube a main, se crea el tag {{ r.version }} y se despliega a producción.
+          Lo hace el Líder con el permiso release.publicar.
+        </p>
+      </div>
+    </header>
+
+    <!-- ─── Los 5 pasos ─── -->
+    <ol class="tarjeta pasos">
+      @for (p of pasos(); track p.titulo; let n = $index; let ultimo = $last) {
+        <li [class]="p.avance">
+          <span class="marca">
+            @if (p.avance === 'hecho') { <i class="bi bi-check-lg"></i> } @else { {{ n + 1 }} }
+          </span>
+          <span>
+            <strong>{{ p.titulo }}</strong>
+            <small>{{ p.detalle }}</small>
+          </span>
+        </li>
+        @if (!ultimo) {
+          <i class="bi bi-arrow-right flecha"></i>
+        }
+      }
+    </ol>
+
+    <div class="columnas">
+      <div class="principal">
+        <!-- ─── Subir a main por repositorio ─── -->
+        <section class="tarjeta bloque">
+          <div class="bloque-cabecera">
+            <h2>Subir a main por repositorio</h2>
+            <span class="detalle">develop → main</span>
+          </div>
+          <ul class="filas">
+            @for (m of r.modulos; track m.nombre) {
+              <li class="modulo">
+                <span class="icono tono-{{ m.tono }}"><i class="bi {{ m.icono }}"></i></span>
+                <div class="nombre">
+                  <strong>{{ m.nombre }}</strong> <small>{{ m.tecnologia }}</small>
+                  <div class="ramas">
+                    <span class="rama"><i class="bi bi-git"></i> develop</span>
+                    <i class="bi bi-arrow-right"></i>
+                    <span class="rama"><i class="bi bi-git"></i> main</span>
+                    <small>tag {{ r.version }}</small>
+                  </div>
+                </div>
+                @if (['EN_PUBLICACION', 'PUBLICADA'].includes(f.estado)) {
+                  <span class="pastilla tono-verde">En main</span>
+                } @else {
+                  <span class="pastilla tono-gris">Por subir</span>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+
+        <!-- ─── Criterios de cierre ─── -->
+        <section class="tarjeta bloque">
+          <div class="bloque-cabecera">
+            <h2>Criterios de cierre</h2>
+            <span class="detalle">{{ f.criteriosCumplidos }} de {{ f.criterios.length }}</span>
+          </div>
+          <ul class="filas">
+            @for (c of f.criterios; track c.id) {
+              <li class="revision">
+                <i class="bi" [class.bi-check-circle-fill]="c.cumplido" [class.ok]="c.cumplido"
+                   [class.bi-x-circle]="!c.cumplido && !c.manual" [class.falta]="!c.cumplido && !c.manual"
+                   [class.bi-circle]="!c.cumplido && c.manual" [class.info]="!c.cumplido && c.manual"></i>
+                <span class="nombre">{{ c.descripcion }}</span>
+                @if (c.manual && !c.cumplido && f.puedeMarcarCriterios) {
+                  <button type="button" class="boton boton-secundario chico" [disabled]="enviando() !== null"
+                          (click)="marcar(c)">
+                    {{ enviando() === 'criterio-' + c.id ? 'Marcando…' : 'Marcar cumplido' }}
+                  </button>
+                } @else {
+                  <span class="detalle">{{ c.detalle ?? (c.manual ? 'Manual · pendiente' : '') }}</span>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+
+        <!-- ─── Qué incluye ─── -->
+        <section class="tarjeta bloque">
+          <div class="bloque-cabecera">
+            <h2>Qué incluye</h2>
+            <span class="detalle">{{ f.historiasQueCuentan }} historias · {{ f.ticketsTotal }} tickets</span>
+          </div>
+          <ul class="filas">
+            @for (h of f.historias; track h.id) {
+              <li class="historia">
+                <app-tipo-ticket tipo="HIST" />
+                <span class="codigo">{{ h.codigo }}</span>
+                <a class="nombre enlace-titulo" [routerLink]="['/proyectos', f.proyectoId, 'historias', h.id]">{{ h.titulo }}</a>
+                <span class="estado">{{ h.estadoTexto }}</span>
+                <span class="detalle">{{ h.tickets }}</span>
+              </li>
+            } @empty {
+              <li class="vacio">La fase no tiene historias.</li>
+            }
+          </ul>
+        </section>
+
+        <!-- ─── Notas del release ─── -->
+        <section class="tarjeta bloque">
+          <div class="bloque-cabecera">
+            <h2>Notas del release</h2>
+            @if (r.puedeEditarNotas && editando() === null) {
+              <button type="button" class="boton boton-secundario chico" (click)="editando.set(r.notas)">
+                <i class="bi bi-pencil"></i> Editar
+              </button>
+            }
+          </div>
+          <p class="pista">
+            Se generan solas con los tickets de la fase; puedes editarlas antes de publicar. Se envían al cliente si está activado.
+          </p>
+          @if (editando() !== null) {
+            <textarea class="editor" rows="10" [value]="editando()" (input)="editando.set($any($event.target).value)"></textarea>
+            <div class="botones-notas">
+              <button type="button" class="boton boton-secundario chico" (click)="editando.set(null)">Cancelar</button>
+              <button type="button" class="boton boton-primario chico" [disabled]="!editando()?.trim() || enviando() !== null"
+                      (click)="guardarNotas(editando()!, r.enviarNotas)">
+                {{ enviando() === 'notas' ? 'Guardando…' : 'Guardar notas' }}
+              </button>
+            </div>
+          } @else if (r.notasEditadas) {
+            <div class="notas"><p class="texto-notas">{{ r.notas }}</p></div>
+          } @else if (r.secciones.length) {
+            <div class="notas">
+              @for (s of r.secciones; track s.titulo) {
+                <p class="seccion">{{ s.titulo }}</p>
+                @for (c of s.cambios; track $index) {
+                  <p class="cambio"><app-tipo-ticket [tipo]="c.tipo" /> {{ c.titulo }}</p>
+                }
+              }
+            </div>
+          } @else {
+            <p class="vacio">Aún no hay actividades, mejoras ni bugs en la fase.</p>
+          }
+        </section>
+      </div>
+
+      <aside class="lateral">
+        <!-- ─── Acciones ─── -->
+        <section class="tarjeta bloque acciones" [class.activo]="esLider()">
+          <div class="bloque-cabecera">
+            <h2>Acciones</h2>
+            @if (f.rol) {
+              <span class="pastilla tono-morado">{{ f.rol }}</span>
+            }
+          </div>
+          @if (r.publicado) {
+            <p class="pista">Publicada el {{ r.publicado }}.</p>
+          } @else if (accionPrincipal()?.accion === 'SUBIR_A_MAIN') {
+            <p class="pista">Todo está listo. Al confirmar se pide escribir “{{ r.version }}” para evitar publicar por error.</p>
+          } @else if (accionPrincipal()?.accion === 'DESPLEGAR') {
+            <p class="pista">El código ya está en main con el tag {{ r.version }}. Falta desplegar a producción.</p>
+          } @else {
+            <p class="pista">La fase se sube a main cuando esté lista para release (criterios cumplidos e historias integradas).</p>
+          }
+
+          @if (esLider() && !r.publicado) {
+            <div class="botones-panel">
+              @if (accionPrincipal(); as a) {
+                <button type="button" class="boton {{ a.impedimentos.length ? 'bloqueado' : 'boton-primario' }}"
+                        [disabled]="a.impedimentos.length > 0 || enviando() !== null" [title]="a.impedimentos.join('. ')"
+                        (click)="presionar(a)">
+                  <i class="bi" [class.bi-sign-merge-right]="a.accion === 'SUBIR_A_MAIN'" [class.bi-rocket-takeoff]="a.accion !== 'SUBIR_A_MAIN'"></i>
+                  {{ enviando() === a.accion ? 'Un momento…' : a.texto }}
+                </button>
+              }
+              @if (accionPrincipal()?.accion !== 'DESPLEGAR') {
+                <button type="button" class="boton bloqueado" disabled>
+                  <i class="bi bi-rocket-takeoff"></i> Desplegar a producción
+                </button>
+                <p class="nota">Se habilita cuando el merge a main y el CI terminen.</p>
+              }
+            </div>
+            @if (r.puedeEditarNotas) {
+              <label class="interruptor envio">
+                <input type="checkbox" [checked]="r.enviarNotas" [disabled]="enviando() !== null"
+                       (change)="guardarNotas(r.notas, $any($event.target).checked)" />
+                <span class="riel"></span>
+                Enviar notas del release al cliente
+              </label>
+            }
+          }
+        </section>
+
+        <!-- ─── Aprobaciones ─── -->
+        <section class="tarjeta bloque">
+          <h2>Aprobaciones</h2>
+          <ul class="aprobaciones">
+            <li>
+              <span><strong>{{ r.liderNombre }}</strong><small>Líder · publica</small></span>
+              <i class="bi" [class.bi-check-circle-fill]="r.publicado" [class.ok]="r.publicado"
+                 [class.bi-circle]="!r.publicado" [class.info]="!r.publicado"></i>
+            </li>
+            <li>
+              <span><strong>Analista</strong><small>aceptó {{ aceptadas() }} de {{ f.historiasQueCuentan }} historias</small></span>
+              <i class="bi" [class.bi-check-circle-fill]="aceptadas() === f.historiasQueCuentan && f.historiasQueCuentan > 0"
+                 [class.ok]="aceptadas() === f.historiasQueCuentan && f.historiasQueCuentan > 0"
+                 [class.bi-circle]="aceptadas() !== f.historiasQueCuentan || !f.historiasQueCuentan"
+                 [class.info]="aceptadas() !== f.historiasQueCuentan || !f.historiasQueCuentan"></i>
+            </li>
+            <li>
+              <span><strong>Cliente</strong><small>{{ r.vistoBuenoCliente ?? 'visto bueno en demo pendiente' }}</small></span>
+              <i class="bi" [class.bi-check-circle-fill]="r.vistoBuenoCliente" [class.ok]="r.vistoBuenoCliente"
+                 [class.bi-circle]="!r.vistoBuenoCliente" [class.info]="!r.vistoBuenoCliente"></i>
+            </li>
+          </ul>
+        </section>
+
+        <!-- ─── Plan de reversa ─── -->
+        <section class="tarjeta bloque">
+          <h2>Plan de reversa</h2>
+          @if (r.enProduccion) {
+            <p class="pista">
+              En producción hoy: {{ r.enProduccion }}.
+              @if (f.versionAnterior && f.estado !== 'PUBLICADA') { Si algo falla, el Líder puede volver a esa versión. }
+              @if (f.estado === 'PUBLICADA' && f.versionAnterior) { Si algo falla, el Líder puede volver a {{ f.versionAnterior }}. }
+            </p>
+          } @else {
+            <p class="pista">Aún no hay nada en producción.</p>
+          }
+          @if (revertir(); as a) {
+            <button type="button" class="boton boton-peligro-suave ancho" [disabled]="a.impedimentos.length > 0 || enviando() !== null"
+                    [title]="a.impedimentos.join('. ')" (click)="presionar(a)">
+              <i class="bi bi-arrow-counterclockwise"></i> {{ a.texto }}
+            </button>
+          }
+        </section>
+
+        <!-- ─── Después de publicar ─── -->
+        <section class="tarjeta bloque">
+          <h2>Después de publicar</h2>
+          <ul class="despues">
+            <li><i class="bi bi-lock"></i> La {{ f.titulo.split(' · ')[0] }} pasa a Cerrada</li>
+            <li><i class="bi bi-lock"></i> Sus historias y tickets pasan a Cerrados</li>
+            <li><i class="bi bi-lock"></i> Se registra el release en el historial del proyecto</li>
+            <li><i class="bi bi-lock"></i> La Fase {{ f.numero + 1 }} puede empezar desde main</li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+
+    @if (confirmando(); as accion) {
+      <app-confirmacion-fase-modal [accion]="accion" [fase]="f" [enviando]="enviando() === accion"
+                                   (confirmar)="ejecutar(accion, $event)" (cancelar)="confirmando.set(null)" />
+    }
+  }
+}

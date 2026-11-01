@@ -1,0 +1,50 @@
+<div class="feature-page backlog-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <button class="btn-regresar" (click)="volver()">
+        <i class="bi bi-chevron-left"></i> Regresar
+      </button>
+      <div>
+        <h1 class="page-title">Backlog</h1>
+        <p class="page-subtitle">Historias sin iniciar · {{ historias().length }} ítems</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div class="backlog-list">
+    @for (h of historias(); track h.id) {
+      <div class="backlog-item">
+        <div class="item-left">
+          <span class="item-tipo" [class.tipo-bug]="h.tipo === 'Bug'">
+            @if (h.tipo === 'Bug') {
+              <i class="bi bi-bug-fill"></i>
+            } @else {
+              <i class="bi bi-bookmark-fill"></i>
+            }
+          </span>
+          <div class="item-info">
+            <span class="item-codigo">{{ h.codigo }}</span>
+            <span class="item-titulo">{{ h.titulo }}</span>
+          </div>
+        </div>
+        <div class="item-right">
+          <span class="item-prio" [class]="prioridadClass(h.prioridad)">
+            {{ h.prioridad | titlecase }}
+          </span>
+          <span class="item-puntos" title="Story points">
+            <i class="bi bi-diamond-fill"></i> {{ h.puntos }}
+          </span>
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">
+        <i class="bi bi-inbox empty-icon"></i>
+        <p>No hay ítems en el backlog.</p>
+      </div>
+    }
+  </div>
+
+</div>

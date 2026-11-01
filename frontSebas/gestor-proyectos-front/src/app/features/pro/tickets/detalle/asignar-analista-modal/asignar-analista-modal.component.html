@@ -1,0 +1,119 @@
+<div class="aa-overlay" (click)="onOverlayClick($event)">
+  <div class="aa-modal" role="dialog" aria-modal="true" aria-labelledby="aa-title">
+
+    <!-- Encabezado -->
+    <div class="aa-header">
+      <div class="aa-header-icon" aria-hidden="true">
+        <i class="bi bi-person-plus-fill"></i>
+      </div>
+      <div class="aa-header-text">
+        <h2 class="aa-title" id="aa-title">Asignar responsable</h2>
+        <p class="aa-subtitle">Selecciona el responsable de este ticket.</p>
+      </div>
+      <button class="aa-close" type="button" (click)="cerrar.emit()" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Error de carga -->
+    @if (errorCarga()) {
+      <div class="aa-error-banner" role="alert">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span class="aa-error-text">{{ errorCarga() }}</span>
+        <button type="button" class="aa-retry-btn" (click)="cargarResponsables()">
+          <i class="bi bi-arrow-clockwise"></i> Reintentar
+        </button>
+      </div>
+    }
+
+    <!-- Cuerpo -->
+    <div class="aa-body">
+
+      <!-- Buscador: solo visible cuando hay datos -->
+      @if (!cargando() && !errorCarga()) {
+        <div class="aa-search-wrap">
+          <i class="bi bi-search aa-search-icon" aria-hidden="true"></i>
+          <input
+            type="text"
+            class="aa-search"
+            placeholder="Buscar por nombre, correo o rol..."
+            [value]="busqueda()"
+            (input)="setBusqueda($event)"
+            autocomplete="off"
+          />
+        </div>
+      }
+
+      <!-- Loading -->
+      @if (cargando()) {
+        <div class="aa-loading">
+          <span class="aa-spinner" aria-hidden="true"></span>
+          Cargando responsables...
+        </div>
+      } @else if (!errorCarga()) {
+
+        @if (listaFiltrada().length === 0) {
+          <div class="aa-empty">
+            <i class="bi bi-person-x-fill"></i>
+            @if (busqueda()) {
+              <span>Sin resultados para <strong>{{ busqueda() }}</strong></span>
+            } @else {
+              <span>No hay líderes ni analistas activos disponibles en este proyecto.</span>
+            }
+          </div>
+        } @else {
+          <ul class="aa-list" role="radiogroup" aria-label="Selecciona un responsable">
+            @for (r of listaFiltrada(); track r.id) {
+              <li
+                class="aa-item"
+                [class.aa-item--selected]="seleccionadoId() === r.id"
+                (click)="seleccionadoId.set(r.id)"
+              >
+                <input
+                  type="radio"
+                  class="aa-radio"
+                  [id]="'aa-u-' + r.id"
+                  name="responsable"
+                  [checked]="seleccionadoId() === r.id"
+                  (change)="seleccionadoId.set(r.id)"
+                />
+                <div class="aa-avatar" [style.background]="avatarColor(r.id)">
+                  {{ iniciales(r.nombreCompleto) }}
+                </div>
+                <div class="aa-user-info">
+                  <span class="aa-user-nombre">{{ r.nombreCompleto }}</span>
+                  <span class="aa-user-email">{{ r.correo }}</span>
+                  <span class="aa-role-badge"
+                        [style.background]="rolBadge(r.codigoRol).bg"
+                        [style.color]="rolBadge(r.codigoRol).color">
+                    {{ r.nombreRol }}
+                  </span>
+                </div>
+                <label class="aa-item-label" [for]="'aa-u-' + r.id" aria-hidden="true"></label>
+              </li>
+            }
+          </ul>
+        }
+
+      }
+
+    </div>
+
+    <!-- Footer -->
+    <div class="aa-footer">
+      <button type="button" class="aa-btn aa-btn--ghost" (click)="cerrar.emit()">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="aa-btn aa-btn--primary"
+        [disabled]="seleccionadoId() === null || cargando()"
+        (click)="confirmar()"
+      >
+        <i class="bi bi-person-check-fill" aria-hidden="true"></i>
+        Asignar responsable
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,18 @@
+@if (acciones().length) {
+  @if (titulo()) {
+    <h2>{{ titulo() }}</h2>
+  }
+  <ul class="fases">
+    @for (a of acciones(); track a.faseId) {
+      <li>
+        <app-tipo-ticket tipo="FASE" />
+        <a class="titulo enlace-titulo" [routerLink]="['/proyectos', proyectoId(), 'fases', a.faseId]">{{ a.titulo }}</a>
+        <app-etiqueta-estado [etiqueta]="a.etiqueta" />
+        <span class="pendiente" title="Se hace desde el detalle de la fase"><i class="bi bi-arrow-right-short"></i> {{ a.texto }}</span>
+        @if (a.impedimento) {
+          <small class="impedimento"><i class="bi bi-hourglass-split"></i> {{ a.impedimento }}</small>
+        }
+      </li>
+    }
+  </ul>
+}

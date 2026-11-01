@@ -1,0 +1,113 @@
+<header class="encabezado">
+  <div>
+    <h1>Proyectos</h1>
+    <p>{{ cuentas() }} · Solo ves los proyectos donde eres miembro.</p>
+  </div>
+  @if (puedeCrear()) {
+    <a class="boton boton-primario" routerLink="/proyectos/nuevo"><i class="bi bi-plus-lg"></i> Nuevo proyecto</a>
+  }
+</header>
+
+<div class="filtros">
+  <label class="buscar">
+    <i class="bi bi-search"></i>
+    <span class="solo-lectores">Buscar</span>
+    <input type="search" placeholder="Buscar proyecto…" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
+  </label>
+  <label class="filtro" [class.activo]="estado() !== 'activos'">
+    <span>Estado:</span>
+    <select (change)="estado.set($any($event.target).value)">
+      <option value="activos" [selected]="estado() === 'activos'">activos</option>
+      <option value="EN_PAUSA" [selected]="estado() === 'EN_PAUSA'">en pausa</option>
+      <option value="TERMINADO" [selected]="estado() === 'TERMINADO'">terminados</option>
+      <option value="CANCELADO" [selected]="estado() === 'CANCELADO'">cancelados</option>
+      <option value="todos" [selected]="estado() === 'todos'">todos</option>
+    </select>
+  </label>
+  <label class="filtro" [class.activo]="cliente()">
+    <span>Cliente:</span>
+    <select (change)="cliente.set($any($event.target).value)">
+      <option value="">todos</option>
+      @for (c of clientes(); track c.id) {
+        <option [value]="c.id" [selected]="cliente() === c.id">{{ c.nombre }}</option>
+      }
+    </select>
+  </label>
+  <label class="filtro" [class.activo]="modulo()">
+    <span>Repositorio:</span>
+    <select (change)="modulo.set($any($event.target).value)">
+      <option value="">todos</option>
+      @for (m of modulosCatalogo; track m.tipo) {
+        <option [value]="m.tipo" [selected]="modulo() === m.tipo">{{ m.nombre }}</option>
+      }
+    </select>
+  </label>
+  <label class="filtro" [class.activo]="prioridad()">
+    <span>Prioridad:</span>
+    <select (change)="prioridad.set($any($event.target).value)">
+      <option value="">todas</option>
+      <option value="ALTA" [selected]="prioridad() === 'ALTA'">Alta</option>
+      <option value="MEDIA" [selected]="prioridad() === 'MEDIA'">Media</option>
+      <option value="BAJA" [selected]="prioridad() === 'BAJA'">Baja</option>
+    </select>
+  </label>
+</div>
+
+@if (error()) {
+  <p class="error-carga">No pudimos cargar los proyectos. Intenta recargar la página.</p>
+} @else if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else {
+  <div class="rejilla">
+    @for (p of visibles(); track p.id) {
+      <a class="tarjeta proyecto" [routerLink]="['/proyectos', p.id]">
+        <div class="cabecera">
+          <app-avatar [iniciales]="p.codigo" [tono]="p.tono" [cuadro]="true" class="grande" />
+          <div class="nombre">
+            <h2>{{ p.nombre }}</h2>
+            <small><i class="bi bi-buildings"></i> {{ p.clienteNombre }}</small>
+          </div>
+          <app-etiqueta-estado [etiqueta]="p.etiqueta" />
+        </div>
+
+        <div class="modulos">
+          @for (m of p.modulos; track m.tipo) {
+            <app-chip-modulo [texto]="m.corto" [icono]="m.icono" [tono]="m.tono" />
+          } @empty {
+            <span class="sin-modulos">Sin repositorios</span>
+          }
+        </div>
+
+        <div class="avance">
+          <div class="avance-texto"><span>Avance</span><strong>{{ p.avance }}%</strong></div>
+          <app-barra-avance [valor]="p.avance" [tono]="p.tono" />
+        </div>
+
+        <p class="conteos">
+          <span>{{ plural(p.fases, 'fase', 'fases') }}</span>
+          <span>{{ plural(p.historias, 'historia', 'historias') }}</span>
+          <span>{{ plural(p.tickets, 'ticket', 'tickets') }}</span>
+        </p>
+
+        <div class="pie">
+          <div class="equipo">
+            @for (m of p.equipo; track m.id) {
+              <app-avatar [iniciales]="m.iniciales" [tono]="m.tono" class="chico" [title]="m.nombreCompleto" />
+            }
+          </div>
+          <span class="lider">Líder: {{ p.liderNombre }}</span>
+        </div>
+      </a>
+    } @empty {
+      <p class="vacio tarjeta">Ningún proyecto coincide con los filtros.</p>
+    }
+
+    @if (puedeCrear()) {
+      <a class="nuevo" routerLink="/proyectos/nuevo">
+        <span class="mas"><i class="bi bi-plus-lg"></i></span>
+        <strong>Nuevo proyecto</strong>
+        <small>Solo Administrador y Líder</small>
+      </a>
+    }
+  </div>
+}

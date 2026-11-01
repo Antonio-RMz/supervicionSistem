@@ -1,0 +1,1 @@
+- [Arquitectura del Proyecto](project_architecture.md) — Stack Angular 21 SSR, estructura core/shared/features, flujo JWT, convenciones visuales, vista Nuevo Proyecto

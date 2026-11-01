@@ -1,0 +1,127 @@
+<app-modal titulo="Reportar falla en producción" subtitulo="Cualquiera del equipo puede reportar. El Líder confirma la severidad."
+           (cerrar)="cerrar.emit()">
+  <form id="form-reportar-falla" class="formulario" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+    <label class="campo">
+      <span>¿Qué falla? <b>*</b></span>
+      <input formControlName="titulo" autocomplete="off" placeholder="Error 500 al descargar facturas en PDF desde la app"
+             [class.con-error]="invalido('titulo')" />
+      @if (invalido('titulo')) {
+        <small class="mensaje-campo">Escribe qué falla.</small>
+      }
+    </label>
+
+    <div class="fila modulo-version">
+      <div class="campo">
+        <span>Repositorio <b>*</b></span>
+        <div class="modulos" role="radiogroup" aria-label="Repositorio">
+          @for (m of preparacion().modulos; track m.id) {
+            <button type="button" class="modulo" role="radio" [title]="m.nombre"
+                    [class.elegido]="form.controls.moduloId.value === m.id" [attr.aria-checked]="form.controls.moduloId.value === m.id"
+                    (click)="form.controls.moduloId.setValue(m.id)">
+              <i class="bi {{ m.icono }}"></i> {{ m.corto }}
+            </button>
+          }
+        </div>
+        @if (invalido('moduloId')) {
+          <small class="mensaje-campo">Elige el repositorio donde falla.</small>
+        }
+      </div>
+      <div class="campo">
+        <span>Versión en producción</span>
+        <p class="version"><i class="bi bi-tag"></i> {{ preparacion().enProduccion ?? 'Sin release' }} · automático</p>
+      </div>
+    </div>
+
+    <div class="campo">
+      <span>Severidad <b>*</b> <small class="pista">· provisional, el Líder la confirma</small></span>
+      <div class="severidades" role="radiogroup" aria-label="Severidad">
+        @for (s of severidades; track s.codigo) {
+          <button type="button" class="severidad tono-{{ s.tono }}" role="radio"
+                  [class.elegida]="form.controls.severidad.value === s.codigo"
+                  [attr.aria-checked]="form.controls.severidad.value === s.codigo"
+                  (click)="form.controls.severidad.setValue(s.codigo); form.controls.severidad.markAsTouched()">
+            <span class="radio" aria-hidden="true"></span>
+            <span>
+              <strong>{{ s.texto }}</strong>
+              @if (s.hotfix) {
+                <span class="ruta-chip hotfix"><i class="bi bi-lightning-charge-fill"></i> Hotfix</span>
+              } @else {
+                <span class="ruta-chip"><i class="bi bi-clock"></i> Siguiente fase</span>
+              }
+              <small>{{ s.detalle }}</small>
+            </span>
+          </button>
+        }
+      </div>
+      @if (invalido('severidad')) {
+        <small class="mensaje-campo">Elige la severidad.</small>
+      }
+    </div>
+
+    <label class="campo">
+      <span>Qué pasó y cómo reproducirlo <b>*</b></span>
+      <textarea formControlName="descripcion" [class.con-error]="invalido('descripcion')"
+                placeholder="1. En la app, abrir Facturas  2. Tocar Descargar PDF  3. Sale “Algo salió mal”; en el log: 500 en GET /api/facturas/{id}/pdf"></textarea>
+      @if (invalido('descripcion')) {
+        <small class="mensaje-campo">Cuenta qué pasó y cómo reproducirlo.</small>
+      }
+    </label>
+
+    <div class="fila">
+      <div class="campo">
+        <span>Evidencia</span>
+        <!-- Aún no hay dónde guardar archivos: pega el log o la liga a la captura en la descripción. -->
+        <button type="button" class="subir" disabled title="Pronto: por ahora pega el log o la liga en la descripción">
+          <i class="bi bi-upload"></i> Captura o log
+        </button>
+      </div>
+      <label class="campo">
+        <span>Viene de <small class="pista">· opcional</small></span>
+        <select formControlName="historiaOrigenId">
+          <option [ngValue]="0">Ninguna historia</option>
+          @for (h of preparacion().historias; track h.id) {
+            <option [ngValue]="h.id">{{ h.nombre }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (hotfix() !== null) {
+      <div class="destino" [class.hotfix]="hotfix()">
+        <i class="bi" [class.bi-lightning-charge-fill]="hotfix()" [class.bi-clock]="!hotfix()"></i>
+        <div>
+          @if (hotfix()) {
+            <strong>Irá por hotfix</strong>
+            <p>
+              Se creará {{ codigo() }} en Mantenimiento como Reportado. El Líder lo confirma; al iniciar, la rama sale
+              de main ({{ 'hotfix/' + codigo().toLowerCase() + '-…' }}).
+            </p>
+          } @else {
+            <strong>Irá con la siguiente fase</strong>
+            <p>
+              Se creará {{ codigo() }} en Mantenimiento como Reportado. Se corrige desde develop
+              ({{ 'fix/' + codigo().toLowerCase() + '-…' }}) y sale en el release de {{ preparacion().conLaFase }}.
+            </p>
+          }
+        </div>
+      </div>
+    }
+
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+  </form>
+
+  <div pie class="pie-modal">
+    <div class="botones">
+      <button type="button" class="boton boton-secundario" (click)="cerrar.emit()">Cancelar</button>
+      <button type="submit" form="form-reportar-falla" class="boton boton-peligro" [disabled]="enviando()">
+        @if (enviando()) {
+          Reportando…
+        } @else {
+          <i class="bi bi-exclamation-triangle"></i> Reportar falla
+        }
+      </button>
+    </div>
+  </div>
+</app-modal>

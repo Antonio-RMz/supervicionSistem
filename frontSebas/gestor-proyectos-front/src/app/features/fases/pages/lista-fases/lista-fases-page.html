@@ -1,0 +1,92 @@
+<header class="encabezado">
+  <div>
+    <h1>Fases</h1>
+    <p>Las fases de {{ proyectos.actual()?.nombre ?? 'el proyecto' }}. Abre una para ver sus historias, importar más o gestionarla.</p>
+  </div>
+</header>
+
+@if (!proyectos.actual() && !cargando()) {
+  <p class="vacio">Aún no estás en ningún proyecto.</p>
+} @else if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else if (error()) {
+  <p class="error-carga">{{ error() }}</p>
+} @else {
+  <div class="filtros">
+    <label class="buscar">
+      <i class="bi bi-search"></i>
+      <span class="solo-lectores">Buscar</span>
+      <input type="search" placeholder="Buscar por nombre o versión…" [value]="texto()"
+             (input)="texto.set($any($event.target).value)" />
+    </label>
+    <label class="filtro" [class.activo]="estado()">
+      <span>Estado:</span>
+      <select (change)="estado.set($any($event.target).value)">
+        <option value="" [selected]="!estado()">todos</option>
+        @for (e of estados(); track e[0]) {
+          <option [value]="e[0]" [selected]="estado() === e[0]">{{ e[1] }}</option>
+        }
+      </select>
+    </label>
+    @if (texto() || estado()) {
+      <button type="button" class="limpiar" (click)="limpiar()"><i class="bi bi-x-lg"></i> Limpiar</button>
+    }
+    <span class="cuenta">{{ filtradas().length }} de {{ fases().length }}</span>
+  </div>
+
+  <div class="tarjeta tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>Fase</th>
+          <th>Estado</th>
+          <th>Fechas</th>
+          <th>Repositorios</th>
+          <th>Historias</th>
+          <th>Avance</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (f of filtradas(); track f.id) {
+          <tr>
+            <td>
+              <a class="fase" [routerLink]="['/proyectos', proyectos.actual()?.id, 'fases', f.id]">
+                @if (f.estado === 'PUBLICADA') {
+                  <span class="marca listo"><i class="bi bi-check-lg"></i></span>
+                } @else {
+                  <span class="marca" [class.actual]="f.estado !== 'PLANEADA' && f.estado !== 'CANCELADA'">{{ f.numero }}</span>
+                }
+                <span>
+                  <strong>{{ f.nombre }}</strong>
+                  <small>Fase {{ f.numero }}{{ f.versionRelease ? ' · ' + f.versionRelease : '' }}</small>
+                </span>
+              </a>
+            </td>
+            <td><app-etiqueta-estado [etiqueta]="f.etiqueta" /></td>
+            <td class="suave">{{ f.fechas || 'Sin fechas' }}</td>
+            <td>
+              <span class="chips">
+                @for (m of f.modulos; track m.tipo) {
+                  <app-chip-modulo [texto]="m.corto" [icono]="m.icono" [tono]="m.tono" />
+                }
+              </span>
+            </td>
+            <td class="suave">{{ f.historias }} · {{ f.tickets }} tickets</td>
+            <td>
+              <div class="avance">
+                <span>{{ f.avance }}%</span>
+                <app-barra-avance [valor]="f.avance" [tono]="f.tonoAvance" />
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="vacio">
+              {{ fases().length ? 'Ninguna fase coincide con los filtros.' : 'El proyecto aún no tiene fases.' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

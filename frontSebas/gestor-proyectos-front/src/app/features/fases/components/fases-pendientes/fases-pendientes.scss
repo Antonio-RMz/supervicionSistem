@@ -1,0 +1,51 @@
+// Con título es una tarjeta aparte; si no hay fases, el componente no ocupa lugar.
+:host(.sin-fases) { display: none; }
+
+h2 { margin: 0; }
+
+// Mismas filas que "Te toca a ti" del Dashboard.
+.fases {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.95rem 0;
+    border-top: 1px solid var(--borde);
+  }
+}
+
+.titulo {
+  flex: 1;
+  min-width: 0;
+  color: var(--tinta);
+  font-weight: 500;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// Lo que te toca hacer; el botón está en el detalle de la fase.
+.pendiente {
+  display: inline-flex;
+  align-items: center;
+  color: var(--morado);
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// "BUGS-50 sigue abierto": por qué todavía no se puede hacer.
+.impedimento {
+  flex-basis: 100%;
+  color: var(--texto-suave);
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .titulo { flex-basis: 100%; order: 3; white-space: normal; }
+}

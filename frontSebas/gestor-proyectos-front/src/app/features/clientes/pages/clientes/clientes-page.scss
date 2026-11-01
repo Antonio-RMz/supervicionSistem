@@ -1,0 +1,212 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+h1 { font-size: 1.9rem; }
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  p {
+    margin: 0.3rem 0 0;
+    color: var(--texto-suave);
+  }
+}
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.buscar,
+.estado-filtro {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+
+  &:focus-within { border-color: var(--morado); }
+}
+
+.buscar {
+  flex: 0 1 420px;
+
+  i { color: var(--texto-suave); }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.65rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+  }
+}
+
+.estado-filtro {
+  color: var(--tinta);
+  font-weight: 500;
+
+  select {
+    padding: 0.65rem 0.1rem;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--tinta);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+  }
+}
+
+.error-accion {
+  margin: 0;
+  color: var(--rojo-texto);
+}
+
+// ─── Tabla ───────────────────────────────────────────────────────────────────
+// Sin overflow en pantallas anchas: recortaría el menú "⋯" de las últimas filas.
+@media (max-width: 1100px) {
+  .tabla-contenedor { overflow-x: auto; }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  padding: 0.85rem 1.25rem;
+  background: var(--fondo-pagina);
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid var(--borde);
+  color: var(--tinta);
+
+  small {
+    display: block;
+    color: var(--texto-suave);
+  }
+}
+
+tr.inactivo .empresa strong,
+tr.inactivo .contacto { color: var(--texto-suave); }
+
+.empresa {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+
+  strong {
+    display: block;
+    font-weight: 600;
+  }
+}
+
+.telefono { white-space: nowrap; }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--morado-suave);
+  color: var(--morado);
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.sin-proyectos {
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+}
+
+.sin-resultados {
+  padding: 2rem;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+// ─── Menú "⋯" ────────────────────────────────────────────────────────────────
+.acciones {
+  position: relative;
+  width: 3rem;
+  text-align: right;
+}
+
+.mas {
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+  cursor: pointer;
+
+  &:hover,
+  &[aria-expanded='true'] {
+    background: var(--fondo);
+    color: var(--tinta);
+  }
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% - 0.6rem);
+  right: 1rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-width: 170px;
+  padding: 0.35rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--tinta);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover { background: var(--fondo); }
+    &.peligro { color: var(--rojo); }
+  }
+}
+
+.nota {
+  margin: 0;
+  color: var(--texto-suave);
+}

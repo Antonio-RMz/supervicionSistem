@@ -1,0 +1,31 @@
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.22rem 0.65rem;
+  border-radius: 20px;
+
+  &.sm { font-size: 0.68rem; padding: 0.18rem 0.55rem; }
+
+  .estado-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &.estado-activo    { background: #d1fae5; color: #065f46; }
+  &.estado-progreso  { background: #dbeafe; color: #1e40af; }
+  &.estado-pausa     { background: #fef3c7; color: #92400e; }
+  &.estado-pendiente { background: #fff7ed; color: #9a3412; }
+  &.estado-cerrado   { background: #f3f4f6; color: #6b7280; }
+  // Actividad workflow
+  &.estado-por-hacer     { background: #f3f4f6; color: #6b7280; }
+  &.estado-en-desarrollo { background: #dbeafe; color: #1e40af; }
+  &.estado-revision-qa   { background: #fef3c7; color: #92400e; }
+  &.estado-listo         { background: #ede9fe; color: #5b21b6; }
+  &.estado-pr            { background: #f5f3ff; color: #6d28d9; }
+  &.estado-integrado     { background: #d1fae5; color: #065f46; }
+}

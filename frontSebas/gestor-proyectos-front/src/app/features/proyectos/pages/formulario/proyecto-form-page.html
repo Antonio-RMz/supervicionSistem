@@ -1,0 +1,267 @@
+<nav class="migas" aria-label="Ruta">
+  <a routerLink="/proyectos">Proyectos</a>
+  <i class="bi bi-chevron-right"></i>
+  @if (editando()) {
+    <a [routerLink]="['/proyectos', id()]">{{ resumen().nombre }}</a>
+    <i class="bi bi-chevron-right"></i>
+    <span>Editar</span>
+  } @else {
+    <span>Nuevo proyecto</span>
+  }
+</nav>
+
+<header class="encabezado">
+  <div>
+    <h1>{{ editando() ? 'Editar proyecto' : 'Nuevo proyecto' }}</h1>
+    <p>
+      @if (editando()) {
+        Los cambios aplican de inmediato a todo el equipo.
+      } @else {
+        Se crea en estado Planeación. Las fases e historias se agregan después, desde el proyecto.
+      }
+    </p>
+  </div>
+</header>
+
+@if (cargando()) {
+  <p class="cargando">Cargando…</p>
+} @else {
+  <div class="columnas">
+    <form id="form-proyecto" class="secciones" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+      <!-- ─── Datos generales ─── -->
+      <section class="tarjeta seccion formulario">
+        <h2>Datos generales</h2>
+        <div class="fila">
+          <label class="campo">
+            <span>Nombre del proyecto <b>*</b></span>
+            <input formControlName="nombre" placeholder="Portal de Clientes" [class.con-error]="invalido('nombre')" />
+            @if (invalido('nombre')) {
+              <small class="mensaje-campo">Escribe el nombre.</small>
+            }
+          </label>
+          <div>
+            <label class="campo">
+              <span>Cliente @if (!form.controls.interno.value) {<b>*</b>}</span>
+              <select formControlName="clienteId" [class.con-error]="invalido('clienteId')">
+                <option [ngValue]="null" disabled>{{ form.controls.interno.value ? 'Sin cliente' : 'Elige un cliente…' }}</option>
+                @for (c of clientesElegibles(); track c.id) {
+                  <option [ngValue]="c.id">{{ c.nombreCorto }}{{ c.activo ? '' : ' (inactivo)' }}</option>
+                }
+              </select>
+              @if (invalido('clienteId')) {
+                <small class="mensaje-campo">Elige el cliente o márcalo como interno.</small>
+              }
+            </label>
+            <label class="interruptor interno">
+              <input type="checkbox" formControlName="interno" />
+              <span class="riel" aria-hidden="true"></span>
+              <span><strong>Proyecto interno</strong><small>Es del propio equipo, no de un cliente.</small></span>
+            </label>
+          </div>
+        </div>
+        <div class="fila">
+          <label class="campo">
+            <span>Prioridad</span>
+            <select formControlName="prioridad">
+              <option value="ALTA">Alta</option>
+              <option value="MEDIA">Media</option>
+              <option value="BAJA">Baja</option>
+            </select>
+          </label>
+        </div>
+        <div class="fila">
+          <label class="campo">
+            <span>Fecha de inicio</span>
+            <input type="date" formControlName="fechaInicio" />
+          </label>
+          <label class="campo">
+            <span>Fecha de entrega estimada</span>
+            <input type="date" formControlName="fechaEntrega" [min]="form.controls.fechaInicio.value" />
+          </label>
+        </div>
+        @if (editando()) {
+          <label class="campo">
+            <span>Estado</span>
+            <select formControlName="estado">
+              @for (e of estados; track e.codigo) {
+                <option [value]="e.codigo">{{ e.texto }}</option>
+              }
+            </select>
+          </label>
+        }
+        <label class="campo">
+          <span>Descripción</span>
+          <textarea formControlName="descripcion" placeholder="Para qué es y qué problema resuelve."></textarea>
+        </label>
+      </section>
+
+      <!-- ─── Equipo ─── -->
+      <section class="tarjeta seccion formulario">
+        <div>
+          <h2>Equipo</h2>
+          <p class="ayuda">
+            @if (armaEquipo()) {
+              Los roles salen de cada usuario; aquí decides quién entra a este proyecto.
+            } @else {
+              El equipo lo arma el Administrador.
+            }
+          </p>
+        </div>
+        <label class="campo">
+          <span>Líder del proyecto <b>*</b></span>
+          <select (change)="elegirLider($any($event.target).value)" [class.con-error]="invalido('liderId')"
+                  [disabled]="!armaEquipo()">
+            <option value="" [selected]="!form.controls.liderId.value" disabled>Elige al Líder…</option>
+            @for (p of lideres(); track p.id) {
+              <option [value]="p.id" [selected]="p.id === form.controls.liderId.value">{{ p.nombreCompleto }}</option>
+            } @empty {
+              <option value="" disabled>Nadie tiene el rol Líder: asígnalo en Usuarios</option>
+            }
+          </select>
+          @if (invalido('liderId')) {
+            <small class="mensaje-campo">Elige al Líder.</small>
+          }
+        </label>
+
+        <ul class="miembros">
+          @for (m of miembros(); track m.id) {
+            <li>
+              <app-avatar [iniciales]="m.iniciales" [tono]="m.tono" class="chico" />
+              <span class="nombre">{{ m.nombreCompleto }}</span>
+              @for (rol of m.roles; track rol) {
+                <app-etiqueta-estado [etiqueta]="etiquetaDeRol(rol)" />
+              }
+              @if (m.id === form.controls.liderId.value) {
+                <span class="es-lider" title="Líder del proyecto: siempre está en el equipo">
+                  <i class="bi bi-star-fill"></i><span class="solo-lectores">Líder del proyecto</span>
+                </span>
+              } @else if (armaEquipo()) {
+                <button type="button" class="quitar" (click)="quitarMiembro(m.id)" title="Quitar del equipo">
+                  <i class="bi bi-x-lg"></i><span class="solo-lectores">Quitar a {{ m.nombreCompleto }}</span>
+                </button>
+              }
+            </li>
+          } @empty {
+            <li class="vacio">Elige al Líder y agrega a quien trabajará en el proyecto.</li>
+          }
+        </ul>
+        @if (armaEquipo() && disponibles().length) {
+          <label class="agregar-select">
+            <i class="bi bi-plus-lg"></i>
+            <select (change)="agregarMiembro($any($event.target).value); $any($event.target).value = ''" aria-label="Agregar miembro">
+              <option value="">Agregar miembro…</option>
+              @for (p of disponibles(); track p.id) {
+                <option [value]="p.id">{{ p.nombreCompleto }}</option>
+              }
+            </select>
+          </label>
+        }
+      </section>
+
+      <!-- ─── Repositorios ─── -->
+      <section class="tarjeta seccion formulario">
+        <div>
+          <h2>Repositorios del proyecto</h2>
+          <p class="ayuda">Cada repositorio es una parte del sistema con su propia tecnología y su URL. Puedes agregar varios del mismo tipo: un microservicio por API, un front de clientes y otro de administración, varias apps…</p>
+        </div>
+
+        <div formArrayName="modulos" class="modulos">
+          @for (grupo of modulos.controls; track grupo; let i = $index) {
+            <div class="modulo" [formGroupName]="i">
+              <div class="modulo-arriba">
+                <span class="icono tono-{{ infoModulo(grupo.value.tipo).tono }}"><i class="bi {{ infoModulo(grupo.value.tipo).icono }}"></i></span>
+                <select formControlName="tipo" class="tipo" aria-label="Tipo de repositorio">
+                  @for (t of tiposModulo; track t.tipo) {
+                    <option [value]="t.tipo">{{ t.largo }}</option>
+                  }
+                </select>
+                <input formControlName="nombre" class="nombre-modulo" placeholder="portal-api" aria-label="Nombre del repositorio"
+                       [class.con-error]="grupo.get('nombre')?.invalid && grupo.get('nombre')?.touched" />
+                <button type="button" class="quitar" (click)="quitarModulo(i)" title="Quitar repositorio">
+                  <i class="bi bi-x-lg"></i><span class="solo-lectores">Quitar repositorio</span>
+                </button>
+              </div>
+              <div class="modulo-campos">
+                <label class="campo"><span>Tecnología</span><input formControlName="tecnologia" placeholder="Java 21 · Spring Boot" /></label>
+                <label class="campo"><span>URL</span><input formControlName="repositorio" placeholder="github.com/equipo/portal-api" /></label>
+                <label class="campo"><span>Rama base</span><input formControlName="ramaBase" placeholder="develop" /></label>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="agregar-modulo">
+          <button type="button" class="boton boton-secundario" (click)="agregarModulo()"><i class="bi bi-plus-lg"></i> Agregar repositorio</button>
+          @if (sugeridos().length) {
+            <span class="ayuda">Sugeridos:</span>
+            @for (s of sugeridos(); track s.tipo) {
+              <button type="button" class="sugerido" (click)="agregarModulo(s.tipo)"><i class="bi bi-plus-lg"></i> {{ s.largo }}</button>
+            }
+          }
+        </div>
+      </section>
+
+      <!-- ─── Reglas del flujo ─── -->
+      <section class="tarjeta seccion formulario" formGroupName="reglas">
+        <div>
+          <h2>Reglas del flujo</h2>
+          <p class="ayuda">Se pueden cambiar después en la configuración del proyecto.</p>
+        </div>
+        <label class="interruptor">
+          <input type="checkbox" formControlName="permitirAutovalidacion" />
+          <span class="riel" aria-hidden="true"></span>
+          <span><strong>Permitir autovalidación</strong><small>Quien desarrolló un ticket puede aprobar su propio QA. Útil mientras el equipo es chico; queda marcado en el historial.</small></span>
+        </label>
+        <label class="interruptor">
+          <input type="checkbox" formControlName="comentarioAlRechazar" />
+          <span class="riel" aria-hidden="true"></span>
+          <span><strong>Comentario obligatorio al rechazar</strong><small>Rechazar QA o devolver una historia pide escribir el motivo.</small></span>
+        </label>
+        <label class="interruptor">
+          <input type="checkbox" formControlName="ramaAlIniciar" />
+          <span class="riel" aria-hidden="true"></span>
+          <span><strong>Crear rama al iniciar un ticket</strong><small>Al presionar Iniciar se crea feature/…, fix/… según el tipo de ticket.</small></span>
+        </label>
+        <label class="interruptor">
+          <input type="checkbox" formControlName="notificarClienteFase" />
+          <span class="riel" aria-hidden="true"></span>
+          <span><strong>Notificar al cliente al cerrar una fase</strong><small>Envía al contacto del cliente el resumen del release.</small></span>
+        </label>
+      </section>
+
+      @if (error()) {
+        <p class="error" role="alert">{{ error() }}</p>
+      }
+      <div class="pie-formulario">
+        <a class="boton boton-secundario" [routerLink]="editando() ? ['/proyectos', id()] : ['/proyectos']">Cancelar</a>
+        <button type="submit" form="form-proyecto" class="boton boton-primario" [disabled]="enviando() || cargando()">
+          {{ enviando() ? 'Guardando…' : editando() ? 'Guardar cambios' : 'Crear proyecto' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- ─── Resumen ─── -->
+    <aside class="tarjeta resumen">
+      <h2>Resumen</h2>
+      <div class="resumen-nombre">
+        <app-avatar [iniciales]="resumen().iniciales" tono="morado" [cuadro]="true" />
+        <div>
+          <strong>{{ resumen().nombre }}</strong>
+          <app-etiqueta-estado [etiqueta]="resumen().etiqueta" />
+        </div>
+      </div>
+      <dl>
+        <div><dt>Cliente</dt><dd>{{ resumen().cliente }}</dd></div>
+        <div><dt>Prioridad</dt><dd>{{ resumen().prioridad }}</dd></div>
+        <div><dt>Fechas</dt><dd>{{ resumen().fechas }}</dd></div>
+        <div><dt>Líder</dt><dd>{{ resumen().lider }}</dd></div>
+        <div><dt>Equipo</dt><dd>{{ resumen().equipo }}</dd></div>
+        <div><dt>Repositorios</dt><dd>{{ resumen().modulos }}</dd></div>
+        <div><dt>Autovalidación</dt><dd>{{ resumen().autovalidacion }}</dd></div>
+      </dl>
+      @if (!editando()) {
+        <p class="nota"><i class="bi bi-info-circle"></i> Después de crearlo agrega la Fase 1 y sus historias de usuario.</p>
+      }
+    </aside>
+  </div>
+}

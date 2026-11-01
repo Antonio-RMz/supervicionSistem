@@ -1,0 +1,216 @@
+<div class="fd-page">
+
+  @if (fase(); as f) {
+
+    <!-- ── 2. Encabezado ───────────────────────────────────────────────────── -->
+    <div class="fd-header">
+      <div class="fd-header-left">
+        <div class="fd-fase-icono" [style.background]="f.color + '20'" [style.color]="f.color">
+          <i class="bi bi-layers" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h1 class="fd-titulo">Fase: {{ f.nombre }}</h1>
+          <p class="fd-subtitulo">{{ f.subtitulo }}</p>
+        </div>
+      </div>
+      <app-estado-badge [estado]="f.estado" />
+    </div>
+
+    <!-- ── 3. Tags ────────────────────────────────────────────────────────── -->
+    <div class="fd-tags-row">
+      @for (tag of tags(); track tag) {
+        <span class="fd-tag">
+          {{ tag }}
+          @if (puedeEditar()) {
+            <button class="tag-remove" (click)="eliminarTag(tag)" [attr.aria-label]="'Eliminar tag ' + tag">
+              <i class="bi bi-x" aria-hidden="true"></i>
+            </button>
+          }
+        </span>
+      }
+      @if (puedeEditar()) {
+        @if (inputTagVisible()) {
+          <input
+            class="tag-input"
+            type="text"
+            placeholder="Nueva etiqueta…"
+            [value]="nuevoTag()"
+            (input)="nuevoTag.set($any($event.target).value)"
+            (keydown)="onTagKeydown($event)"
+            (blur)="agregarTag()"
+            autofocus
+          />
+        } @else {
+          <button class="fd-tag fd-tag-add" (click)="inputTagVisible.set(true)">
+            <i class="bi bi-plus" aria-hidden="true"></i> Agregar
+          </button>
+        }
+      }
+    </div>
+
+    <!-- ── 4. Descripción ────────────────────────────────────────────────── -->
+    <section class="fd-card">
+      <div class="fd-card-header">
+        <div class="fd-card-title-row">
+          <i class="bi bi-file-text" aria-hidden="true"></i>
+          <h2 class="fd-card-title">Descripción</h2>
+        </div>
+        @if (puedeEditar() && !editandoDesc()) {
+          <button class="fd-btn-sm" (click)="iniciarEditDesc()">
+            <i class="bi bi-pencil" aria-hidden="true"></i> Editar
+          </button>
+        }
+      </div>
+
+      @if (editandoDesc()) {
+        <textarea
+          class="fd-textarea"
+          rows="8"
+          [value]="descBorrador()"
+          (input)="descBorrador.set($any($event.target).value)"
+          placeholder="Documenta el alcance técnico, arquitectura y decisiones de diseño…"
+        ></textarea>
+        <div class="fd-edit-actions">
+          <button class="fd-btn fd-btn-primary" (click)="guardarDesc()">Guardar</button>
+          <button class="fd-btn fd-btn-ghost"   (click)="cancelarDesc()">Cancelar</button>
+        </div>
+      } @else {
+        @if (f.detallesTecnicos) {
+          <p class="fd-desc-text">{{ f.detallesTecnicos }}</p>
+        } @else {
+          <p class="fd-desc-empty">Sin descripción. {{ puedeEditar() ? 'Haz clic en "Editar" para agregar una.' : '' }}</p>
+        }
+      }
+    </section>
+
+    <!-- ── 5. Historias ──────────────────────────────────────────────────── -->
+    <section class="fd-card">
+      <div class="fd-card-header">
+        <div class="fd-card-title-row">
+          <i class="bi bi-journal-text" aria-hidden="true"></i>
+          <h2 class="fd-card-title">Historias</h2>
+          <span class="fd-card-badge">{{ items().length }}</span>
+        </div>
+      </div>
+      <app-item-lista
+        [items]="items()"
+        icono="bi-flag-fill"
+        [puedeCrear]="puedeEditar()"
+        labelNuevo="Nueva historia"
+        labelVacio="Esta fase aún no tiene historias"
+        (itemClick)="irAHistoria($event)"
+      />
+    </section>
+
+    <!-- ── 6. Archivos ───────────────────────────────────────────────────── -->
+    <section class="fd-card">
+      <div class="fd-card-header">
+        <div class="fd-card-title-row">
+          <i class="bi bi-paperclip" aria-hidden="true"></i>
+          <h2 class="fd-card-title">Archivos relacionados</h2>
+          <span class="fd-card-badge">{{ archivos().length }}</span>
+        </div>
+        @if (puedeSubir()) {
+          <label class="fd-btn-sm" role="button" tabindex="0">
+            <i class="bi bi-upload" aria-hidden="true"></i> Subir archivo
+            <input type="file" class="sr-only" (change)="onFileSelected($event)" />
+          </label>
+        }
+      </div>
+
+      @if (archivos().length > 0) {
+        <table class="fd-table" aria-label="Archivos adjuntos">
+          <tbody>
+            @for (archivo of archivos(); track archivo.id) {
+              <tr class="fd-table-row">
+                <td class="td-archivo">
+                  <i class="bi fd-file-icon" [class]="iconoArchivo(archivo.extension)"
+                     [style.color]="colorArchivo(archivo.extension)" aria-hidden="true"></i>
+                  <span class="archivo-nombre">{{ archivo.nombre }}</span>
+                  <span class="archivo-ext">.{{ archivo.extension }}</span>
+                </td>
+                <td class="td-size">{{ archivo.tamanio }}</td>
+                <td class="td-actions">
+                  <button class="icon-btn" title="Descargar">
+                    <i class="bi bi-download" aria-hidden="true"></i>
+                  </button>
+                  @if (puedeEditar()) {
+                    <button class="icon-btn danger" title="Eliminar" (click)="eliminarArchivo(archivo.id)">
+                      <i class="bi bi-trash" aria-hidden="true"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="fd-empty">Sin archivos adjuntos.</p>
+      }
+    </section>
+
+    <!-- ── 7. Comentarios ────────────────────────────────────────────────── -->
+    <section class="fd-card">
+      <div class="fd-card-header">
+        <div class="fd-card-title-row">
+          <i class="bi bi-chat-text" aria-hidden="true"></i>
+          <h2 class="fd-card-title">Comentarios</h2>
+          @if (comentarios().length > 0) {
+            <span class="fd-card-badge">{{ comentarios().length }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Lista de comentarios -->
+      @if (comentarios().length > 0) {
+        <ul class="comentarios-lista" role="list">
+          @for (c of comentarios(); track c.id) {
+            <li class="comentario">
+              <div class="com-avatar" [style.background]="c.autorColor" aria-hidden="true">
+                {{ c.autorIniciales }}
+              </div>
+              <div class="com-body">
+                <div class="com-meta">
+                  <span class="com-autor">{{ c.autorNombre }}</span>
+                  <span class="com-fecha">{{ tiempoRelativo(c.fechaISO) }}</span>
+                </div>
+                <p class="com-texto">{{ c.texto }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+      <!-- Nuevo comentario -->
+      @if (puedeCommentar()) {
+        <div class="nuevo-comentario">
+          <textarea
+            class="fd-textarea fd-textarea-sm"
+            rows="3"
+            placeholder="Escribe un comentario… (Ctrl+Enter para enviar)"
+            [value]="textoComentario()"
+            (input)="textoComentario.set($any($event.target).value)"
+            (keydown)="onComentarioKeydown($event)"
+          ></textarea>
+          <div class="fd-edit-actions">
+            <button
+              class="fd-btn fd-btn-primary"
+              [disabled]="!textoComentario().trim()"
+              (click)="enviarComentario()"
+            >
+              <i class="bi bi-send" aria-hidden="true"></i> Comentar
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+
+  } @else {
+    <div class="fd-not-found">
+      <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+      <p>Fase no encontrada.</p>
+      <button class="bc-link" (click)="volverAFases()">← Volver a Fases</button>
+    </div>
+  }
+
+</div>

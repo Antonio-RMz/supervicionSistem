@@ -1,0 +1,160 @@
+<nav class="migas" aria-label="Ruta">
+  <a routerLink="/proyectos">Proyectos</a>
+  <i class="bi bi-chevron-right"></i>
+  <a [routerLink]="['/proyectos', id()]">{{ preparacion()?.proyectoNombre ?? '…' }}</a>
+  <i class="bi bi-chevron-right"></i>
+  <a [routerLink]="['/proyectos', id(), 'fases', faseId()]">{{ fase()?.titulo ?? deFase()?.faseTitulo ?? 'Fase' }}</a>
+  <i class="bi bi-chevron-right"></i>
+  <span>{{ soloCopiar() ? 'JSON de historias' : 'Importar historias' }}</span>
+</nav>
+
+<header class="encabezado">
+  <span class="icono"><i class="bi bi-braces"></i></span>
+  <div>
+    <h1>{{ soloCopiar() ? 'JSON de historias' : 'Importar historias' }}</h1>
+    @if (soloCopiar()) {
+      <p>Esta fase ya no recibe historias: aquí puedes copiar las que tiene como JSON.</p>
+    } @else {
+    <p>
+      1. Copia el prompt y pásalo a tu IA con tu requerimiento y las imágenes del diseño.
+      2. Pega aquí el JSON que te devuelva.
+      3. Si el formato es correcto, ejecútalo: las historias se crean en Borrador dentro de {{ fase()?.titulo ?? 'la fase' }}.
+    </p>
+    }
+  </div>
+</header>
+
+@if (errorCarga()) {
+  <p class="error-carga">{{ errorCarga() }}</p>
+} @else if (!preparacion()) {
+  <p class="cargando">Cargando…</p>
+} @else {
+  <section class="tarjeta panel">
+    <div class="pestanas" role="tablist">
+      @if (!soloCopiar()) {
+      <button type="button" role="tab" [class.activa]="pestana() === 'prompt'" [attr.aria-selected]="pestana() === 'prompt'"
+              (click)="elegirPestana('prompt')"><i class="bi bi-stars"></i> Prompt para IA</button>
+      <button type="button" role="tab" [class.activa]="pestana() === 'json'" [attr.aria-selected]="pestana() === 'json'"
+              (click)="elegirPestana('json')"><i class="bi bi-braces"></i> Pegar JSON</button>
+      }
+      <button type="button" role="tab" [class.activa]="pestana() === 'copiar'" [attr.aria-selected]="pestana() === 'copiar'"
+              (click)="elegirPestana('copiar')"><i class="bi bi-copy"></i> JSON de historias</button>
+    </div>
+
+    @if (pestana() === 'prompt') {
+      <ol class="pasos">
+        <li><span>1</span> Copia el prompt</li>
+        <li><span>2</span> Pégalo en tu IA con tu requerimiento y las imágenes</li>
+        <li><span>3</span> Pega aquí el JSON que te devuelva</li>
+      </ol>
+      <pre class="codigo-bloque prompt">@for (p of prompt(); track $index) {@if (p.dato) {<span class="dato">{{ p.texto }}</span>} @else {{{ p.texto }}}}</pre>
+      <div class="pie-bloque">
+        <button type="button" class="boton boton-primario chico" (click)="copiar()">
+          <i class="bi" [class.bi-copy]="!copiado()" [class.bi-check2]="copiado()"></i> {{ copiado() ? 'Copiado' : 'Copiar prompt' }}
+        </button>
+        <small><i class="bi bi-info-circle"></i> Formato v1 · lo valida el sistema al ejecutar. En ámbar: datos de esta fase.</small>
+      </div>
+    } @else if (pestana() === 'copiar') {
+      @if (errorDeFase()) {
+        <p class="error-carga">{{ errorDeFase() }}</p>
+      } @else if (!deFase()) {
+        <p class="cargando">Cargando…</p>
+      } @else {
+        <div class="opciones-json">
+          <label class="cuales">
+            <span>Historias:</span>
+            <select (change)="cuales.set($any($event.target).value)">
+              @for (o of opcionesCuales(); track o.valor) {
+                <option [value]="o.valor" [selected]="cuales() === o.valor">{{ o.texto }}</option>
+              }
+            </select>
+          </label>
+          <span class="incluir-titulo">Incluir:</span>
+          @for (c of campos; track c.id) {
+            <button type="button" class="incluir" [class.activo]="incluir()[c.id]" [attr.aria-pressed]="incluir()[c.id]"
+                    (click)="alternarCampo(c.id)">
+              @if (incluir()[c.id]) { <i class="bi bi-check-lg"></i> }
+              {{ c.texto }}
+            </button>
+          }
+        </div>
+        <div class="editor codigo-bloque">
+          <pre class="numeros" aria-hidden="true" #numerosCopia>{{ numerosDeFase() }}</pre>
+          <pre class="solo-lectura" #textoCopia (scroll)="numerosCopia.scrollTop = textoCopia.scrollTop">{{ jsonDeFase() }}</pre>
+        </div>
+        <div class="pie-bloque">
+          <button type="button" class="boton boton-primario chico" (click)="copiarJson()" [disabled]="!deFase()!.historias.length">
+            <i class="bi" [class.bi-copy]="!copiadoJson()" [class.bi-check2]="copiadoJson()"></i>
+            {{ copiadoJson() ? 'Copiado' : 'Copiar JSON' }}
+          </button>
+          <small><i class="bi bi-info-circle"></i> Mismo formato que importar: lo puedes pasar a tu IA o pegarlo en otra fase.</small>
+        </div>
+      }
+    } @else {
+      <div class="editor codigo-bloque">
+        <pre #numeros class="numeros" aria-hidden="true">{{ numerosDeLinea() }}</pre>
+        <textarea #texto spellcheck="false" aria-label="JSON de las historias" [value]="json()"
+                  placeholder='{ "historias": [ … ] }'
+                  (input)="json.set(texto.value)" (scroll)="alDesplazar(texto, numeros)"></textarea>
+      </div>
+      <div class="pie-bloque">
+        <button type="button" class="boton boton-secundario chico" (click)="formatear()" [disabled]="!json().trim()">
+          <i class="bi bi-magic"></i> Formatear
+        </button>
+        @if (json().trim()) {
+          @if (lectura(); as l) {
+            @if (l.valido) {
+              <small class="ok"><i class="bi bi-check-lg"></i> Formato válido · {{ l.historias.length }}
+                {{ l.historias.length === 1 ? 'historia' : 'historias' }}</small>
+            } @else {
+              <small class="mal"><i class="bi bi-exclamation-circle"></i> {{ l.error }}</small>
+            }
+          }
+        }
+      </div>
+      @if (comoDesconocidos().length) {
+        <p class="aviso-como">
+          <i class="bi bi-exclamation-triangle"></i>
+          "Como" que no está en Usuarios del sistema: {{ comoDesconocidos().join(', ') }}. Se crean igual; revisa si es un error de la IA.
+        </p>
+      }
+      <p class="pista">Las historias incompletas se crean igual y quedan con punto ámbar. Sus actividades se crean después, dentro de cada historia.</p>
+    }
+  </section>
+
+  @if (errorEnvio()) {
+    <p class="aviso error" role="alert"><i class="bi bi-exclamation-circle"></i> {{ errorEnvio() }}</p>
+  }
+
+  @if (!soloCopiar()) {
+  <footer class="tarjeta barra">
+    <label class="analista">
+      <span>Analista de las historias:</span>
+      <select (change)="analistaId.set(+$any($event.target).value)">
+        @for (a of preparacion()!.analistas; track a.id) {
+          <option [value]="a.id" [selected]="a.id === analistaId()">{{ a.nombreCompleto }}</option>
+        }
+      </select>
+    </label>
+    @if (lectura(); as l) {
+      <span class="resumen">
+        @if (l.valido) {
+          {{ l.historias.length }} {{ l.historias.length === 1 ? 'historia' : 'historias' }} en Fase {{ fase()?.numero }}
+          @if (l.incompletas) { · {{ l.incompletas }} incompletas }
+        } @else {
+          Pega el JSON para poder ejecutar
+        }
+      </span>
+      <a class="boton boton-secundario" [routerLink]="['/proyectos', id(), 'fases', faseId()]">Cancelar</a>
+      <button type="button" class="boton boton-primario" [disabled]="!l.valido || !analistaId() || enviando()" (click)="ejecutar()">
+        <i class="bi bi-play-fill"></i>
+        @if (l.valido) {
+          Ejecutar · crear {{ l.historias.length }} {{ l.historias.length === 1 ? 'historia' : 'historias' }}
+        } @else {
+          Ejecutar · crear historias
+        }
+      </button>
+    }
+  </footer>
+  }
+}

@@ -1,0 +1,330 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+h1 { font-size: 1.9rem; }
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  p {
+    margin: 0.3rem 0 0;
+    color: var(--texto-suave);
+  }
+}
+
+.recargando {
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+// ─── Filtros ─────────────────────────────────────────────────────────────────
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filtro {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+  color: var(--tinta);
+  font-weight: 500;
+
+  &:focus-within { border-color: var(--morado); }
+
+  select {
+    padding: 0.6rem 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--tinta);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  &.activo {
+    border-color: var(--morado-borde);
+    background: var(--morado-suave);
+  }
+}
+
+.solo-mios {
+  align-items: center;
+  margin-left: 0.5rem;
+  color: var(--tinta);
+  font-weight: 500;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--morado-suave);
+  color: var(--morado);
+  font-weight: 500;
+}
+
+.vacio {
+  padding: 2rem;
+  color: var(--texto-suave);
+  text-align: center;
+}
+
+// ─── Historias o tickets ─────────────────────────────────────────────────────
+.pestanas {
+  display: flex;
+  gap: 2rem;
+  border-bottom: 1px solid var(--borde);
+
+  button {
+    padding: 0.6rem 0.2rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--texto-suave);
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover { color: var(--tinta); }
+
+    &.activa {
+      border-bottom-color: var(--morado);
+      color: var(--morado);
+    }
+  }
+}
+
+// ─── Tablero ─────────────────────────────────────────────────────────────────
+.tablero {
+  // Tantas columnas como estados haya, repartidas a lo ancho; si no caben, se desplaza.
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-height: 60vh;
+  padding: 0.75rem;
+  border: 2px solid transparent;
+  border-radius: var(--radio);
+  background: var(--pista);
+  transition: background 0.15s, border-color 0.15s;
+
+  h2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0.25rem 0.25rem;
+    font-size: 1rem;
+  }
+
+  &.acepta {
+    border-color: var(--morado-borde);
+    border-style: dashed;
+    background: var(--morado-suave);
+  }
+
+  &.sobre {
+    border-color: var(--morado);
+    border-style: solid;
+  }
+}
+
+// Mientras se arrastra, las columnas que no aceptan la tarjeta se apagan.
+.tablero.arrastrando .columna:not(.acepta) { opacity: 0.55; }
+
+.cuenta {
+  min-width: 1.6rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+  box-shadow: var(--sombra);
+
+  &.movible {
+    cursor: grab;
+
+    &:hover { border-color: var(--morado-borde); }
+  }
+
+  &.origen { opacity: 0.4; }
+
+  &.moviendo {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.ficha-arriba {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.codigo {
+  color: var(--texto-suave);
+  white-space: nowrap;
+}
+
+.punto {
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--tono-solido);
+}
+
+.titulo {
+  margin: 0;
+  color: var(--tinta);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.ficha-abajo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.responsable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--texto-suave);
+
+  &.sin-asignar { font-style: italic; }
+}
+
+app-avatar.chico ::ng-deep .avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 0.68rem;
+}
+
+.candado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+// Las mismas acciones del arrastre, como botones (teclado y pantallas táctiles).
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.15rem;
+}
+
+.boton.chico {
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.mover {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.5rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--morado);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: var(--morado-suave); }
+
+  &.regresar {
+    color: var(--rojo-texto);
+    &:hover:not(:disabled) { background: var(--rojo-suave); }
+  }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.sin-tarjetas {
+  margin: 0;
+  padding: 1.5rem 0.5rem;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .tablero { grid-auto-columns: 260px; }
+}
+
+// ─── Tarjeta de historia ─────────────────────────────────────────────────────
+.tablero.historias { grid-auto-columns: minmax(200px, 1fr); }
+
+.historias .titulo { display: block; }
+
+.historias .ficha-abajo { font-size: 0.85rem; }
+
+.historias .responsable {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avance {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.4rem;
+
+  .barra {
+    width: 48px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--borde);
+    overflow: hidden;
+
+    span { display: block; height: 100%; background: var(--morado); }
+  }
+
+  small { color: var(--texto-suave); font-size: 0.75rem; white-space: nowrap; }
+}

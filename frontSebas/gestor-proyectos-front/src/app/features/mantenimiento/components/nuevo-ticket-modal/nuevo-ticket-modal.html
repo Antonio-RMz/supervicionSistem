@@ -1,0 +1,111 @@
+<app-modal titulo="Nuevo ticket de mantenimiento" subtitulo="Trabajo fuera de las fases. Lo crean el Líder o un Desarrollador."
+           (cerrar)="cerrar.emit()">
+  <form id="form-ticket-mantenimiento" class="formulario" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+    <div class="campo">
+      <span>Tipo <b>*</b></span>
+      <div class="tipos" role="radiogroup" aria-label="Tipo de ticket">
+        @for (t of tipos; track t.tipo) {
+          <button type="button" class="tipo" role="radio" [class.elegido]="form.controls.tipo.value === t.tipo"
+                  [attr.aria-checked]="form.controls.tipo.value === t.tipo" (click)="form.controls.tipo.setValue(t.tipo)">
+            <app-tipo-ticket [tipo]="t.tipo" />
+            <strong>{{ t.nombre }}</strong>
+            <small>{{ t.detalle }}</small>
+          </button>
+        }
+      </div>
+    </div>
+
+    <label class="campo">
+      <span>Título <b>*</b></span>
+      <input formControlName="titulo" autocomplete="off" [class.con-error]="invalido('titulo')"
+             [placeholder]="form.controls.tipo.value === 'BUGS' ? 'Ícono desalineado en Android' : 'Actualizar a Spring Boot 3.3'" />
+      @if (invalido('titulo')) {
+        <small class="mensaje-campo">Escribe el título.</small>
+      }
+    </label>
+
+    <label class="campo">
+      <span>Descripción</span>
+      <textarea formControlName="descripcion"
+                placeholder="Subir de 3.2 a 3.3, revisar dependencias de seguridad y correr la suite completa de pruebas."></textarea>
+    </label>
+
+    <div class="fila">
+      <label class="campo">
+        <span>Repositorio <b>*</b></span>
+        <select formControlName="moduloId" [class.con-error]="invalido('moduloId')">
+          <option [ngValue]="0" disabled>Selecciona…</option>
+          @for (m of preparacion().modulos; track m.id) {
+            <option [ngValue]="m.id">{{ m.nombre }}</option>
+          }
+        </select>
+        @if (invalido('moduloId')) {
+          <small class="mensaje-campo">Elige el repositorio.</small>
+        }
+      </label>
+      @if (form.controls.tipo.value === 'BUGS') {
+        <label class="campo">
+          <span>Severidad</span>
+          <select formControlName="severidad">
+            <option value="MEDIA">Media · hay forma de seguir trabajando</option>
+            <option value="BAJA">Baja · detalle visual o de texto</option>
+          </select>
+        </label>
+      } @else {
+        <label class="campo">
+          <span>Prioridad</span>
+          <select formControlName="prioridad">
+            <option value="ALTA">Alta</option>
+            <option value="MEDIA">Media</option>
+            <option value="BAJA">Baja</option>
+          </select>
+        </label>
+      }
+    </div>
+
+    <label class="campo">
+      <span>Asignar a</span>
+      <select formControlName="responsableId">
+        <option [ngValue]="0">Sin asignar por ahora</option>
+        @for (p of preparacion().equipo; track p.id) {
+          @if (p.desarrollador) {
+            <option [ngValue]="p.id">{{ p.nombre }}</option>
+          }
+        }
+      </select>
+      @if (form.controls.tipo.value === 'MEJR') {
+        <small class="pista">El Líder aprueba la mejora antes de hacerla y ahí elige al Desarrollador.</small>
+      } @else if (form.controls.tipo.value === 'BUGS') {
+        <small class="pista">El Líder confirma el bug, su severidad y quién lo corrige.</small>
+      }
+    </label>
+
+    <div class="ruta">
+      <i class="bi bi-clock"></i>
+      <div>
+        <strong>Sale con la siguiente fase</strong>
+        <p>
+          Se trabaja desde develop ({{ rama() }}) y se publica en el release de {{ preparacion().conLaFase }}.
+          Si algo es urgente en producción, usa Reportar falla.
+        </p>
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+  </form>
+
+  <div pie class="pie-modal">
+    <div class="botones">
+      <button type="button" class="boton boton-secundario" (click)="cerrar.emit()">Cancelar</button>
+      <button type="submit" form="form-ticket-mantenimiento" class="boton boton-primario" [disabled]="enviando()">
+        @if (enviando()) {
+          Creando…
+        } @else {
+          <i class="bi bi-plus-lg"></i> Crear ticket
+        }
+      </button>
+    </div>
+  </div>
+</app-modal>

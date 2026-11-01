@@ -1,0 +1,17 @@
+
+  ${AnsiColor.BRIGHT_CYAN}████████╗ ███████╗  █████╗  ███╗   ███╗   ${AnsiColor.BRIGHT_CYAN}██████╗  ███████╗ ██╗   ██╗
+  ${AnsiColor.BRIGHT_CYAN}╚══██╔══╝ ██╔════╝ ██╔══██╗ ████╗ ████║   ${AnsiColor.BRIGHT_CYAN}██╔══██╗ ██╔════╝ ██║   ██║
+  ${AnsiColor.BRIGHT_CYAN}   ██║    █████╗   ███████║ ██╔████╔██║   ${AnsiColor.BRIGHT_CYAN}██║  ██║ █████╗   ██║   ██║
+  ${AnsiColor.BRIGHT_CYAN}   ██║    ██╔══╝   ██╔══██║ ██║╚██╔╝██║   ${AnsiColor.BRIGHT_CYAN}██║  ██║ ██╔══╝   ╚██╗ ██╔╝
+  ${AnsiColor.BRIGHT_CYAN}   ██║    ███████╗ ██║  ██║ ██║ ╚═╝ ██║   ${AnsiColor.BRIGHT_CYAN}██████╔╝ ███████╗  ╚████╔╝ 
+  ${AnsiColor.BRIGHT_CYAN}   ╚═╝    ╚══════╝ ╚═╝  ╚═╝ ╚═╝     ╚═╝   ${AnsiColor.BRIGHT_CYAN}╚═════╝  ╚══════╝   ╚═══╝  
+${AnsiColor.DEFAULT}
+  ${AnsiColor.BRIGHT_WHITE}${AnsiStyle.BOLD}Gestor de Proyectos${AnsiStyle.NORMAL}${AnsiColor.BRIGHT_BLACK}  ·  del requerimiento al deploy, sin perder el hilo${AnsiColor.DEFAULT}
+
+  ${AnsiColor.BRIGHT_BLACK}─────────────────────────────────────────────────────────────────${AnsiColor.DEFAULT}
+  ${AnsiColor.BRIGHT_CYAN}▸ API      ${AnsiColor.DEFAULT}http://localhost:${server.port:8080}/api
+  ${AnsiColor.BRIGHT_CYAN}▸ Front    ${AnsiColor.DEFAULT}${app.cors.origenes:http://localhost:4200}
+  ${AnsiColor.BRIGHT_CYAN}▸ Base     ${AnsiColor.DEFAULT}MySQL · ${spring.datasource.url}
+  ${AnsiColor.BRIGHT_CYAN}▸ Perfil   ${AnsiColor.DEFAULT}${spring.profiles.active:${spring.profiles.default:default}}
+  ${AnsiColor.BRIGHT_CYAN}▸ Stack    ${AnsiColor.DEFAULT}Spring Boot${spring-boot.formatted-version} · Java ${java.version}
+  ${AnsiColor.BRIGHT_BLACK}─────────────────────────────────────────────────────────────────${AnsiColor.DEFAULT}

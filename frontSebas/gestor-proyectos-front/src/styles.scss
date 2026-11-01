@@ -1,0 +1,284 @@
+@use 'styles/formulario';
+
+// ─── Colores y tipografía (un solo lugar para cambiar el look) ────────────────
+:root {
+  color-scheme: light;
+
+  --tinta: #0f172a;          // títulos
+  --texto: #1e293b;          // texto normal
+  --texto-suave: #64748b;    // texto secundario
+  --borde: #e2e8f0;
+  --borde-fuerte: #cbd5e1;   // bordes al pasar el mouse, íconos apagados
+  --fondo: #f1f5f9;          // chips, pistas
+  --fondo-pagina: #f8fafc;
+  --blanco: #ffffff;         // fondo de tarjetas, modales y campos
+  --sobre-color: #ffffff;    // texto e íconos encima de un color sólido (botones, avatares)
+  --pista: #eef0f4;          // fondo de las barras
+
+  --morado: #4f46e5;         // acción principal del portal
+  --morado-hover: #4338ca;
+  --morado-suave: #eef2ff;
+  --morado-borde: #c7d2fe;
+
+  --azul: #1f9bd7;           // marca Team Dev (login)
+  --azul-texto: #0a72a6;
+  --azul-suave: #e0f2fe;
+  --marino: #0f2f4f;
+  --marino-texto: #0f2f4f;   // títulos de marca sobre el fondo de la página
+
+  // Estados: el sólido para íconos y botones, -texto para letras, -suave para fondos
+  --rojo: #dc2626;
+  --rojo-texto: #b91c1c;
+  --rojo-suave: #fef2f2;
+  --rojo-borde: #fca5a5;
+  --verde: #16a34a;
+  --verde-texto: #15803d;
+  --verde-suave: #ecfdf3;
+  --verde-borde: #bbf7d0;
+  --naranja: #ea580c;
+  --naranja-texto: #c2410c;
+  --naranja-suave: #fff7ed;
+  --naranja-borde: #fdba74;
+  --ambar: #d97706;
+  --ambar-texto: #b45309;
+  --violeta: #7e22ce;
+  --violeta-suave: #f5f0ff;
+  --violeta-borde: #ddd6fe;
+
+  // Bloques de código y comandos de git (oscuros en los dos temas)
+  --consola: #0f172a;
+  --consola-texto: #e2e8f0;
+
+  --radio: 14px;
+  --sombra: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  --fuente: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fuente-titulos: 'Space Grotesk', var(--fuente);
+  --fuente-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+// Tema oscuro: <html data-tema="oscuro">, lo pone TemaService (y index.html antes de arrancar)
+:root[data-tema='oscuro'] {
+  color-scheme: dark;
+
+  --tinta: #f1f5f9;
+  --texto: #dbe2ec;
+  --texto-suave: #94a3b8;
+  --borde: #263247;
+  --borde-fuerte: #475569;
+  --fondo: #1c2638;
+  --fondo-pagina: #0b1120;
+  --blanco: #131b2c;
+  --pista: #222d41;
+
+  --morado: #6366f1;
+  --morado-hover: #818cf8;
+  --morado-suave: #23264d;
+  --morado-borde: #4338ca;
+
+  --azul-texto: #7dd3fc;
+  --azul-suave: #0c2a3d;
+  --marino-texto: #e2edf7;
+
+  --rojo: #ef4444;
+  --rojo-texto: #fca5a5;
+  --rojo-suave: #3a1a20;
+  --rojo-borde: #7f1d1d;
+  --verde: #22c55e;
+  --verde-texto: #86efac;
+  --verde-suave: #10291d;
+  --verde-borde: #166534;
+  --naranja: #f97316;
+  --naranja-texto: #fdba74;
+  --naranja-suave: #33210f;
+  --naranja-borde: #9a3412;
+  --ambar: #f59e0b;
+  --ambar-texto: #fcd34d;
+  --violeta: #c084fc;
+  --violeta-suave: #2a1a42;
+  --violeta-borde: #6b21a8;
+
+  --consola: #060b16;
+  --consola-texto: #e2e8f0;
+
+  --sombra: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+// Tonos para etiquetas y barras: <span class="tono-verde">
+.tono-morado   { --tono-fondo: #eef2ff; --tono-texto: #4338ca; --tono-solido: #4f46e5; }
+.tono-verde    { --tono-fondo: #ecfdf3; --tono-texto: #15803d; --tono-solido: #16803c; }
+.tono-naranja  { --tono-fondo: #fff4e8; --tono-texto: #c2410c; --tono-solido: #ea580c; }
+.tono-gris     { --tono-fondo: #f1f5f9; --tono-texto: #64748b; --tono-solido: #cbd5e1; }
+.tono-azul     { --tono-fondo: #e0f2fe; --tono-texto: #0369a1; --tono-solido: #1f9bd7; }
+.tono-turquesa { --tono-fondo: #e6f4f1; --tono-texto: #0f766e; --tono-solido: #0f766e; }
+.tono-rojo     { --tono-fondo: #fef2f2; --tono-texto: #dc2626; --tono-solido: #dc2626; }
+.tono-violeta  { --tono-fondo: #f5f0ff; --tono-texto: #7e22ce; --tono-solido: #7e22ce; }
+.tono-ambar    { --tono-fondo: #fffbeb; --tono-texto: #b45309; --tono-solido: #d97706; }
+
+[data-tema='oscuro'] {
+  .tono-morado   { --tono-fondo: #23264d; --tono-texto: #a5b4fc; --tono-solido: #6366f1; }
+  .tono-verde    { --tono-fondo: #10291d; --tono-texto: #86efac; --tono-solido: #22c55e; }
+  .tono-naranja  { --tono-fondo: #33210f; --tono-texto: #fdba74; --tono-solido: #f97316; }
+  .tono-gris     { --tono-fondo: #1c2638; --tono-texto: #a3b1c6; --tono-solido: #475569; }
+  .tono-azul     { --tono-fondo: #0c2a3d; --tono-texto: #7dd3fc; --tono-solido: #38bdf8; }
+  .tono-turquesa { --tono-fondo: #0b2b29; --tono-texto: #5eead4; --tono-solido: #14b8a6; }
+  .tono-rojo     { --tono-fondo: #3a1a20; --tono-texto: #fca5a5; --tono-solido: #ef4444; }
+  .tono-violeta  { --tono-fondo: #2a1a42; --tono-texto: #d8b4fe; --tono-solido: #a855f7; }
+  .tono-ambar    { --tono-fondo: #33270c; --tono-texto: #fcd34d; --tono-solido: #f59e0b; }
+}
+
+// ─── Base ────────────────────────────────────────────────────────────────────
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--fuente);
+  font-size: 16px;
+  color: var(--texto);
+  background: var(--fondo-pagina);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  color: var(--tinta);
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+}
+
+// ─── Piezas que se repiten en varias pantallas ───────────────────────────────
+.tarjeta {
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.boton-primario {
+  background: var(--morado);
+  color: var(--sobre-color);
+  &:hover:not(:disabled) { background: var(--morado-hover); }
+}
+
+.boton-secundario {
+  background: var(--blanco);
+  border-color: var(--borde);
+  color: var(--tinta);
+  &:hover:not(:disabled) { border-color: var(--borde-fuerte); }
+}
+
+// Acciones que no se deshacen fácil: Cancelar fase, Revertir producción.
+.boton-peligro {
+  background: var(--rojo);
+  color: var(--sobre-color);
+  &:hover:not(:disabled) { background: var(--rojo-texto); }
+}
+
+// Igual de delicadas, pero como segunda opción junto a otro botón.
+.boton-peligro-suave {
+  background: var(--blanco);
+  border-color: var(--borde);
+  color: var(--rojo);
+  &:hover:not(:disabled) { border-color: var(--rojo-borde); }
+}
+
+// Resultado de una acción: <p class="aviso"> en verde, <p class="aviso error"> en rojo, con botón para cerrarlo.
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: var(--verde-suave);
+  color: var(--verde-texto);
+  font-weight: 500;
+
+  &.error {
+    background: var(--rojo-suave);
+    color: var(--rojo-texto);
+  }
+
+  button {
+    margin-left: auto;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+}
+
+// Botones de un formulario de página (Nueva fase, Nuevo ticket...): uno solo, al final, con Cancelar a un lado.
+.pie-formulario {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+// Las opciones de un <select> las pinta el sistema; sin esto, en tema oscuro algunos navegadores las dejan blancas.
+select option,
+select optgroup {
+  background-color: var(--blanco);
+  color: var(--tinta);
+}
+
+// El título de un ticket o historia en una lista: lleva a su detalle sin verse como enlace azul.
+.enlace-titulo {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--morado);
+    text-decoration: underline;
+  }
+}
+
+.cargando,
+.error-carga {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+.error-carga { color: var(--rojo-texto); }
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}

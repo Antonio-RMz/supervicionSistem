@@ -1,0 +1,271 @@
+<app-modal [titulo]="titulo()" [subtitulo]="subtitulo()" (cerrar)="cancelar.emit()">
+  <form id="form-confirmacion-ticket" class="formulario" (submit)="$event.preventDefault(); enviar()" novalidate>
+    @switch (confirmacion()) {
+      @case ('ENVIAR_QA') {
+        <ul class="revisiones">
+          @for (pr of ticket().pullRequests; track pr.numero) {
+            <li><i class="bi bi-check-circle-fill ok"></i> PR #{{ pr.numero }} {{ pr.estado.texto.toLowerCase() }} hacia develop</li>
+            <li>
+              <i class="bi" [class.bi-check-circle-fill]="pr.ci.tono === 'verde'" [class.ok]="pr.ci.tono === 'verde'"
+                 [class.bi-x-circle]="pr.ci.tono !== 'verde'" [class.falta]="pr.ci.tono !== 'verde'"></i> {{ pr.ci.texto }}
+            </li>
+          } @empty {
+            <li><i class="bi bi-circle info"></i> Aún no hay PR registrado</li>
+          }
+          @if (subtareasPendientes().length) {
+            <li>
+              <i class="bi bi-circle info"></i>
+              {{ textoSubtareas() }}
+            </li>
+          }
+        </ul>
+        <label class="campo">
+          <span>{{ alPr() ? 'Qué incluye el PR' : 'Cómo probarlo' }} <b>*</b></span>
+          <textarea #primero rows="3" [class.con-error]="faltaTexto()"
+                    [placeholder]="alPr()
+                      ? 'Ej. PR #45: PedidoController con paginación y filtro por estado; pruebas con MockMvc'
+                      : 'Ej. Swagger: GET /api/clientes/12/pedidos?estado=ENVIADO; el cliente 30 no tiene contrato (debe responder 403)'"
+                    (input)="texto.set($any($event.target).value)"></textarea>
+          @if (faltaTexto()) {
+            <small class="mensaje-campo">{{ alPr() ? 'Explica qué incluye el PR.' : 'Explica cómo probarlo.' }}</small>
+          } @else {
+            <small class="pista">{{ alPr() ? 'Ayuda al Líder a revisar el PR sin preguntarte.' : 'Ayuda al Analista a probar sin preguntarte.' }}</small>
+          }
+        </label>
+      }
+
+      @case ('BLOQUEAR') {
+        <div class="campo">
+          <span>¿Qué lo bloquea? <b>*</b></span>
+          <div class="opciones" role="radiogroup" aria-label="Qué lo bloquea">
+            <label class="opcion" [class.elegida]="causa() === 'ticket'">
+              <input type="radio" name="causa" [checked]="causa() === 'ticket'" (change)="causa.set('ticket')" />
+              <span><strong>Otro ticket</strong><small>Se desbloquea solo cuando ese ticket se termine</small></span>
+            </label>
+            <label class="opcion" [class.elegida]="causa() === 'externo'">
+              <input type="radio" name="causa" [checked]="causa() === 'externo'" (change)="causa.set('externo')" />
+              <span><strong>Algo externo</strong><small>Cliente, proveedor, accesos, una decisión pendiente…</small></span>
+            </label>
+          </div>
+        </div>
+        @if (causa() === 'ticket') {
+          <label class="campo">
+            <span>Ticket que lo bloquea <b>*</b></span>
+            <select [class.con-error]="faltaTicket()" (change)="elegirBloqueador($any($event.target).value)">
+              <option value="">Elige el ticket</option>
+              @for (t of ticket().bloqueadores; track t.id) {
+                <option [value]="t.id">{{ t.codigo }} · {{ t.titulo }}</option>
+              }
+            </select>
+            @if (faltaTicket()) {
+              <small class="mensaje-campo">Elige el ticket.</small>
+            }
+          </label>
+        }
+        <label class="campo">
+          <span>Motivo <b>*</b></span>
+          <textarea #primero rows="3" [class.con-error]="faltaTexto()"
+                    placeholder="Ej. esperamos credenciales del servicio de facturación del cliente"
+                    (input)="texto.set($any($event.target).value)"></textarea>
+          @if (faltaTexto()) {
+            <small class="mensaje-campo">Escribe el motivo.</small>
+          }
+        </label>
+        <label class="campo">
+          <span>Quién puede destrabarlo (opcional)</span>
+          <select (change)="elegirDestrabador($any($event.target).value)">
+            <option value="">Nadie en particular</option>
+            @for (p of ticket().equipo; track p.id) {
+              <option [value]="p.id">{{ p.nombreCompleto }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      @case ('RECHAZAR') {
+        <label class="campo">
+          <span>{{ preguntaRechazo() }} <b>*</b></span>
+          <textarea #primero rows="2" [class.con-error]="faltaTexto()"
+                    [placeholder]="conPasos() ? 'Ej. con estado=CANCELADO responde 500 en vez de la lista vacía' : 'Escribe el motivo para quien lo hizo'"
+                    (input)="texto.set($any($event.target).value)"></textarea>
+          @if (faltaTexto()) {
+            <small class="mensaje-campo">Escribe el motivo.</small>
+          }
+        </label>
+        @if (conPasos()) {
+          <label class="campo">
+            <span>Pasos para reproducir</span>
+            <textarea rows="3" placeholder="1. GET /api/clientes/12/pedidos?estado=CANCELADO  2. Respuesta 500"
+                      (input)="pasos.set($any($event.target).value)"></textarea>
+          </label>
+          <p class="nota tono-naranja">
+            <i class="bi bi-info-circle"></i>
+            Si el problema es de otro ticket o de algo que no cubría ninguno, mejor crea un BUGS en la historia.
+          </p>
+        }
+      }
+
+      @case ('CANCELAR') {
+        @if (criteriosSinCubrir().length) {
+          <p class="nota tono-rojo">
+            <i class="bi bi-exclamation-triangle"></i>
+            {{ textoCriterios() }}
+          </p>
+        }
+        <label class="campo">
+          <span>Motivo <b>*</b></span>
+          <textarea #primero rows="3" [class.con-error]="faltaTexto()"
+                    placeholder="Ej. se cubre con el endpoint genérico de reportes (ACTV-55)"
+                    (input)="texto.set($any($event.target).value)"></textarea>
+          @if (faltaTexto()) {
+            <small class="mensaje-campo">Escribe el motivo.</small>
+          }
+        </label>
+        @if (ticket().rama) {
+          <p class="pista"><i class="bi bi-git"></i> La rama y sus PR se cierran sin merge; no se borran.</p>
+        }
+      }
+
+      @case ('CONFIRMAR') {
+        <div class="campo">
+          <span>Severidad <b>*</b></span>
+          <div class="opciones" role="radiogroup" aria-label="Severidad">
+            @for (s of severidades; track s.codigo) {
+              <label class="opcion" [class.elegida]="severidad() === s.codigo">
+                <input type="radio" name="severidad" [checked]="severidad() === s.codigo" (change)="severidad.set(s.codigo)" />
+                <span><strong class="tono-{{ s.tono }} severidad">{{ s.texto }}</strong><small>{{ s.detalle }}</small></span>
+              </label>
+            }
+          </div>
+          @if (faltaSeveridad()) {
+            <small class="mensaje-campo">Elige la severidad.</small>
+          }
+        </div>
+        <label class="campo">
+          <span>Desarrollador que lo corrige <b>*</b></span>
+          <select [class.con-error]="faltaResponsable()" (change)="elegirResponsable($any($event.target).value)">
+            <option value="">Elige al Desarrollador</option>
+            @for (p of desarrolladores(); track p.id) {
+              <option [value]="p.id" [selected]="p.id === responsableId()">{{ p.nombreCompleto }}</option>
+            }
+          </select>
+          @if (faltaResponsable()) {
+            <small class="mensaje-campo">Elige al Desarrollador.</small>
+          }
+        </label>
+      }
+
+      @case ('NO_REPRODUCIBLE') {
+        <label class="campo">
+          <span>Motivo <b>*</b></span>
+          <textarea #primero rows="3" [class.con-error]="faltaTexto()"
+                    placeholder="Ej. probé con el cliente 12 en producción y descarga bien; pedí más datos a quien lo reportó"
+                    (input)="texto.set($any($event.target).value)"></textarea>
+          @if (faltaTexto()) {
+            <small class="mensaje-campo">Escribe el motivo.</small>
+          } @else {
+            <small class="pista">Si vuelve a pasar, el Líder lo reabre desde el detalle.</small>
+          }
+        </label>
+      }
+
+      @case ('PUBLICAR_PARCHE') {
+        @if (ticket().parche; as p) {
+          <p class="texto">Salen juntos los hotfix aprobados del proyecto:</p>
+          <ul class="revisiones">
+            @for (b of p.bugs; track b.codigo) {
+              <li><i class="bi bi-check-circle-fill ok"></i> {{ b.codigo }} · {{ b.titulo }}</li>
+            }
+          </ul>
+          <ul class="pasos">
+            <li><i class="bi bi-sign-merge-right"></i> Merge de las ramas hotfix a main y tag {{ p.version }}</li>
+            <li><i class="bi bi-rocket-takeoff"></i> Despliegue a producción</li>
+            <li><i class="bi bi-arrow-return-left"></i> La corrección regresa sola a develop</li>
+          </ul>
+          <p class="pista">Después, un Analista verifica en producción que la falla desapareció.</p>
+        }
+      }
+
+      @case ('APROBAR_MEJORA') {
+        <label class="campo">
+          <span>Desarrollador que la hará <b>*</b></span>
+          <select [class.con-error]="faltaResponsable()" (change)="elegirResponsable($any($event.target).value)">
+            <option value="">Elige al Desarrollador</option>
+            @for (p of desarrolladores(); track p.id) {
+              <option [value]="p.id" [selected]="p.id === responsableId()">{{ p.nombreCompleto }}</option>
+            }
+          </select>
+          @if (faltaResponsable()) {
+            <small class="mensaje-campo">Elige al Desarrollador.</small>
+          } @else {
+            <small class="pista">Al iniciar se crea la rama {{ 'feature/' + ticket().codigo.toLowerCase() + '-…' }}</small>
+          }
+        </label>
+      }
+
+      @case ('RETIRAR') {
+        <label class="campo">
+          <span>Motivo (opcional)</span>
+          <textarea #primero rows="3" placeholder="Ej. me faltó la validación del contrato activo"
+                    (input)="texto.set($any($event.target).value)"></textarea>
+          <small class="pista">Queda en el historial del ticket.</small>
+        </label>
+      }
+    }
+  </form>
+
+  <div pie class="pie-modal">
+    <div class="botones">
+      <button type="button" class="boton boton-secundario" (click)="cancelar.emit()">
+        {{ confirmacion() === 'CANCELAR' ? 'Volver' : 'Cancelar' }}
+      </button>
+      @switch (confirmacion()) {
+        @case ('ENVIAR_QA') {
+          <button type="submit" form="form-confirmacion-ticket" class="boton boton-primario" [disabled]="enviando()">
+            <i class="bi bi-send"></i> {{ enviando() ? 'Enviando…' : accion() }}
+          </button>
+        }
+        @case ('BLOQUEAR') {
+          <button type="submit" form="form-confirmacion-ticket" class="boton boton-peligro" [disabled]="enviando()">
+            <i class="bi bi-slash-circle"></i> {{ enviando() ? 'Guardando…' : 'Marcar bloqueada' }}
+          </button>
+        }
+        @case ('RECHAZAR') {
+          <button type="submit" form="form-confirmacion-ticket" class="boton boton-peligro" [disabled]="enviando()">
+            <i class="bi bi-x-lg"></i> {{ enviando() ? 'Enviando…' : accion() }}
+          </button>
+        }
+        @case ('CANCELAR') {
+          <button type="submit" form="form-confirmacion-ticket" class="boton boton-peligro" [disabled]="enviando()">
+            <i class="bi bi-x-lg"></i> {{ enviando() ? 'Cancelando…' : 'Cancelar ticket' }}
+          </button>
+        }
+        @case ('CONFIRMAR') {
+          <button type="submit" form="form-confirmacion-ticket" class="boton boton-primario" [disabled]="enviando()">
+            <i class="bi bi-check-lg"></i> {{ enviando() ? 'Confirmando…' : 'Confirmar bug' }}
+          </button>
+        }
+        @case ('NO_REPRODUCIBLE') {
+          <button type="submit" form="form-confirmacion-ticket" class="boton boton-peligro" [disabled]="enviando()">
+            <i class="bi bi-x-lg"></i> {{ enviando() ? 'Guardando…' : 'No reproducible' }}
+          </button>
+        }
+        @case ('PUBLICAR_PARCHE') {
+          <button type="submit" form="form-confirmacion-ticket" class="boton boton-primario" [disabled]="enviando()">
+            <i class="bi bi-rocket-takeoff"></i> {{ enviando() ? 'Publicando…' : 'Publicar ' + (ticket().parche?.version ?? '') }}
+          </button>
+        }
+        @case ('APROBAR_MEJORA') {
+          <button type="submit" form="form-confirmacion-ticket" class="boton boton-primario" [disabled]="enviando()">
+            <i class="bi bi-check-lg"></i> {{ enviando() ? 'Aprobando…' : 'Aprobar mejora' }}
+          </button>
+        }
+        @case ('RETIRAR') {
+          <button type="submit" form="form-confirmacion-ticket" class="boton boton-primario" [disabled]="enviando()">
+            <i class="bi bi-arrow-counterclockwise"></i> {{ enviando() ? 'Retirando…' : accion() }}
+          </button>
+        }
+      }
+    </div>
+  </div>
+</app-modal>

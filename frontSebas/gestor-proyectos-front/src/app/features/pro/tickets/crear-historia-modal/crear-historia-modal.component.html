@@ -1,0 +1,198 @@
+<div class="ch-overlay" (click)="onOverlayClick($event)">
+  <div class="ch-modal" role="dialog" aria-modal="true" aria-labelledby="ch-title">
+
+    <!-- Encabezado -->
+    <div class="ch-header">
+      <div class="ch-header-icon" aria-hidden="true">
+        <i class="bi bi-journal-text"></i>
+      </div>
+      <div class="ch-header-text">
+        <h2 class="ch-title" id="ch-title">Nueva Historia de Usuario</h2>
+        <p class="ch-subtitle">
+          Se creará en estado <strong>Borrador</strong> dentro de la fase seleccionada.
+        </p>
+      </div>
+      <button class="ch-close" type="button" [disabled]="enviando()" (click)="cerrar.emit()" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Error global -->
+    @if (errorMsg()) {
+      <div class="ch-error-banner" role="alert">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <!-- Formulario -->
+    <form class="ch-body" [formGroup]="form" (ngSubmit)="submit()">
+
+      <!-- Fase (solo cuando no viene por @Input) -->
+      @if (mostrarSelectorFase) {
+        <div class="ch-field">
+          <label class="ch-label" for="ch-fase">
+            Fase <span class="ch-req" aria-hidden="true">*</span>
+          </label>
+          <div class="ch-select-wrap">
+            <select
+              id="ch-fase"
+              class="ch-select"
+              [class.ch-input--err]="faseControl.invalid && faseControl.touched"
+              formControlName="faseId"
+            >
+              <option [ngValue]="null" disabled>Selecciona una fase</option>
+              @for (f of fases(); track f.id) {
+                <option [ngValue]="f.id">{{ f.titulo }}</option>
+              }
+            </select>
+            <i class="bi bi-chevron-down ch-select-icon" aria-hidden="true"></i>
+          </div>
+          @if (faseControl.invalid && faseControl.touched) {
+            <span class="ch-hint ch-hint--err">La fase es obligatoria.</span>
+          }
+        </div>
+      }
+
+      <!-- Título -->
+      <div class="ch-field">
+        <label class="ch-label" for="ch-titulo">
+          Título <span class="ch-req" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="ch-titulo"
+          type="text"
+          class="ch-input"
+          [class.ch-input--err]="titulo.invalid && titulo.touched"
+          formControlName="titulo"
+          placeholder="Como usuario quiero…"
+          maxlength="255"
+          autocomplete="off"
+        />
+        <div class="ch-row-hint">
+          @if (titulo.invalid && titulo.touched) {
+            <span class="ch-hint ch-hint--err">
+              @if (titulo.hasError('required')) { El título es obligatorio. }
+              @else if (titulo.hasError('maxlength')) { Máximo 255 caracteres. }
+            </span>
+          } @else {
+            <span></span>
+          }
+          <span class="ch-counter">{{ titulo.value?.length ?? 0 }}/255</span>
+        </div>
+      </div>
+
+      <!-- Descripción -->
+      <div class="ch-field">
+        <label class="ch-label" for="ch-desc">
+          Descripción <span class="ch-req" aria-hidden="true">*</span>
+        </label>
+        <textarea
+          id="ch-desc"
+          class="ch-textarea"
+          [class.ch-input--err]="descripcion.invalid && descripcion.touched"
+          formControlName="descripcion"
+          placeholder="Describe el objetivo y contexto de esta historia"
+          rows="4"
+        ></textarea>
+        @if (descripcion.invalid && descripcion.touched) {
+          <span class="ch-hint ch-hint--err">La descripción es obligatoria.</span>
+        }
+      </div>
+
+      <!-- Prioridad -->
+      <div class="ch-field">
+        <label class="ch-label" for="ch-prio">
+          Prioridad <span class="ch-req" aria-hidden="true">*</span>
+        </label>
+        <div class="ch-select-wrap">
+          <select
+            id="ch-prio"
+            class="ch-select"
+            [class.ch-input--err]="prioridadCtrl.invalid && prioridadCtrl.touched"
+            formControlName="idPrioridadTicket"
+          >
+            <option [ngValue]="null" disabled>Selecciona una prioridad</option>
+            @for (p of prioridades(); track p.id) {
+              <option [ngValue]="p.id">{{ p.nombre }}</option>
+            }
+          </select>
+          <i class="bi bi-chevron-down ch-select-icon" aria-hidden="true"></i>
+        </div>
+        @if (prioridadCtrl.invalid && prioridadCtrl.touched) {
+          <span class="ch-hint ch-hint--err">La prioridad es obligatoria.</span>
+        }
+      </div>
+
+      <!-- Responsable -->
+      <div class="ch-field">
+        <label class="ch-label" for="ch-resp">Responsable</label>
+        <div class="ch-select-wrap">
+          <select id="ch-resp" class="ch-select" formControlName="idUsuarioResponsable"
+                  [disabled]="cargandoResponsables()">
+            @if (cargandoResponsables()) {
+              <option [ngValue]="null">Cargando responsables...</option>
+            } @else {
+              <option [ngValue]="null">Sin responsable</option>
+              @for (r of responsables(); track r.id) {
+                <option [ngValue]="r.id">{{ r.nombreCompleto }}</option>
+              }
+            }
+          </select>
+          <i class="bi bi-chevron-down ch-select-icon" aria-hidden="true"></i>
+        </div>
+        @if (errorResponsables()) {
+          <span class="ch-hint ch-hint--err">{{ errorResponsables() }}</span>
+        }
+      </div>
+
+      <!-- Fechas -->
+      <div class="ch-dates-row">
+        <div class="ch-field">
+          <label class="ch-label" for="ch-finicio">Fecha inicio</label>
+          <input
+            id="ch-finicio"
+            type="date"
+            class="ch-input"
+            formControlName="fechaInicio"
+          />
+        </div>
+
+        <div class="ch-field">
+          <label class="ch-label" for="ch-fvenc">Fecha vencimiento</label>
+          <input
+            id="ch-fvenc"
+            type="date"
+            class="ch-input"
+            [class.ch-input--err]="form.hasError('fechaVencAnterior') && fechaVencCtrl.touched"
+            formControlName="fechaVencimiento"
+          />
+          @if (form.hasError('fechaVencAnterior') && fechaVencCtrl.touched) {
+            <span class="ch-hint ch-hint--err">No puede ser anterior a la fecha de inicio.</span>
+          }
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="ch-footer">
+        <button type="button" class="ch-btn ch-btn--ghost" [disabled]="enviando()" (click)="cerrar.emit()">
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="ch-btn ch-btn--primary"
+          [disabled]="form.invalid || enviando()"
+        >
+          @if (enviando()) {
+            <span class="ch-spinner" aria-hidden="true"></span>
+            Creando...
+          } @else {
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            Crear historia
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
