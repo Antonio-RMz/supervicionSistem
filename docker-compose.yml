@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: sebas_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gestor_proyectos
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./backSebas/gestor_proyectos.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+  backend:
+    build: ./backSebas/gestor_proyectos_back
+    container_name: sebas_backend
+    ports:
+      - "8080:8080" # <-- Corregido: Apunta al puerto 8080 de Java
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/gestor_proyectos
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - db
+    restart: always
+
+  frontend:
+    build: ./frontSebas/gestor-proyectos-front
+    container_name: sebas_frontend
+    ports:
+      - "8081:80" # <-- Corregido: Evita el choque con kanboard
+    depends_on:
+      - backend
+    restart: always
