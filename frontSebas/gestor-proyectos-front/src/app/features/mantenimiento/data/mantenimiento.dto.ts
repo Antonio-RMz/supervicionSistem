@@ -26,6 +26,11 @@ export interface TicketMantenimientoDto {
   responsableId: number | null;
   responsableNombre: string | null;
   porConfirmar: boolean;
+  /** null si se reportó solo con imagen */
+  descripcion: string | null;
+  /** la primera imagen, para la miniatura; null si no tiene */
+  imagenId: number | null;
+  imagenes: number;
 }
 
 /** JSON de GET /api/equipo/proyectos/{id}/mantenimiento/nuevo: lo que piden los modales (PDF págs. 38 y 39). */
@@ -63,6 +68,7 @@ export interface ReporteFallaRequest {
   moduloId: number;
   /** provisional: CRITICA, ALTA, MEDIA o BAJA */
   severidad: string;
-  descripcion: string;
+  /** opcional si el reporte lleva imagen */
+  descripcion: string | null;
   historiaOrigenId: number | null;
 }

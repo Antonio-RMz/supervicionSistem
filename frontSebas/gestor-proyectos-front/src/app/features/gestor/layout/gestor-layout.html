@@ -1,7 +1,7 @@
 <aside class="lateral">
   <div class="marca">
-    <span class="logo"><i class="bi bi-bar-chart-steps"></i></span>
-    <strong class="texto">Gestor de Proyectos</strong>
+    <app-logo-inova class="texto" [tamano]="24" />
+    <app-logo-inova class="logo-icono" [soloIcono]="true" [tamano]="30" />
     <button type="button" class="contraer" (click)="alternarMenu()" [attr.aria-expanded]="!contraido()"
             [title]="contraido() ? 'Mostrar el menú' : 'Contraer el menú'">
       <i class="bi" [class.bi-chevron-double-left]="!contraido()" [class.bi-chevron-double-right]="contraido()"></i>
@@ -66,10 +66,7 @@
 
     <app-boton-tema class="tema" />
 
-    <button type="button" class="campana" title="Notificaciones (próximamente)">
-      <i class="bi bi-bell"></i>
-      <span class="solo-lectores">Notificaciones</span>
-    </button>
+    <app-campana />
   </header>
 
   <main class="contenido">

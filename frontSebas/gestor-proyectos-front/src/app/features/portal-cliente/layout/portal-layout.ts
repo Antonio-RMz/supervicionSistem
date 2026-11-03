@@ -5,11 +5,12 @@ import { filter, map } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { BotonTema } from '../../../shared/components/boton-tema/boton-tema';
 import { PortalClienteStore } from '../data/portal-cliente.store';
+import { LogoInova } from '../../../shared/components/logo-inova/logo-inova';
 
 /** Barra superior del portal + el contenido de cada pantalla. */
 @Component({
   selector: 'app-portal-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BotonTema],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BotonTema, LogoInova],
   templateUrl: './portal-layout.html',
   styleUrl: './portal-layout.scss',
 })

@@ -34,6 +34,11 @@ export class PerfilUsuarioPage {
   protected readonly cambiandoEstado = signal(false);
   protected readonly errorEstado = signal<string | null>(null);
 
+  /** El usuario de git mientras se edita; null = no se está editando. */
+  protected readonly editandoGit = signal<string | null>(null);
+  protected readonly guardandoGit = signal(false);
+  protected readonly errorGit = signal<string | null>(null);
+
   protected readonly soyYo = computed(() => this.perfil()?.id === this.miId);
 
   protected readonly haceCuanto = haceCuanto;
@@ -61,6 +66,30 @@ export class PerfilUsuarioPage {
         this.perfil.set(perfil);
         this.cargando.set(false);
       });
+  }
+
+  protected guardarGit(): void {
+    const perfil = this.perfil();
+    const valor = this.editandoGit();
+    if (!perfil || valor === null) return;
+    const limpio = valor.trim().replace(/^@/, '').trim();
+    if (/\s/.test(limpio)) {
+      this.errorGit.set('El usuario de git no lleva espacios.');
+      return;
+    }
+    this.guardandoGit.set(true);
+    this.errorGit.set(null);
+    this.service.cambiarUsuarioGit(perfil.id, limpio).subscribe({
+      next: () => {
+        this.guardandoGit.set(false);
+        this.editandoGit.set(null);
+        this.perfil.set({ ...perfil, usuarioGit: limpio || null });
+      },
+      error: (e) => {
+        this.guardandoGit.set(false);
+        this.errorGit.set(mensajeDeError(e, 'No pudimos guardar el usuario de git.'));
+      },
+    });
   }
 
   /** Desactivar pide un segundo clic; activar es inmediato. */

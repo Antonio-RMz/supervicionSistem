@@ -11,7 +11,7 @@ import { Etiqueta } from '../../../../shared/models/etiqueta.model';
 import { mensajeDeError } from '../../../../shared/utils/errores';
 import { etiquetaHistoria } from '../../../../shared/utils/tickets';
 import { HistoriasService } from '../../data/historias.service';
-import { FaseOpcion, HistoriaGuardada, PreparacionHistoria } from '../../models/historias.models';
+import { DesarrolladorAsignado, FaseOpcion, HistoriaGuardada, PreparacionHistoria } from '../../models/historias.models';
 
 const BORRADOR: Etiqueta = { texto: 'Borrador', tono: 'gris' };
 
@@ -65,6 +65,8 @@ export class NuevaHistoriaPage implements OnInit {
   protected readonly preparacion = signal<PreparacionHistoria | null>(null);
   protected readonly criterios = signal<string[]>([]);
   protected readonly moduloIds = signal<number[]>([]);
+  /** A quiénes les llega la historia; cada uno, opcionalmente, en un repositorio. */
+  protected readonly desarrolladores = signal<DesarrolladorAsignado[]>([]);
 
   protected readonly cargando = signal(true);
   protected readonly enviando = signal(false);
@@ -114,10 +116,11 @@ export class NuevaHistoriaPage implements OnInit {
       next: ({ preparacion, historia }) => {
         this.preparacion.set(preparacion);
         this.guardada.set(historia);
-        const { criterios, moduloIds, borrador, ...datos } = historia.datos;
+        const { criterios, moduloIds, desarrolladores, borrador, ...datos } = historia.datos;
         this.form.patchValue(datos);
         this.criterios.set(criterios);
         this.moduloIds.set(moduloIds);
+        this.desarrolladores.set(desarrolladores);
         this.cargando.set(false);
       },
       error: (e) => {
@@ -136,6 +139,29 @@ export class NuevaHistoriaPage implements OnInit {
 
   protected alternarModulo(id: number): void {
     this.moduloIds.update((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
+  }
+
+  /** Los repositorios elegidos para la historia: las opciones del repositorio de cada Desarrollador. */
+  protected readonly repositoriosElegidos = computed(() =>
+    (this.faseElegida()?.modulos ?? []).filter((m) => this.moduloIds().includes(m.id)),
+  );
+
+  protected asignado(usuarioId: number): DesarrolladorAsignado | undefined {
+    return this.desarrolladores().find((d) => d.usuarioId === usuarioId);
+  }
+
+  protected alternarDesarrollador(usuarioId: number): void {
+    this.desarrolladores.update((ds) =>
+      ds.some((d) => d.usuarioId === usuarioId)
+        ? ds.filter((d) => d.usuarioId !== usuarioId)
+        : [...ds, { usuarioId, moduloId: null }],
+    );
+  }
+
+  /** "" = todos los repositorios de la historia. */
+  protected elegirRepositorio(usuarioId: number, valor: string): void {
+    const moduloId = valor ? Number(valor) : null;
+    this.desarrolladores.update((ds) => ds.map((d) => (d.usuarioId === usuarioId ? { ...d, moduloId } : d)));
   }
 
   protected elegirPuntos(puntos: number): void {
@@ -182,6 +208,7 @@ export class NuevaHistoriaPage implements OnInit {
       borrador,
       criterios: this.criterios(),
       moduloIds: this.moduloIds(),
+      desarrolladores: this.desarrolladores(),
     };
     this.enviando.set(true);
     this.error.set(null);

@@ -25,6 +25,33 @@
         <span class="punto">·</span>
         <span>{{ p.ultimoAcceso ? 'Último acceso: ' + diaYHora(p.ultimoAcceso) : 'Nunca ha entrado' }}</span>
       </p>
+      <!-- Usuario de git: lo captura el Admin -->
+      <div class="git">
+        <i class="bi bi-git"></i>
+        @if (editandoGit() !== null) {
+          <input class="git-entrada" [value]="editandoGit()" (input)="editandoGit.set($any($event.target).value)"
+                 (keydown.enter)="guardarGit()" (keydown.escape)="editandoGit.set(null); errorGit.set(null)"
+                 placeholder="usuario-de-git" aria-label="Usuario de git" autocomplete="off" spellcheck="false" maxlength="101" />
+          <button type="button" class="boton boton-primario chico" [disabled]="guardandoGit()" (click)="guardarGit()">
+            {{ guardandoGit() ? 'Guardando…' : 'Guardar' }}
+          </button>
+          <button type="button" class="boton boton-secundario chico" (click)="editandoGit.set(null); errorGit.set(null)">Cancelar</button>
+        } @else {
+          @if (p.usuarioGit) {
+            <span class="git-usuario">{{ p.usuarioGit }}</span>
+          } @else {
+            <span class="git-vacio">Sin usuario de git</span>
+          }
+          <button type="button" class="git-editar" (click)="editandoGit.set(p.usuarioGit ?? '')"
+                  [title]="p.usuarioGit ? 'Cambiar usuario de git' : 'Agregar usuario de git'">
+            <i class="bi" [class.bi-pencil]="p.usuarioGit" [class.bi-plus-lg]="!p.usuarioGit"></i>
+            {{ p.usuarioGit ? 'Cambiar' : 'Agregar' }}
+          </button>
+        }
+      </div>
+      @if (errorGit()) {
+        <small class="mensaje-campo">{{ errorGit() }}</small>
+      }
     </div>
     <div class="acciones">
       <a class="boton boton-secundario" routerLink="/usuarios" [queryParams]="{ editar: p.id }">

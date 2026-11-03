@@ -94,7 +94,8 @@
     &:disabled { opacity: 0.4; cursor: default; }
   }
 
-  .centrar { border-left: 1px solid var(--borde); }
+  .centrar,
+  .pantalla { border-left: 1px solid var(--borde); }
 }
 
 // ─── Lienzo y panel ──────────────────────────────────────────────────────────
@@ -355,6 +356,25 @@
   margin: 0;
   color: var(--texto-suave);
   font-size: 0.8rem;
+}
+
+// ─── Pantalla completa: el árbol y su panel llenan todo el monitor ───────────
+:host(:fullscreen) {
+  padding: 1.25rem;
+  background: var(--fondo);
+
+  .columnas-arbol {
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .lienzo {
+    min-height: 0;
+    max-height: none;
+  }
+
+  .panel { overflow-y: auto; }
 }
 
 @media (max-width: 1100px) {

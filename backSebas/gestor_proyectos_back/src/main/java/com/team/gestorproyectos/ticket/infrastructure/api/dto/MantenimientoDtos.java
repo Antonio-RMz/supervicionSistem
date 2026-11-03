@@ -27,7 +27,8 @@ public final class MantenimientoDtos {
 
     /** @param severidad CRITICA, ALTA, MEDIA o BAJA; null si aún no se confirma */
     public record TicketResponse(Long id, String tipo, String codigo, String titulo, String estado, String severidad,
-                                 String rama, Long responsableId, String responsableNombre, boolean porConfirmar) {
+                                 String rama, Long responsableId, String responsableNombre, boolean porConfirmar,
+                                 String descripcion, Long imagenId, int imagenes) {
     }
 
     public record ParcheResponse(String version, LocalDateTime fecha, int bugs) {
@@ -58,7 +59,7 @@ public final class MantenimientoDtos {
             @NotBlank @Size(max = 200) String titulo,
             @NotNull Long moduloId,
             @NotBlank String severidad,
-            @NotBlank String descripcion,
+            String descripcion,
             Long historiaOrigenId) {
     }
 }

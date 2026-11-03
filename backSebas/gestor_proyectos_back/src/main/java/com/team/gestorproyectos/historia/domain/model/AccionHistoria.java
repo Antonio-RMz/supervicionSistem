@@ -9,7 +9,11 @@ import com.team.gestorproyectos.shared.domain.port.PermisosPort;
  * Líder), Aceptar o Devolver (Analista, que la prueba completa) e Integrar (Líder). Lo demás pasa solo: con su
  * primera Actividad queda Lista para desarrollo, y la fase la arranca (al iniciarse, o en ese momento si ya corre).
  *
- * @param decide  quién la hace: el Analista de la historia o el Líder del proyecto
+ * Una historia con Desarrolladores asignados (sin Actividades como ticket) además la Inician y Terminan sus
+ * Desarrolladores; si el proyecto pide PR, el Líder revisa antes de que pase a validación.
+ *
+ * @param decide  quién la hace: el Analista de la historia, el Líder del proyecto o uno de sus Desarrolladores
+ * @param permiso el permiso que pide; null = basta con ser uno de sus Desarrolladores
  * @param enLista si aparece como botón en las listas; Devolver, Descartar y demás viven en el detalle
  */
 public enum AccionHistoria {
@@ -33,9 +37,26 @@ public enum AccionHistoria {
     INTEGRAR("Integrar a develop", Set.of("ACEPTADA"), "INTEGRADA", PermisosPort.INTEGRAR_HISTORIAS, Decide.LIDER,
             true),
     REABRIR("Reabrir historia", Set.of("DESCARTADA"), "BORRADOR", PermisosPort.DESCARTAR_HISTORIAS, Decide.LIDER,
-            false);
+            false),
+    // ─── Historia con Desarrolladores (sin Actividades) ───
+    // Ya Lista y con su fase corriendo, uno de sus Desarrolladores la empieza.
+    INICIAR_DESARROLLO("Iniciar desarrollo", Set.of("LISTA_DESARROLLO"), "EN_DESARROLLO", null, Decide.DESARROLLADOR,
+            true),
+    // Todos terminaron su parte: a validación, o antes a revisión del Líder si el proyecto pide PR.
+    TERMINAR_DESARROLLO("Terminar desarrollo", Set.of("EN_DESARROLLO"), "EN_VALIDACION", null,
+            Decide.DESARROLLADOR, true),
+    APROBAR_REVISION("Aprobar revisión", Set.of("EN_REVISION"), "EN_VALIDACION", PermisosPort.INTEGRAR_HISTORIAS,
+            Decide.LIDER, true),
+    PEDIR_CAMBIOS("Pedir cambios", Set.of("EN_REVISION"), "EN_DESARROLLO", PermisosPort.INTEGRAR_HISTORIAS,
+            Decide.LIDER, false);
 
-    public enum Decide { ANALISTA, LIDER }
+    public enum Decide { ANALISTA, LIDER, DESARROLLADOR }
+
+    /** Las que solo existen en una historia con Desarrolladores. */
+    public boolean deTrabajoDirecto() {
+        return this == INICIAR_DESARROLLO || this == TERMINAR_DESARROLLO || this == APROBAR_REVISION
+                || this == PEDIR_CAMBIOS;
+    }
 
     private final String texto;
     private final Set<String> desde;
@@ -77,9 +98,9 @@ public enum AccionHistoria {
         return enLista;
     }
 
-    /** Descartar y Devolver quedan en el historial con su motivo (PDF pág. 33). */
+    /** Descartar, Devolver y Pedir cambios quedan en el historial con su motivo (PDF pág. 33). */
     public boolean pideMotivo() {
-        return this == DESCARTAR || this == DEVOLVER;
+        return this == DESCARTAR || this == DEVOLVER || this == PEDIR_CAMBIOS;
     }
 
     /** Regresa la historia a desarrollo: Devolver reabre un ticket o crea un bug. */

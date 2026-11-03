@@ -81,7 +81,7 @@ export function aAccesosDto(accesos: Accesos): AccesosDto {
 }
 
 export function aNuevoUsuarioDto(nuevo: NuevoUsuario): NuevoUsuarioDto {
-  return { ...nuevo, apellidos: nuevo.apellidos.trim() || null };
+  return { ...nuevo, apellidos: nuevo.apellidos.trim() || null, usuarioGit: nuevo.usuarioGit.trim() || null };
 }
 
 export function aPerfil(dto: PerfilDto, ahora = new Date()): PerfilUsuario {
@@ -94,6 +94,7 @@ export function aPerfil(dto: PerfilDto, ahora = new Date()): PerfilUsuario {
     activo: dto.activo,
     tonoAvatar: tonoDeAvatar(dto.id, dto.activo),
     ultimoAcceso: aFechaHora(dto.ultimoAcceso),
+    usuarioGit: dto.usuarioGit ?? null,
     metricas: dto.metricas,
     trabajandoAhora: dto.trabajandoAhora.map(aTarea),
     leToca: dto.leToca.map(aTarea),

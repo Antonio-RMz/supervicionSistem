@@ -27,12 +27,20 @@ class TicketParaMoverTest {
     private static TicketParaMover ticket(String tipo, String estado, Long tester, List<String> dependencias,
                                           boolean autovalidacion, String faseEstado) {
         var item = new ItemTrabajo(35L, tipo, 35, "Recuperar contraseña por correo", estado, "ALTA",
-                PEDRO, tester, JORGE, "EN_DESARROLLO", AHORA, AHORA);
+                PEDRO, tester, JORGE, "EN_DESARROLLO", AHORA, AHORA, true);
         return new TicketParaMover(item, 10L, JORGE, "HU-0016", faseEstado, false, null, null, autovalidacion, true, true, dependencias);
     }
 
     private static TicketParaMover ticket(String tipo, String estado) {
         return ticket(tipo, estado, ANA, List.of(), false);
+    }
+
+    /** Una Actividad de un proyecto en la forma Normal que no pide PR. */
+    private static TicketParaMover sinPr(String estado) {
+        var item = new ItemTrabajo(35L, "ACTV", 35, "Recuperar contraseña por correo", estado, "ALTA",
+                PEDRO, ANA, JORGE, "EN_DESARROLLO", AHORA, AHORA, false);
+        return new TicketParaMover(item, 10L, JORGE, "HU-0016", "EN_CURSO", false, null, null, false, true, true,
+                List.of());
     }
 
     @Test
@@ -110,7 +118,7 @@ class TicketParaMoverTest {
     /** Una Actividad que hizo el propio Líder, con su PR en revisión. */
     private static TicketParaMover delLider(boolean autovalidacion) {
         var item = new ItemTrabajo(35L, "ACTV", 35, "Recuperar contraseña", "EN_REVISION", "ALTA",
-                JORGE, null, JORGE, "EN_DESARROLLO", AHORA, AHORA);
+                JORGE, null, JORGE, "EN_DESARROLLO", AHORA, AHORA, true);
         return new TicketParaMover(item, 10L, JORGE, "HU-0016", "EN_CURSO", false, null, null, autovalidacion, true,
                 true, List.of());
     }
@@ -177,7 +185,7 @@ class TicketParaMoverTest {
     @Test
     void conLaHistoriaSinIniciarSeExplicaPorQueNo() {
         var item = new ItemTrabajo(35L, "ACTV", 35, "Recuperar contraseña", "POR_HACER", "ALTA",
-                PEDRO, ANA, JORGE, "LISTA", AHORA, AHORA);
+                PEDRO, ANA, JORGE, "LISTA", AHORA, AHORA, true);
         var ticket = new TicketParaMover(item, 10L, JORGE, "HU-0016", "EN_CURSO", false, null, null, false, true, true, List.of());
         assertThat(ticket.opciones(PEDRO).get(0).impedimentos()).containsExactly("Su historia HU-0016 aún no se inicia");
         assertThatThrownBy(() -> ticket.mover(PEDRO, TipoMovimiento.AVANZAR, "POR_HACER", null))
@@ -187,7 +195,7 @@ class TicketParaMoverTest {
     /** Un bug de la fase Mantenimiento con la severidad dada. */
     private static TicketParaMover bug(String estado, String severidad, Long responsable) {
         var item = new ItemTrabajo(50L, "BUGS", 50, "Error 500 en facturas", estado, "ALTA",
-                responsable, ANA, ANA, null, AHORA, AHORA);
+                responsable, ANA, ANA, null, AHORA, AHORA, true);
         return new TicketParaMover(item, 10L, JORGE, null, "EN_CURSO", true, severidad, null, false, true, true,
                 List.of());
     }
@@ -267,7 +275,7 @@ class TicketParaMoverTest {
 
     private static TicketParaMover mejora(String estado, Long responsable, Long tester) {
         var item = new ItemTrabajo(36L, "MEJR", 36, "Filtro por fecha en pedidos", estado, "ALTA",
-                responsable, tester, JORGE, "EN_DESARROLLO", AHORA, AHORA);
+                responsable, tester, JORGE, "EN_DESARROLLO", AHORA, AHORA, true);
         return new TicketParaMover(item, 10L, JORGE, "HU-0016", "EN_CURSO", false, null, null, false, false, true,
                 List.of());
     }
@@ -288,5 +296,19 @@ class TicketParaMoverTest {
                 .hasMessageContaining("por qué se rechaza");
         assertThat(propuesta.mover(JORGE, TipoMovimiento.RECHAZAR, "PROPUESTA", "No entra en esta fase").estadoNuevo())
                 .isEqualTo("RECHAZADA");
+    }
+
+    @Test
+    void sinPrElDesarrolladorTerminaLaActividad() {
+        assertThat(sinPr("EN_PROGRESO").opciones(PEDRO)).extracting(TicketParaMover.Opcion::texto)
+                .contains("Terminar").doesNotContain("Enviar PR");
+        Transicion t = sinPr("EN_PROGRESO").mover(PEDRO, TipoMovimiento.AVANZAR, "EN_PROGRESO", null);
+        assertThat(t.estadoNuevo()).isEqualTo("APROBADA");
+        assertThat(t.accion()).isEqualTo("Terminar");
+        assertThatThrownBy(() -> sinPr("EN_PROGRESO").mover(JORGE, TipoMovimiento.AVANZAR, "EN_PROGRESO", null))
+                .isInstanceOf(AccesoDenegadoException.class);
+        // Con PR sigue igual.
+        assertThat(ticket("ACTV", "EN_PROGRESO").mover(PEDRO, TipoMovimiento.AVANZAR, "EN_PROGRESO", null)
+                .estadoNuevo()).isEqualTo("EN_REVISION");
     }
 }

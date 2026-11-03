@@ -3,6 +3,20 @@
 
 export type Actor = 'responsable' | 'tester' | 'lider' | null;
 
+/**
+ * Cómo se trabaja el repositorio del proyecto; se elige al crearlo y ya no cambia.
+ * Las dos trabajan en develop y suben a main al terminar la fase.
+ * GITFLOW: la Actividad siempre pasa por PR y el Líder integra cada historia aceptada.
+ * NORMAL: todo sube directo a develop (con o sin PR) y la historia queda integrada al aceptarla.
+ */
+export type FormaTrabajo = 'GITFLOW' | 'NORMAL';
+
+/** "Gitflow (develop + main)", "Normal (develop + main) · con PR"... */
+export function textoFormaTrabajo(forma: FormaTrabajo, requierePr: boolean): string {
+  if (forma === 'GITFLOW') return 'Gitflow (develop + main)';
+  return `Normal (develop + main) · ${requierePr ? 'con PR' : 'sin PR'}`;
+}
+
 /** El tipo de usuario que actúa en cada paso, como se ve en el Flujo. */
 export const ROL_DE_ACTOR: Record<NonNullable<Actor>, string> = {
   responsable: 'Desarrollador',
@@ -29,7 +43,6 @@ export interface PasoFlujo {
 }
 
 export const TIPOS_TICKET: { tipo: string; nombre: string; descripcion: string }[] = [
-  { tipo: 'ACTV', nombre: 'Actividad', descripcion: 'Funcionalidad nueva' },
   { tipo: 'BUGS', nombre: 'Error', descripcion: 'Algo que no funciona' },
   { tipo: 'MEJR', nombre: 'Mejora', descripcion: 'Cambio a algo existente' },
 ];
@@ -45,6 +58,15 @@ export const FLUJOS: Record<string, PasoFlujo[]> = {
     { codigo: 'EN_PROGRESO', estado: 'En progreso', actor: 'responsable', accion: 'envía su PR' },
     { codigo: 'EN_REVISION', estado: 'PR en revisión', actor: 'lider', accion: 'revisa el PR' },
     { codigo: 'APROBADA', estado: 'Aprobada', actor: null, accion: 'QA prueba la historia completa' },
+    { codigo: 'INTEGRADA', estado: 'Integrada', actor: null, accion: 'se cierra al publicar la fase' },
+    { codigo: 'CERRADA', estado: 'Cerrada', actor: null, accion: '' },
+  ],
+  // Forma Normal sin PR: el Desarrollador la termina; la valida el Analista con su historia.
+  ACTV_SIN_PR: [
+    { codigo: 'BORRADOR', estado: 'Borrador', actor: 'lider', accion: 'la marca Lista' },
+    { codigo: 'POR_HACER', estado: 'Por hacer', actor: 'responsable', accion: 'inicia' },
+    { codigo: 'EN_PROGRESO', estado: 'En progreso', actor: 'responsable', accion: 'la termina' },
+    { codigo: 'APROBADA', estado: 'Terminada', actor: null, accion: 'el Analista valida la historia completa' },
     { codigo: 'INTEGRADA', estado: 'Integrada', actor: null, accion: 'se cierra al publicar la fase' },
     { codigo: 'CERRADA', estado: 'Cerrada', actor: null, accion: '' },
   ],
@@ -126,6 +148,42 @@ export const FLUJO_HISTORIA: PasoSimple[] = [
   { codigo: 'INTEGRADA', estado: 'Integrada', roles: [], detalle: 'se cierra al publicar' },
   { codigo: 'CERRADA', estado: 'Cerrada', roles: [], detalle: '' },
 ];
+
+/** Historia en la forma Normal: sin Integrar; al aceptarla queda integrada (su código ya está en develop). */
+export const FLUJO_HISTORIA_NORMAL: PasoSimple[] = [
+  ...FLUJO_HISTORIA.slice(0, 4),
+  { codigo: 'EN_DESARROLLO', estado: 'En desarrollo', roles: ['Desarrollador'],
+    detalle: 'trabaja sus tickets; pasa a validación al terminarlos' },
+  { codigo: 'EN_VALIDACION', estado: 'En validación', roles: ['Analista'], detalle: 'la prueba completa; acepta o devuelve' },
+  { codigo: 'INTEGRADA', estado: 'Aceptada', roles: [], detalle: 'ya está en develop; se cierra al publicar' },
+  { codigo: 'CERRADA', estado: 'Cerrada', roles: [], detalle: '' },
+];
+
+/**
+ * Historia con Desarrolladores (sin Actividades): le llega directo a ellos, la inician y la terminan.
+ * Con PR (o en Gitflow), el Líder la revisa antes de que la valide su Analista.
+ */
+export function flujoHistoriaConDesarrolladores(formaTrabajo: FormaTrabajo, requierePr: boolean): PasoSimple[] {
+  const pasos: PasoSimple[] = [
+    ...FLUJO_HISTORIA.slice(0, 2),
+    { codigo: 'LISTA_DESARROLLO', estado: 'Lista para desarrollo', roles: ['Desarrollador'],
+      detalle: 'le llega a sus Desarrolladores; la inician cuando su fase corre' },
+    { codigo: 'EN_DESARROLLO', estado: 'En desarrollo', roles: ['Desarrollador'],
+      detalle: 'anotan lo que hacen y cada uno marca su parte; la terminan' },
+  ];
+  if (requierePr) {
+    pasos.push({ codigo: 'EN_REVISION', estado: 'En revisión', roles: ['Líder'], detalle: 'revisa el código; aprueba o pide cambios' });
+  }
+  pasos.push({ codigo: 'EN_VALIDACION', estado: 'En validación', roles: ['Analista'], detalle: 'la prueba completa; acepta o devuelve' });
+  if (formaTrabajo === 'GITFLOW') {
+    pasos.push({ codigo: 'ACEPTADA', estado: 'Aceptada', roles: ['Líder'], detalle: 'integra' },
+      { codigo: 'INTEGRADA', estado: 'Integrada', roles: [], detalle: 'se cierra al publicar' });
+  } else {
+    pasos.push({ codigo: 'INTEGRADA', estado: 'Aceptada', roles: [], detalle: 'ya está en develop; se cierra al publicar' });
+  }
+  pasos.push({ codigo: 'CERRADA', estado: 'Cerrada', roles: [], detalle: '' });
+  return pasos;
+}
 
 /** Fase (PDF pág. 20). Pausada se ve en En curso; Revertida, en Publicada; Cancelada queda fuera. */
 export const FLUJO_FASE: PasoSimple[] = [

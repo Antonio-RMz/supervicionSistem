@@ -68,6 +68,8 @@ export interface DetalleTicket {
   severidad: { codigo: string; texto: string; tono: Tono } | null;
   /** Bug de producción que se corrige desde main y sale en un parche (PDF pág. 23) */
   hotfix: boolean;
+  /** La Actividad termina con su PR aprobado; false en un proyecto Normal sin PR (el Desarrollador la termina) */
+  requierePr: boolean;
   /** Si es un hotfix aprobado: la versión y los bugs que saldrían con él */
   parche: { version: string; bugs: { codigo: string; titulo: string }[] } | null;
   estado: string;

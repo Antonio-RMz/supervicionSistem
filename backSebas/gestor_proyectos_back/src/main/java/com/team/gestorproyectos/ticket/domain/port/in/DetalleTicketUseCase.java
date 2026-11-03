@@ -7,6 +7,7 @@ public interface DetalleTicketUseCase {
 
     DetalleTicket detalle(Long proyectoId, Long ticketId, Long usuarioId, boolean esAdmin);
 
+
     /** Las subtareas son solo aviso: no cambian el estado del ticket. Las marca quien lo trabaja. */
     void marcarSubtarea(Long proyectoId, Long ticketId, Long subtareaId, boolean hecha, Long usuarioId,
                         boolean esAdmin);

@@ -49,9 +49,12 @@ export function aDetalle(dto: DetalleTicketDto, hoy = new Date()): DetalleTicket
     descripcion: i.descripcion,
     severidad: SEVERIDADES.find((s) => s.codigo === dto.severidad) ?? null,
     hotfix: dto.hotfix,
+    requierePr: dto.requierePr,
     parche: dto.parche,
     estado: i.estado,
-    etiqueta: etiquetaEstadoTicket(i.estado),
+    etiqueta: terminadaSinPr(i, dto.requierePr)
+      ? { ...etiquetaEstadoTicket(i.estado), texto: 'Terminada' }
+      : etiquetaEstadoTicket(i.estado),
     prioridad: etiquetaPrioridad(i.prioridad),
     capas: i.capas,
     modulo: i.modulo && {
@@ -83,7 +86,7 @@ export function aDetalle(dto: DetalleTicketDto, hoy = new Date()): DetalleTicket
       url: p.url,
     })),
     criterios: i.criterios,
-    flujo: flujoDe(i, dto.hotfix),
+    flujo: flujoDe(i, dto.hotfix, dto.requierePr),
     historial: i.historial.map((h) => {
       const fecha = aFechaHora(h.fecha);
       return {
@@ -115,8 +118,8 @@ export function aDetalle(dto: DetalleTicketDto, hoy = new Date()): DetalleTicket
 }
 
 /** Los pasos de su tipo con quién actúa en cada uno y en cuál va (PDF pág. 29, "Flujo"). */
-function flujoDe(i: InfoTicketDto, hotfix: boolean): PasoDelFlujo[] {
-  const pasos = FLUJOS[hotfix ? 'BUGS_HOTFIX' : i.tipo] ?? [];
+function flujoDe(i: InfoTicketDto, hotfix: boolean, requierePr: boolean): PasoDelFlujo[] {
+  const pasos = FLUJOS[hotfix ? 'BUGS_HOTFIX' : i.tipo === 'ACTV' && !requierePr ? 'ACTV_SIN_PR' : i.tipo] ?? [];
   const actual = pasos.findIndex((p) => p.codigo === (PASO_DE[i.estado] ?? i.estado));
   const primerNombre = (nombre: string | undefined) => nombre?.split(' ')[0] ?? 'Sin asignar';
   return pasos.map((p, n) => ({
@@ -129,6 +132,11 @@ function flujoDe(i: InfoTicketDto, hotfix: boolean): PasoDelFlujo[] {
     avance: actual < 0 ? 'pendiente' : n < actual || n === pasos.length - 1 && n === actual ? 'hecho'
       : n === actual ? 'actual' : 'pendiente',
   }));
+}
+
+/** Sin PR, "Aprobada" es la Actividad que su Desarrollador ya terminó. */
+function terminadaSinPr(i: InfoTicketDto, requierePr: boolean): boolean {
+  return !requierePr && i.tipo === 'ACTV' && i.estado === 'APROBADA';
 }
 
 /** "Pedro inició el ticket · se creó la rama", "Desbloqueado: ACTV-07 se terminó" */

@@ -28,15 +28,10 @@
   }
 }
 
-.logo {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--morado);
-  color: var(--sobre-color);
-  font-size: 1.1rem;
+// Separa el logo de la empresa del nombre del portal
+.portal {
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--borde);
 }
 
 .menu {

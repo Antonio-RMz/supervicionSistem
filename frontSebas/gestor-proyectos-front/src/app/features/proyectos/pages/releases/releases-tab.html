@@ -73,8 +73,8 @@
         <i class="bi bi-wrench"></i>
         <span class="nombre">{{ p.resumen }}</span>
         @if (p.mantenimientoFaseId) {
-          <a class="boton boton-secundario chico" [routerLink]="['/proyectos', proyectoId, 'mantenimiento']">
-            <i class="bi bi-arrow-right"></i> Ir a Mantenimiento
+          <a class="boton boton-secundario chico" [routerLink]="['/proyectos', proyectoId, 'bugs']">
+            <i class="bi bi-arrow-right"></i> Ir a Bugs
           </a>
         }
       </div>

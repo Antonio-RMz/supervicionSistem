@@ -7,7 +7,9 @@ import java.time.LocalDateTime;
  *
  * @param tipo           ACTV, BUGS, MEJR o HIST
  * @param responsableId  en una historia es su Analista
- * @param historiaEstado estado de la historia del ticket (null si no tiene o si el item es una historia)
+ * @param historiaEstado estado de la historia del ticket (null si no tiene o si el item es una historia);
+ *                       en la fila de cada Desarrollador de una historia, {@link #FILA_DE_DESARROLLADOR}
+ * @param requierePr     la Actividad termina con su PR aprobado; false en un proyecto Normal sin PR (se termina)
  */
 public record ItemTrabajo(
         Long id,
@@ -21,7 +23,18 @@ public record ItemTrabajo(
         Long creadoPorId,
         String historiaEstado,
         LocalDateTime creadoEn,
-        LocalDateTime actualizadoEn) {
+        LocalDateTime actualizadoEn,
+        boolean requierePr) {
+
+    /**
+     * Una historia con Desarrolladores sale una vez por cada uno (con él como responsable) mientras la desarrollan:
+     * esa fila lleva esta marca en historiaEstado. La fila normal de la historia es la de su Analista.
+     */
+    public static final String FILA_DE_DESARROLLADOR = "DEV";
+
+    public boolean esHistoriaDeDesarrollador() {
+        return "HIST".equals(tipo) && FILA_DE_DESARROLLADOR.equals(historiaEstado);
+    }
 
     /** "BUGS-31", "ACTV-05" */
     public String codigo() {

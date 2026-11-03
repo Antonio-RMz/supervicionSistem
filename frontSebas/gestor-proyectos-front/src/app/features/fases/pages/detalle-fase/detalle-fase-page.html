@@ -132,7 +132,7 @@
                 <span class="leyenda"><i class="punto-ambar"></i> Falta completar</span>
               }
             </p>
-            <ul class="filas">
+            <ul class="filas lista-historias">
               @for (h of f.historias; track h.id) {
                 <li class="historia">
                   <app-tipo-ticket tipo="HIST" />
@@ -141,17 +141,19 @@
                   @if (h.incompleta && planeandose(h.estado)) {
                     <i class="punto-ambar" title="Falta completar: Como / Quiero / Para, criterios o repositorios"></i>
                   }
-                  <span class="estado">{{ h.estadoTexto }}</span>
-                  <span class="detalle">{{ h.tickets }}</span>
-                  @if (h.analistaIniciales) {
-                    <app-avatar [iniciales]="h.analistaIniciales" tono="violeta" class="chico" title="Analista" />
-                  }
-                  @if (h.eliminable) {
-                    <button type="button" class="quitar" [disabled]="enviando() !== null"
-                            [title]="'Eliminar ' + h.codigo" (click)="historiaAEliminar.set(h)">
-                      <i class="bi bi-trash"></i><span class="solo-lectores">Eliminar {{ h.codigo }}</span>
-                    </button>
-                  }
+                  <div class="meta">
+                    <span class="estado">{{ h.estadoTexto }}</span>
+                    <span class="detalle">{{ h.tickets }}</span>
+                    @if (h.analistaIniciales) {
+                      <app-avatar [iniciales]="h.analistaIniciales" tono="violeta" class="chico" title="Analista" />
+                    }
+                    @if (h.eliminable) {
+                      <button type="button" class="quitar" [disabled]="enviando() !== null"
+                              [title]="'Eliminar ' + h.codigo" (click)="historiaAEliminar.set(h)">
+                        <i class="bi bi-trash"></i><span class="solo-lectores">Eliminar {{ h.codigo }}</span>
+                      </button>
+                    }
+                  </div>
                 </li>
               } @empty {
                 <li class="vacio">Esta fase aún no tiene historias.</li>

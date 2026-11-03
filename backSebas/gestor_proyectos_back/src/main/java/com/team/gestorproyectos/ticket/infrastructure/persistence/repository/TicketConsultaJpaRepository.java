@@ -36,7 +36,8 @@ public interface TicketConsultaJpaRepository extends Repository<TicketEntity, Lo
                     ORDER BY he.creado_en DESC, he.id DESC
                     LIMIT 1) AS ultimoEstadoAnterior,
                    f.id AS faseId, f.numero AS faseNumero, h.id AS historiaId, h.numero AS historiaNumero,
-                   UPPER(CONCAT(LEFT(r.nombre, 1), LEFT(COALESCE(r.apellidos, ''), 1))) AS responsableIniciales
+                   UPPER(CONCAT(LEFT(r.nombre, 1), LEFT(COALESCE(r.apellidos, ''), 1))) AS responsableIniciales,
+                   IF(p.requiere_pr, 'true', 'false') AS requierePr
             FROM ticket t
             JOIN proyecto p      ON p.id = t.proyecto_id
             JOIN fase f          ON f.id = t.fase_id
@@ -48,13 +49,25 @@ public interface TicketConsultaJpaRepository extends Repository<TicketEntity, Lo
             SELECT h.id, 'HIST', h.numero, h.titulo, h.estado, h.prioridad, h.analista_id, NULL,
                    h.creado_por, NULL, h.creado_en, h.actualizado_en, p.lider_id, NULL,
                    f.id, f.numero, NULL, NULL,
-                   UPPER(CONCAT(LEFT(r.nombre, 1), LEFT(COALESCE(r.apellidos, ''), 1)))
+                   UPPER(CONCAT(LEFT(r.nombre, 1), LEFT(COALESCE(r.apellidos, ''), 1))), IF(p.requiere_pr, 'true', 'false')
             FROM historia h
             JOIN proyecto p     ON p.id = h.proyecto_id
             JOIN fase f         ON f.id = h.fase_id
             LEFT JOIN usuario r ON r.id = h.analista_id
             WHERE h.proyecto_id = :proyectoId
               AND h.estado NOT IN ('CERRADA', 'DESCARTADA')
+            UNION ALL
+            SELECT h.id, 'HIST', h.numero, h.titulo, h.estado, h.prioridad, d.usuario_id, NULL,
+                   NULL, 'DEV', h.creado_en, h.actualizado_en, p.lider_id, NULL,
+                   f.id, f.numero, NULL, NULL,
+                   UPPER(CONCAT(LEFT(r.nombre, 1), LEFT(COALESCE(r.apellidos, ''), 1))), IF(p.requiere_pr, 'true', 'false')
+            FROM historia_desarrollador d
+            JOIN historia h     ON h.id = d.historia_id
+            JOIN proyecto p     ON p.id = h.proyecto_id
+            JOIN fase f         ON f.id = h.fase_id
+            JOIN usuario r      ON r.id = d.usuario_id
+            WHERE h.proyecto_id = :proyectoId
+              AND h.estado IN ('LISTA_DESARROLLO', 'EN_DESARROLLO')
             """, nativeQuery = true)
     List<FilaTicketFila> abiertos(@Param("proyectoId") Long proyectoId);
 
@@ -70,7 +83,8 @@ public interface TicketConsultaJpaRepository extends Repository<TicketEntity, Lo
                     ORDER BY he.creado_en DESC, he.id DESC
                     LIMIT 1) AS ultimoEstadoAnterior,
                    t.fase_id AS faseId, f.numero AS faseNumero, h.id AS historiaId, h.numero AS historiaNumero,
-                   UPPER(CONCAT(LEFT(r.nombre, 1), LEFT(COALESCE(r.apellidos, ''), 1))) AS responsableIniciales
+                   UPPER(CONCAT(LEFT(r.nombre, 1), LEFT(COALESCE(r.apellidos, ''), 1))) AS responsableIniciales,
+                   p.requiere_pr AS requierePr
             FROM ticket t
             JOIN proyecto p      ON p.id = t.proyecto_id
             JOIN fase f          ON f.id = t.fase_id
@@ -113,6 +127,8 @@ public interface TicketConsultaJpaRepository extends Repository<TicketEntity, Lo
         Long getHistoriaId();
         Integer getHistoriaNumero();
         String getResponsableIniciales();
+        // Con UNION, MySQL lo devuelve como TINYINT (Integer) y Spring no lo pasa a Boolean: va como texto
+        Boolean getRequierePr();
     }
 
     interface FaseFila {

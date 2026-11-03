@@ -96,6 +96,31 @@ public interface HistoriaEscrituraJpaRepository extends Repository<HistoriaEntit
     @Query(value = "DELETE FROM historia_modulo WHERE historia_id = :historiaId", nativeQuery = true)
     void quitarModulos(@Param("historiaId") Long historiaId);
 
+    // ─── Desarrolladores de la historia ─────────────────────────────────────
+
+    @Modifying
+    @Query(value = """
+            INSERT INTO historia_desarrollador (historia_id, usuario_id, modulo_id, terminado)
+            VALUES (:historiaId, :usuarioId, :moduloId, FALSE)
+            """, nativeQuery = true)
+    void agregarDesarrollador(@Param("historiaId") Long historiaId, @Param("usuarioId") Long usuarioId,
+                              @Param("moduloId") Long moduloId);
+
+    @Modifying
+    @Query(value = "DELETE FROM historia_desarrollador WHERE historia_id = :historiaId", nativeQuery = true)
+    void quitarDesarrolladores(@Param("historiaId") Long historiaId);
+
+    @Query(value = """
+            SELECT d.usuario_id AS usuarioId, d.modulo_id AS moduloId
+            FROM historia_desarrollador d WHERE d.historia_id = :historiaId ORDER BY d.usuario_id
+            """, nativeQuery = true)
+    List<DesarrolladorFila> desarrolladores(@Param("historiaId") Long historiaId);
+
+    interface DesarrolladorFila {
+        Long getUsuarioId();
+        Long getModuloId();
+    }
+
     @Modifying
     @Query(value = """
             INSERT INTO historial_estado (entidad, entidad_id, estado_anterior, estado_nuevo, automatico, usuario_id, creado_en)

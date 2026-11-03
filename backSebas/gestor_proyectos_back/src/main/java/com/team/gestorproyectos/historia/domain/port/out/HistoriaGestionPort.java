@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Optional;
 
 import com.team.gestorproyectos.historia.domain.model.CambioHistoria;
+import com.team.gestorproyectos.historia.domain.model.DesarrolladorDeHistoria;
+import com.team.gestorproyectos.historia.domain.model.RepositorioDeHistoria;
+import com.team.gestorproyectos.historia.domain.model.TrabajoDeHistoria;
 import com.team.gestorproyectos.historia.domain.model.HistoriaParaGestionar;
 import com.team.gestorproyectos.historia.domain.model.HistoriaParaIntegrar;
 import com.team.gestorproyectos.historia.domain.model.ImagenGuardada;
@@ -46,6 +49,24 @@ public interface HistoriaGestionPort {
 
     /** Tickets de Mantenimiento que la tienen como "Viene de". */
     long ticketsQueVienenDe(Long historiaId);
+
+    // ─── Historia con Desarrolladores ───
+
+    List<DesarrolladorDeHistoria> desarrolladores(Long historiaId);
+
+    List<TrabajoDeHistoria> trabajo(Long historiaId);
+
+    List<RepositorioDeHistoria> repositorios(Long historiaId);
+
+    void marcarParte(Long historiaId, Long usuarioId, boolean terminado);
+
+    void agregarTrabajo(Long historiaId, String descripcion, Long moduloId, Long usuarioId, LocalDateTime ahora);
+
+    /** @return false si ese punto no es de la historia */
+    boolean marcarTrabajo(Long historiaId, Long trabajoId, boolean hecho);
+
+    /** @return false si ese punto no es de la historia */
+    boolean quitarTrabajo(Long historiaId, Long trabajoId);
 
     /** Borra la historia con sus criterios, módulos, imágenes (solo el registro), comentarios e historial. */
     void eliminar(Long historiaId);

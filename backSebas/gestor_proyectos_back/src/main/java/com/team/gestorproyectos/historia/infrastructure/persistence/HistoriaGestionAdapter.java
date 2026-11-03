@@ -9,6 +9,9 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import com.team.gestorproyectos.historia.domain.model.CambioHistoria;
+import com.team.gestorproyectos.historia.domain.model.DesarrolladorDeHistoria;
+import com.team.gestorproyectos.historia.domain.model.RepositorioDeHistoria;
+import com.team.gestorproyectos.historia.domain.model.TrabajoDeHistoria;
 import com.team.gestorproyectos.historia.domain.model.CambioHistoria.BugDeDevolucion;
 import com.team.gestorproyectos.historia.domain.model.HistoriaParaGestionar;
 import com.team.gestorproyectos.historia.domain.model.HistoriaParaGestionar.FaseDestino;
@@ -37,6 +40,7 @@ import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
 
 import lombok.RequiredArgsConstructor;
 import com.team.gestorproyectos.shared.domain.model.CodigoItem;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 
 @Component
 @RequiredArgsConstructor
@@ -62,13 +66,18 @@ public class HistoriaGestionAdapter implements HistoriaGestionPort {
                                 t.getEstado(), t.getResponsableId(), t.getTesterId()))
                         .toList(),
                 repository.fasesDestino(proyectoId, h.getFaseId(), historiaId).stream()
-                        .map(f -> new FaseDestino(f.getId(), f.getTitulo())).toList()));
+                        .map(f -> new FaseDestino(f.getId(), f.getTitulo())).toList(),
+                FormaTrabajo.valueOf(h.getFormaTrabajo()),
+                !Boolean.FALSE.equals(h.getRequierePr()),
+                desarrolladores(historiaId),
+                (int) repository.trabajo(historiaId).stream().filter(t -> !Boolean.TRUE.equals(t.getHecho())).count()));
     }
 
     @Override
     public InfoHistoria info(Long proyectoId, Long historiaId) {
         HistoriaFila h = repository.historia(proyectoId, historiaId).orElseThrow();
-        return new InfoHistoria(h.getId(), h.getProyectoId(), h.getProyectoNombre(), h.getFaseId(), h.getFaseNumero(),
+        return new InfoHistoria(h.getId(), h.getProyectoId(), h.getProyectoNombre(),
+                FormaTrabajo.valueOf(h.getFormaTrabajo()), h.getFaseId(), h.getFaseNumero(),
                 h.getFaseNombre(), h.getFaseEstado(), h.getFaseInicio(), h.getFaseFin(), h.getNumero(), h.getTitulo(),
                 h.getComo(), h.getQuiero(), h.getPara(), h.getEstado(), h.getPrioridad(), h.getPuntos(),
                 h.getAnalistaNombre(), h.getFigmaUrl(),
@@ -142,17 +151,15 @@ public class HistoriaGestionAdapter implements HistoriaGestionPort {
                     repository.reabrirTicket(c.historiaId(), c.ticketAReabrir(), c.estadoAlReabrir());
                     repository.registrarHistorial("TICKET", c.ticketAReabrir(), anterior, c.estadoAlReabrir(),
                             c.motivo(), false, usuarioId, ahora);
-                } else {
+                } else if (c.bug() != null) {
                     bug = crearBug(c, c.bug(), usuarioId, ahora);
+                } else {
+                    // Con Desarrolladores: regresa a ellos y cada uno vuelve a marcar su parte.
+                    repository.reiniciarPartes(c.historiaId());
                 }
             }
-            case INTEGRAR -> {
-                TicketDeHistoria.alIntegrar().forEach((desde, hacia) -> {
-                    repository.registrarTickets(c.historiaId(), desde, hacia, "Se integró a develop", usuarioId, ahora);
-                    repository.moverTickets(c.historiaId(), desde, hacia);
-                });
-                repository.integrarPullRequests(c.historiaId());
-            }
+            case PEDIR_CAMBIOS -> repository.reiniciarPartes(c.historiaId());
+            case INTEGRAR -> integrarTickets(c.historiaId(), "Se integró a develop", usuarioId, ahora);
             case MOVER_DE_FASE -> {
                 repository.cambiarFase(c.historiaId(), c.faseDestinoId());
                 repository.moverTicketsDeFase(c.historiaId(), c.faseDestinoId());
@@ -162,12 +169,29 @@ public class HistoriaGestionAdapter implements HistoriaGestionPort {
             }
         }
         if (c.avanzaSolaA() != null) {
-            // Ya tenía una Actividad Lista: pasa sola, igual que al marcar Lista la Actividad.
+            // Ya tenía una Actividad Lista: pasa sola, igual que al marcar Lista la Actividad. En la forma Normal,
+            // aceptada ya queda integrada: su código ya está en develop.
+            boolean integrada = "INTEGRADA".equals(c.avanzaSolaA());
             repository.cambiarEstado(c.historiaId(), c.estadoNuevo(), c.avanzaSolaA());
             repository.registrarHistorial("HISTORIA", c.historiaId(), c.estadoNuevo(), c.avanzaSolaA(),
-                    "Ya tiene una Actividad Lista", true, usuarioId, ahora);
+                    integrada ? "Su código ya está en develop"
+                            : repository.desarrolladores(c.historiaId()).isEmpty() ? "Ya tiene una Actividad Lista"
+                            : "Lista para sus Desarrolladores",
+                    true, usuarioId, ahora);
+            if (integrada) {
+                integrarTickets(c.historiaId(), "Su historia se aceptó", usuarioId, ahora);
+            }
         }
         return bug;
+    }
+
+    /** Sus tickets aprobados pasan a Integrados y sus PR quedan mezclados. */
+    private void integrarTickets(Long historiaId, String motivo, Long usuarioId, LocalDateTime ahora) {
+        TicketDeHistoria.alIntegrar().forEach((desde, hacia) -> {
+            repository.registrarTickets(historiaId, desde, hacia, motivo, usuarioId, ahora);
+            repository.moverTickets(historiaId, desde, hacia);
+        });
+        repository.integrarPullRequests(historiaId);
     }
 
     @Override
@@ -207,7 +231,54 @@ public class HistoriaGestionAdapter implements HistoriaGestionPort {
     }
 
     @Override
+    public List<DesarrolladorDeHistoria> desarrolladores(Long historiaId) {
+        return repository.desarrolladores(historiaId).stream()
+                .map(d -> new DesarrolladorDeHistoria(d.getUsuarioId(), d.getNombre(), d.getModuloId(),
+                        d.getModuloNombre(), Boolean.TRUE.equals(d.getTerminado())))
+                .toList();
+    }
+
+    @Override
+    public List<TrabajoDeHistoria> trabajo(Long historiaId) {
+        return repository.trabajo(historiaId).stream()
+                .map(t -> new TrabajoDeHistoria(t.getId(), t.getDescripcion(), t.getModuloId(), t.getModuloNombre(),
+                        Boolean.TRUE.equals(t.getHecho()), t.getCreadoPor(), t.getCreadoEn()))
+                .toList();
+    }
+
+    @Override
+    public List<RepositorioDeHistoria> repositorios(Long historiaId) {
+        return repository.repositorios(historiaId).stream()
+                .map(r -> new RepositorioDeHistoria(r.getId(), r.getTipo(), r.getNombre(), r.getTecnologia(),
+                        r.getRamaBase(), r.getUrl()))
+                .toList();
+    }
+
+    @Override
+    public void marcarParte(Long historiaId, Long usuarioId, boolean terminado) {
+        repository.marcarParte(historiaId, usuarioId, terminado);
+    }
+
+    @Override
+    public void agregarTrabajo(Long historiaId, String descripcion, Long moduloId, Long usuarioId,
+                               LocalDateTime ahora) {
+        repository.agregarTrabajo(historiaId, descripcion, moduloId, usuarioId, ahora);
+    }
+
+    @Override
+    public boolean marcarTrabajo(Long historiaId, Long trabajoId, boolean hecho) {
+        return repository.marcarTrabajo(historiaId, trabajoId, hecho) > 0;
+    }
+
+    @Override
+    public boolean quitarTrabajo(Long historiaId, Long trabajoId) {
+        return repository.quitarTrabajo(historiaId, trabajoId) > 0;
+    }
+
+    @Override
     public void eliminar(Long historiaId) {
+        repository.quitarTodoElTrabajo(historiaId);
+        repository.quitarDesarrolladores(historiaId);
         repository.quitarAdjuntos(historiaId);
         repository.quitarComentarios(historiaId);
         repository.quitarHistorial(historiaId);

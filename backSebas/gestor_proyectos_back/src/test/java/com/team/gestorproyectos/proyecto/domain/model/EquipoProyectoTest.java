@@ -35,7 +35,7 @@ class EquipoProyectoTest {
 
     private static TicketBase ticket(long id, String tipo, String estado, Long responsable, Long tester, TipoModulo modulo) {
         var item = new ItemTrabajo(id, tipo, (int) id, "Ticket " + id, estado, "MEDIA", responsable, tester, JORGE,
-                "EN_DESARROLLO", AHORA, AHORA);
+                "EN_DESARROLLO", AHORA, AHORA, true);
         return new TicketBase(new ItemDeProyecto(item, JORGE, null), 4L, 16L, modulo, null);
     }
 

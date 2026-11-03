@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.team.gestorproyectos.shared.infrastructure.security.UsuarioSesion;
 import com.team.gestorproyectos.usuario.domain.port.in.CambiarEstadoUsuarioUseCase;
+import com.team.gestorproyectos.usuario.domain.port.in.CambiarUsuarioGitUseCase;
 import com.team.gestorproyectos.usuario.domain.port.in.ConsultarPerfilUsuarioUseCase;
 import com.team.gestorproyectos.usuario.domain.port.in.CrearUsuarioUseCase;
 import com.team.gestorproyectos.usuario.domain.port.in.GestionarAccesosUseCase;
@@ -26,6 +27,7 @@ import com.team.gestorproyectos.usuario.infrastructure.api.dto.UsuariosDtos.Esta
 import com.team.gestorproyectos.usuario.infrastructure.api.dto.UsuariosDtos.NuevoUsuarioRequest;
 import com.team.gestorproyectos.usuario.infrastructure.api.dto.UsuariosDtos.PerfilResponse;
 import com.team.gestorproyectos.usuario.infrastructure.api.dto.UsuariosDtos.UsuarioFilaResponse;
+import com.team.gestorproyectos.usuario.infrastructure.api.dto.UsuariosDtos.UsuarioGitRequest;
 import com.team.gestorproyectos.usuario.infrastructure.api.mapper.UsuariosApiMapper;
 
 import jakarta.validation.Valid;
@@ -42,6 +44,7 @@ public class UsuarioController {
     private final GestionarAccesosUseCase accesos;
     private final CambiarEstadoUsuarioUseCase cambiarEstado;
     private final ConsultarPerfilUsuarioUseCase consultarPerfil;
+    private final CambiarUsuarioGitUseCase cambiarUsuarioGit;
     private final UsuariosApiMapper mapper;
 
     @GetMapping
@@ -78,5 +81,12 @@ public class UsuarioController {
                               @Valid @RequestBody EstadoRequest request,
                               @AuthenticationPrincipal UsuarioSesion sesion) {
         cambiarEstado.cambiar(sesion.id(), id, request.activo());
+    }
+
+    /** Captura, cambia o quita (vacío) el usuario de git de la persona. */
+    @PatchMapping("/{id}/git")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cambiarUsuarioGit(@PathVariable("id") Long id, @Valid @RequestBody UsuarioGitRequest request) {
+        cambiarUsuarioGit.cambiar(id, request.usuarioGit());
     }
 }

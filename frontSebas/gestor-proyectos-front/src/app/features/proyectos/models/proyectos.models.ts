@@ -1,4 +1,5 @@
 import { Etiqueta, Tono } from '../../../shared/models/etiqueta.model';
+import { FormaTrabajo } from '../../../shared/utils/flujos';
 import { InfoModulo } from '../../../shared/utils/proyectos';
 
 export interface Miembro {
@@ -45,6 +46,10 @@ export interface Reglas {
   comentarioAlRechazar: boolean;
   ramaAlIniciar: boolean;
   notificarClienteFase: boolean;
+  /** Se elige al crear el proyecto y ya no cambia */
+  formaTrabajo: FormaTrabajo;
+  /** En Normal: la Actividad pasa por PR o se termina; en Gitflow siempre true */
+  requierePr: boolean;
 }
 
 export interface ModuloProyecto extends ModuloChip {

@@ -75,11 +75,11 @@ public class GestionarProyectoService implements GestionarProyectoUseCase {
         if (!datos.liderId().equals(actual.datos().liderId())) {
             validarLider(datos.liderId());
         }
-        if (datos.estado() == null) {
-            datos = new DatosProyecto(datos.nombre(), datos.clienteId(), datos.prioridad(),
-                    actual.datos().estado(), datos.fechaInicio(), datos.fechaEntrega(), datos.descripcion(),
-                    datos.liderId(), datos.miembroIds(), datos.modulos(), datos.reglas());
-        }
+        // La forma de trabajo se eligió al crearlo y ya no cambia.
+        datos = new DatosProyecto(datos.nombre(), datos.clienteId(), datos.prioridad(),
+                datos.estado() == null ? actual.datos().estado() : datos.estado(), datos.fechaInicio(),
+                datos.fechaEntrega(), datos.descripcion(), datos.liderId(), datos.miembroIds(), datos.modulos(),
+                datos.reglas().conFormaDe(actual.datos().reglas()));
 
         Set<Long> quedan = datos.modulos().stream().map(ModuloProyecto::id).filter(Objects::nonNull)
                 .collect(Collectors.toSet());

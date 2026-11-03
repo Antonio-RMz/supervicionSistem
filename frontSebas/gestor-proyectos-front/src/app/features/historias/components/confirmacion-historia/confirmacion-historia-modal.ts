@@ -38,12 +38,23 @@ export class ConfirmacionHistoriaModal {
         return `Descartar ${h.codigo}`;
       case 'MOVER_DE_FASE':
         return `Mover ${h.codigo} a otra fase`;
+      case 'PEDIR_CAMBIOS':
+        return `Pedir cambios en ${h.codigo}`;
     }
   });
 
-  protected readonly subtitulo = computed(() =>
-    this.accion() === 'DEVOLVER' ? 'Elige qué falló para que regrese a la persona correcta.' : this.historia().titulo,
-  );
+  /** Con Desarrolladores no hay ticket que reabrir ni bug: regresa a ellos con el motivo. */
+  protected readonly conDesarrolladores = computed(() => !!this.historia().desarrollo);
+
+  protected readonly subtitulo = computed(() => {
+    if (this.accion() === 'DEVOLVER' && !this.conDesarrolladores()) {
+      return 'Elige qué falló para que regrese a la persona correcta.';
+    }
+    if (this.accion() === 'DEVOLVER' || this.accion() === 'PEDIR_CAMBIOS') {
+      return 'Regresa a sus Desarrolladores con el motivo; cada uno vuelve a marcar su parte.';
+    }
+    return this.historia().titulo;
+  });
 
   protected readonly sinTicketsReabribles = computed(() => !this.historia().ticketsReabribles.length);
 
@@ -68,9 +79,16 @@ export class ConfirmacionHistoriaModal {
       case 'DESCARTAR':
         if (motivo) this.confirmar.emit({ motivo });
         break;
+      case 'PEDIR_CAMBIOS':
+        if (motivo) this.confirmar.emit({ motivo });
+        break;
       case 'DEVOLVER': {
         const ticketId = this.ticketId();
         if (!motivo) break;
+        if (this.conDesarrolladores()) {
+          this.confirmar.emit({ motivo });
+          break;
+        }
         if (this.modo() === 'bug') this.confirmar.emit({ motivo, crearBug: true });
         else if (ticketId !== null) this.confirmar.emit({ motivo, ticketId });
         break;

@@ -27,7 +27,7 @@ public interface MantenimientoApiMapper {
     /** El código y si espera severidad salen de las reglas del dominio. */
     default TicketResponse aTicket(TicketDeMantenimiento t) {
         return new TicketResponse(t.id(), t.tipo(), t.codigo(), t.titulo(), t.estado(), t.severidad(), t.rama(),
-                t.responsableId(), t.responsableNombre(), t.porConfirmar());
+                t.responsableId(), t.responsableNombre(), t.porConfirmar(), t.descripcion(), t.imagenId(), t.imagenes());
     }
 
     PreparacionResponse aPreparacion(PreparacionMantenimiento preparacion);

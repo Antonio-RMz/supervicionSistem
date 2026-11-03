@@ -17,7 +17,12 @@ public final class HistoriasDtos {
 
     public record PreparacionResponse(Long proyectoId, String proyectoNombre, int numero, List<FaseResponse> fases,
                                       List<AnalistaResponse> analistas,
-                                      List<UsuarioDelSistemaResponse> usuariosDelSistema) {
+                                      List<UsuarioDelSistemaResponse> usuariosDelSistema,
+                                      List<AnalistaResponse> desarrolladores) {
+    }
+
+    /** Un Desarrollador de la historia; moduloId null = en todos sus repositorios. */
+    public record DesarrolladorRequest(@NotNull Long usuarioId, Long moduloId) {
     }
 
     public record UsuarioDelSistemaResponse(String nombre, String descripcion) {
@@ -46,7 +51,8 @@ public final class HistoriasDtos {
             @NotNull Long analistaId,
             String prioridad,
             Integer puntos,
-            Set<Long> moduloIds) {
+            Set<Long> moduloIds,
+            List<@Valid DesarrolladorRequest> desarrolladores) {
     }
 
     public record HistoriaCreadaResponse(Long id) {
@@ -79,6 +85,6 @@ public final class HistoriasDtos {
     public record HistoriaGuardadaResponse(
             Long id, int numero, String estado, Long faseId, String titulo, String como, String quiero, String para,
             List<String> criterios, String figmaUrl, boolean disenoAprobado, Long analistaId,
-            String prioridad, Integer puntos, Set<Long> moduloIds) {
+            String prioridad, Integer puntos, Set<Long> moduloIds, List<DesarrolladorRequest> desarrolladores) {
     }
 }

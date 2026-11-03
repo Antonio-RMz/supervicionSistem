@@ -2,19 +2,26 @@ import { Component, computed, effect, inject, signal, untracked } from '@angular
 import { RouterLink } from '@angular/router';
 import { Avatar } from '../../../../shared/components/avatar/avatar';
 import { BarraAvance } from '../../../../shared/components/barra-avance/barra-avance';
+import { ChipModulo } from '../../../../shared/components/chip-modulo/chip-modulo';
 import { EtiquetaEstado } from '../../../../shared/components/etiqueta-estado/etiqueta-estado';
 import { etiquetaHistoria } from '../../../../shared/utils/tickets';
 import { ProyectoDetalleStore } from '../../data/proyecto-detalle.store';
 import { ProyectosDetalleService } from '../../data/proyectos-detalle.service';
 import { FaseArbol } from '../../models/proyectos.models';
 
+/** Lista: cada fase se despliega con sus historias. Tarjetas: solo las fases, para verlas de un vistazo. */
+type Vista = 'lista' | 'tarjetas';
+
+/** La vista elegida se recuerda en este navegador. */
+const CLAVE_VISTA = 'gestor.fases.vista';
+
 /**
  * Pestaña Fases e historias: una lista de las fases del plan; cada una se despliega y muestra sus historias.
- * Las actividades de cada historia se ven al entrar a ella.
+ * También se puede ver como tarjetas, solo las fases. Las actividades de cada historia se ven al entrar a ella.
  */
 @Component({
   selector: 'app-fases-tab',
-  imports: [RouterLink, Avatar, BarraAvance, EtiquetaEstado],
+  imports: [RouterLink, Avatar, BarraAvance, ChipModulo, EtiquetaEstado],
   templateUrl: './fases-tab.html',
   styleUrl: './fases-tab.scss',
 })
@@ -27,6 +34,7 @@ export class FasesTab {
   protected readonly error = signal(false);
   /** Las fases desplegadas. */
   protected readonly abiertas = signal<ReadonlySet<number>>(new Set());
+  protected readonly vista = signal<Vista>(leerVista());
 
   /** Mantenimiento tiene su propia pantalla: aquí solo las fases del plan. */
   protected readonly fases = computed(() => this.arbol().filter((f) => !f.fase.mantenimiento));
@@ -46,6 +54,15 @@ export class FasesTab {
       if (!nuevas.delete(id)) nuevas.add(id);
       return nuevas;
     });
+  }
+
+  protected cambiarVista(vista: Vista): void {
+    this.vista.set(vista);
+    try {
+      localStorage.setItem(CLAVE_VISTA, vista);
+    } catch {
+      // Sin almacenamiento (modo privado): solo se pierde la preferencia.
+    }
   }
 
   /** Igual que en el back: las fases cerradas o canceladas ya no reciben historias. */
@@ -70,5 +87,14 @@ export class FasesTab {
         this.cargando.set(false);
       },
     });
+  }
+}
+
+function leerVista(): Vista {
+  try {
+    // Por defecto, tarjetas; la lista solo si se eligió.
+    return localStorage.getItem(CLAVE_VISTA) === 'lista' ? 'lista' : 'tarjetas';
+  } catch {
+    return 'tarjetas';
   }
 }

@@ -16,7 +16,7 @@ class NuevaHistoriaTest {
                                           String figma, boolean aprobado, Integer puntos) {
         return new NuevaHistoria(borrador, 4L, " Consultar mis pedidos ", como, "ver mis pedidos",
                 "saber cuándo llegan", criterios, figma, aprobado, 2L, "alta",
-                puntos, modulos);
+                puntos, modulos, List.of());
     }
 
     @Test

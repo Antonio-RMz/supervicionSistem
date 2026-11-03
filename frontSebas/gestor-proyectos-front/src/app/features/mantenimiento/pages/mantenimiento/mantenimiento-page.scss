@@ -32,10 +32,6 @@
 }
 
 // ─── Listas ──────────────────────────────────────────────────────────────────
-.urgente { border: 2px solid var(--rojo); }
-
-.filas > li { flex-wrap: wrap; }
-
 .rama {
   display: inline-flex;
   align-items: center;
@@ -118,4 +114,200 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+// ─── Filtros de la lista ─────────────────────────────────────────────────────
+.filtros-bugs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: var(--blanco);
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+
+  .cuenta {
+    min-width: 1.4rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: var(--fondo);
+    font-size: 0.78rem;
+    text-align: center;
+  }
+
+  &.activo {
+    border-color: var(--morado);
+    background: var(--morado-suave);
+    color: var(--morado);
+  }
+}
+
+// ─── Tarjetas de bugs ────────────────────────────────────────────────────────
+.tarjetas-bugs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  > .vacio {
+    grid-column: 1 / -1;
+    padding: 2rem;
+    color: var(--texto-suave);
+    text-align: center;
+  }
+}
+
+.tarjeta-bug {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: 100%;
+  padding: 1rem 1.1rem;
+  overflow: hidden;
+  color: var(--tinta);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+
+  &:hover {
+    border-color: var(--morado-borde);
+    transform: translateY(-2px);
+  }
+
+  // Lo urgente se distingue con el borde rojo a la izquierda
+  &.urgente { border-left: 3px solid var(--rojo); }
+}
+
+.miniatura {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: -1rem -1.1rem 0.2rem;
+  aspect-ratio: 16 / 9;
+  background: var(--fondo-pagina);
+  color: var(--texto-suave);
+  font-size: 1.5rem;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.mas-imagenes {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+.bug-arriba {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  .derecha { margin-left: auto; }
+}
+
+.codigo {
+  color: var(--morado);
+  font-family: var(--fuente-mono);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.bug-titulo {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+// La descripción, en máximo 3 renglones
+.bug-descripcion {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  white-space: pre-line;
+
+  &.suave { font-style: italic; }
+}
+
+.bug-estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ruta-bug {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+}
+
+.bug-abajo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--borde);
+  font-size: 0.85rem;
+
+  .persona {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .suave { color: var(--texto-suave); }
+
+  .rama {
+    max-width: 50%;
+    margin-top: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// ─── Parches (hotfix) ────────────────────────────────────────────────────────
+.titulo-seccion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 2rem 0 0.9rem;
+  font-size: 1.1rem;
+}
+
+.parches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 0.9rem;
+  align-items: start;
 }

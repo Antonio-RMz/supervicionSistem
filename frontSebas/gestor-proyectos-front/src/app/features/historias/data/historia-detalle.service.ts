@@ -73,6 +73,25 @@ export class HistoriaDetalleService {
     return this.http.delete<void>(`${this.url(proyectoId)}/${historiaId}`);
   }
 
+  // ─── Historia con Desarrolladores ───
+
+  /** El Desarrollador marca (o desmarca) que terminó su parte. */
+  marcarMiParte(proyectoId: number, historiaId: number, terminado: boolean): Observable<void> {
+    return this.http.put<void>(`${this.url(proyectoId)}/${historiaId}/desarrollo/mi-parte`, { terminado });
+  }
+
+  agregarTrabajo(proyectoId: number, historiaId: number, descripcion: string, moduloId: number | null): Observable<void> {
+    return this.http.post<void>(`${this.url(proyectoId)}/${historiaId}/trabajo`, { descripcion, moduloId });
+  }
+
+  marcarTrabajo(proyectoId: number, historiaId: number, trabajoId: number, hecho: boolean): Observable<void> {
+    return this.http.put<void>(`${this.url(proyectoId)}/${historiaId}/trabajo/${trabajoId}`, { hecho });
+  }
+
+  quitarTrabajo(proyectoId: number, historiaId: number, trabajoId: number): Observable<void> {
+    return this.http.delete<void>(`${this.url(proyectoId)}/${historiaId}/trabajo/${trabajoId}`);
+  }
+
   comentar(proyectoId: number, historiaId: number, texto: string): Observable<void> {
     return this.http.post<void>(`${this.url(proyectoId)}/${historiaId}/comentarios`, { texto });
   }

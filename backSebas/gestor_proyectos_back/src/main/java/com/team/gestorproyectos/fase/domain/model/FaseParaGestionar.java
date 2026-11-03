@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import com.team.gestorproyectos.shared.domain.exception.AccesoDenegadoException;
 import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 import com.team.gestorproyectos.shared.domain.port.PermisosPort;
 
 /**
@@ -28,6 +29,7 @@ import com.team.gestorproyectos.shared.domain.port.PermisosPort;
  * @param ultimaPublicada si es la versión que está hoy en producción; solo esa se puede revertir
  * @param bugReversion    el BUGS que se creó al revertirla; null si nunca se revirtió
  * @param equipo          ids de quienes pueden recibir el BUGS de la reversión
+ * @param formaTrabajo    Gitflow o Normal; las dos suben develop a main al terminar la fase
  */
 public record FaseParaGestionar(
         Long id,
@@ -47,7 +49,8 @@ public record FaseParaGestionar(
         long tickets,
         List<CriterioCierre> criterios,
         BugReversion bugReversion,
-        Set<Long> equipo) {
+        Set<Long> equipo,
+        FormaTrabajo formaTrabajo) {
 
     /** Estados en que se pueden marcar los criterios manuales y corregir los datos de la fase. */
     private static final Set<String> CRITERIOS_ABIERTOS = Set.of("PLANEADA", "EN_CURSO", "PAUSADA");
@@ -72,6 +75,11 @@ public record FaseParaGestionar(
 
     public String titulo() {
         return "Fase " + numero + " · " + nombre;
+    }
+
+    /** El texto del botón; es el mismo en Gitflow y en Normal (las dos suben develop a main). */
+    public String textoDe(AccionFase accion) {
+        return accion.texto();
     }
 
     /** Las historias que aún no se inician las eliminan el Líder del proyecto o un Admin, como la fase. */
@@ -229,13 +237,13 @@ public record FaseParaGestionar(
             throw new ReglaNegocioException("La " + titulo() + " ya cambió de estado. Recarga para ver cómo está ahora.");
         }
         if (!accion.aplicaEn(estado)) {
-            throw new ReglaNegocioException("\"" + accion.texto() + "\" no se puede hacer con la fase "
+            throw new ReglaNegocioException("\"" + textoDe(accion) + "\" no se puede hacer con la fase "
                     + ESTADOS.getOrDefault(estado, estado));
         }
         if (!puede(quien, accion)) {
             throw new AccesoDenegadoException(accion == AccionFase.REABRIR
                     ? "Solo el Admin puede reabrir una fase cancelada"
-                    : "\"" + accion.texto() + "\" le toca al Líder del proyecto o al responsable de la fase");
+                    : "\"" + textoDe(accion) + "\" le toca al Líder del proyecto o al responsable de la fase");
         }
         impedimentos(accion).stream().findFirst().ifPresent(falta -> {
             throw new ReglaNegocioException(falta);

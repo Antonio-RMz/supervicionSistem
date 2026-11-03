@@ -23,7 +23,7 @@ public interface TicketMovimientoJpaRepository extends Repository<TicketEntity, 
                    f.es_mantenimiento AS faseMantenimiento, t.severidad AS severidad, t.rama AS rama,
                    p.permitir_autovalidacion AS permitirAutovalidacion,
                    p.comentario_al_rechazar AS comentarioAlRechazar,
-                   p.rama_al_iniciar AS ramaAlIniciar
+                   p.rama_al_iniciar AS ramaAlIniciar, p.requiere_pr AS requierePr
             FROM ticket t
             JOIN proyecto p      ON p.id = t.proyecto_id
             JOIN fase f          ON f.id = t.fase_id
@@ -125,6 +125,9 @@ public interface TicketMovimientoJpaRepository extends Repository<TicketEntity, 
             nativeQuery = true)
     List<TicketEstadoFila> ticketsDeHistoria(@Param("historiaId") Long historiaId);
 
+    @Query(value = "SELECT COUNT(*) FROM historia_desarrollador d WHERE d.historia_id = :historiaId", nativeQuery = true)
+    long desarrolladoresDeHistoria(@Param("historiaId") Long historiaId);
+
     @Modifying
     @Query(value = "UPDATE historia SET estado = :nuevo WHERE id = :historiaId AND estado = :anterior",
             nativeQuery = true)
@@ -198,5 +201,6 @@ public interface TicketMovimientoJpaRepository extends Repository<TicketEntity, 
         Boolean getPermitirAutovalidacion();
         Boolean getComentarioAlRechazar();
         Boolean getRamaAlIniciar();
+        Boolean getRequierePr();
     }
 }

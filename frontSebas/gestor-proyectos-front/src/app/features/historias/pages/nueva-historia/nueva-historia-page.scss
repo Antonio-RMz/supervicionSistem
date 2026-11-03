@@ -259,3 +259,44 @@ h2 { font-size: 1.15rem; }
   .columnas { grid-template-columns: 1fr; }
   .lateral { position: static; }
 }
+
+// Desarrolladores de la historia: casilla por persona y, si hay varios repositorios, en cuál trabaja
+.desarrolladores {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+
+    &.elegido {
+      border-color: var(--morado-borde);
+      background: var(--morado-suave);
+    }
+  }
+
+  .dev {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--tinta);
+    cursor: pointer;
+
+    input { accent-color: var(--morado); }
+  }
+
+  .repo {
+    width: auto;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.85rem;
+  }
+}

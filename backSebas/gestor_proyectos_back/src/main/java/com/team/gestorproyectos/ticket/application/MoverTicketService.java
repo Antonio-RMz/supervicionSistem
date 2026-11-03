@@ -1,5 +1,7 @@
 package com.team.gestorproyectos.ticket.application;
 
+import java.util.List;
+
 import com.team.gestorproyectos.shared.application.ServicioAplicacion;
 import com.team.gestorproyectos.shared.application.Transaccional;
 import com.team.gestorproyectos.shared.domain.exception.NoEncontradoException;
@@ -13,6 +15,7 @@ import com.team.gestorproyectos.ticket.domain.model.TipoMovimiento;
 import com.team.gestorproyectos.ticket.domain.model.Transicion;
 import com.team.gestorproyectos.ticket.domain.port.in.MoverTicketUseCase;
 import com.team.gestorproyectos.ticket.domain.port.out.TicketRepositoryPort;
+import com.team.gestorproyectos.shared.domain.port.AvisosPort;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class MoverTicketService implements MoverTicketUseCase {
 
     private final TicketRepositoryPort tickets;
+    private final AvisosPort avisos;
 
     @Override
     @Transaccional
@@ -45,6 +49,9 @@ public class MoverTicketService implements MoverTicketUseCase {
             transicion = transicion.conMotivo(transicion.motivo() + " · Puede destrabarlo: " + quien);
         }
         tickets.guardar(transicion, usuarioId);
+        if (datos.responsableId() != null && !datos.responsableId().equals(ticket.item().responsableId())) {
+            avisos.avisar(AvisosPort.Tipo.ASIGNACION, ticketId, usuarioId, List.of(datos.responsableId()));
+        }
         // Con su primera Actividad Lista, la historia Lista queda lista para desarrollo.
         if ("ACTV".equals(ticket.item().tipo()) && "BORRADOR".equals(transicion.estadoAnterior())
                 && "POR_HACER".equals(transicion.estadoNuevo())) {
@@ -59,7 +66,8 @@ public class MoverTicketService implements MoverTicketUseCase {
 
     /** La historia pasa sola a En validación al aprobarse su último ticket, y regresa si uno vuelve a trabajarse. */
     private void avanzarHistoria(Long ticketId) {
-        tickets.historiaDe(ticketId).ifPresent(historia -> AvanceHistoria
+        // Una historia con Desarrolladores la terminan ellos: sus bugs no la mueven.
+        tickets.historiaDe(ticketId).filter(h -> !h.conDesarrolladores()).ifPresent(historia -> AvanceHistoria
                 .siguienteEstado(historia.estado(), historia.tickets())
                 .ifPresent(nuevo -> tickets.avanzarHistoria(historia.id(), historia.estado(), nuevo,
                         "EN_VALIDACION".equals(nuevo) ? "Se aprobó el último PR: pasa a validación"

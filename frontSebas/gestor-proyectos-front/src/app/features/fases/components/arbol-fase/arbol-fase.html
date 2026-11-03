@@ -34,7 +34,12 @@
       <button type="button" (click)="acercar(-10)" title="Alejar" [disabled]="zoom() <= 50"><i class="bi bi-dash-lg"></i></button>
       <span>{{ zoom() }}%</span>
       <button type="button" (click)="acercar(10)" title="Acercar" [disabled]="zoom() >= 150"><i class="bi bi-plus-lg"></i></button>
-      <button type="button" class="centrar" (click)="centrar()" title="Volver al inicio"><i class="bi bi-fullscreen-exit"></i></button>
+      <button type="button" class="centrar" (click)="centrar()" title="Volver al inicio"><i class="bi bi-bullseye"></i></button>
+      <button type="button" class="pantalla" (click)="alternarPantallaCompleta()"
+              [title]="pantallaCompleta() ? 'Salir de pantalla completa (Esc)' : 'Pantalla completa'"
+              [attr.aria-pressed]="pantallaCompleta()">
+        <i class="bi" [class.bi-fullscreen]="!pantallaCompleta()" [class.bi-fullscreen-exit]="pantallaCompleta()"></i>
+      </button>
     </div>
   </div>
 </div>
@@ -172,6 +177,15 @@
         <a class="boton boton-primario abrir" [routerLink]="['/proyectos', proyectoId(), 'historias', h.id]">
           <i class="bi bi-box-arrow-up-right"></i> Abrir detalle
         </a>
+        <!-- Los dos prompts de la historia: se abren en su pestaña Prompts -->
+        @if (puedePromptDesarrollo()) {
+          <a class="boton boton-secundario abrir" [routerLink]="['/proyectos', proyectoId(), 'historias', h.id]"
+             [queryParams]="{ prompt: 'desarrollo' }"><i class="bi bi-code-slash"></i> Prompt de desarrollo</a>
+        }
+        @if (puedePromptDiseno()) {
+          <a class="boton boton-secundario abrir" [routerLink]="['/proyectos', proyectoId(), 'historias', h.id]"
+             [queryParams]="{ prompt: 'diseno' }"><i class="bi bi-palette"></i> Prompt de diseño</a>
+        }
         @if (puedeCrearTicket() && h.aceptaTickets) {
           <a class="boton boton-secundario abrir" [routerLink]="['/proyectos', proyectoId(), 'tickets', 'nuevo']"
              [queryParams]="{ historia: h.id }"><i class="bi bi-plus-lg"></i> Nuevo ticket</a>

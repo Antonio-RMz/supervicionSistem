@@ -1,0 +1,112 @@
+@use '../../../../../styles/detalle';
+
+:host { display: contents; }
+
+h2 { margin-bottom: 0.75rem; }
+
+h3 {
+  margin: 1.1rem 0 0.4rem;
+  color: var(--tinta);
+  font-size: 1rem;
+
+  small { color: var(--texto-suave); font-weight: 400; }
+}
+
+code {
+  padding: 0.05rem 0.35rem;
+  border-radius: 6px;
+  background: var(--fondo);
+  font-family: var(--fuente-mono);
+  font-size: 0.85em;
+}
+
+.mensaje {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: var(--morado-suave);
+  color: var(--texto);
+  line-height: 1.55;
+
+  i { color: var(--morado); font-size: 1.15rem; }
+  strong { color: var(--tinta); }
+}
+
+.pasos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li { display: flex; flex-direction: column; gap: 0.35rem; }
+  strong { color: var(--tinta); font-weight: 600; font-size: 0.92rem; }
+}
+
+.consola {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  background: var(--consola);
+  color: var(--consola-texto);
+
+  pre {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow-x: auto;
+    font-family: var(--fuente-mono);
+    font-size: 0.83rem;
+    line-height: 1.55;
+  }
+
+  code { padding: 0; background: none; }
+  button { border: 0; background: none; color: inherit; cursor: pointer; }
+}
+
+.repos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+  }
+
+  > li > i { color: var(--tinta); font-size: 1.3rem; }
+
+  .datos {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 180px;
+
+    strong { color: var(--tinta); }
+    small { color: var(--texto-suave); }
+  }
+
+  .sin-enlace { color: var(--texto-suave); font-style: italic; }
+}
+
+h3 a {
+  color: var(--tinta);
+  text-decoration: none;
+
+  &:hover { color: var(--morado); }
+  i { font-size: 0.8em; }
+}

@@ -25,6 +25,16 @@ export interface TicketMantenimiento {
   severidad: Etiqueta | null;
   rama: string | null;
   responsable: { nombre: string; iniciales: string; tono: Tono } | null;
+  descripcion: string | null;
+  /** la primera imagen, para la miniatura de la tarjeta */
+  imagenId: number | null;
+  imagenes: number;
+}
+
+/** Una imagen de un ticket (la captura de un bug). */
+export interface ImagenDeTicket {
+  id: number;
+  nombre: string;
 }
 
 /** Lo que piden los modales Nuevo ticket (PDF pág. 38) y Reportar falla (pág. 39). */

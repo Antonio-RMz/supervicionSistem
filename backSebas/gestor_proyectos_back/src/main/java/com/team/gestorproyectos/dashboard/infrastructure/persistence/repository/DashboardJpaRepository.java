@@ -30,15 +30,17 @@ public interface DashboardJpaRepository extends Repository<ProyectoEntity, Long>
             SELECT t.id AS id, t.tipo AS tipo, t.numero AS numero, t.titulo AS titulo, t.estado AS estado,
                    t.prioridad AS prioridad, t.responsable_id AS responsableId, t.tester_id AS testerId,
                    t.creado_por AS creadoPorId, h.estado AS historiaEstado,
-                   t.creado_en AS creadoEn, t.actualizado_en AS actualizadoEn
+                   t.creado_en AS creadoEn, t.actualizado_en AS actualizadoEn, IF(p.requiere_pr, 'true', 'false') AS requierePr
             FROM ticket t
+            JOIN proyecto p      ON p.id = t.proyecto_id
             LEFT JOIN historia h ON h.id = t.historia_id
             WHERE t.proyecto_id = :proyectoId
               AND t.estado NOT IN ('CERRADA', 'CERRADO', 'CANCELADA', 'NO_REPRODUCIBLE', 'RECHAZADA', 'PUBLICADA', 'REVISADA')
             UNION ALL
             SELECT h.id, 'HIST', h.numero, h.titulo, h.estado, h.prioridad, h.analista_id, NULL,
-                   h.creado_por, NULL, h.creado_en, h.actualizado_en
+                   h.creado_por, NULL, h.creado_en, h.actualizado_en, IF(p.requiere_pr, 'true', 'false')
             FROM historia h
+            JOIN proyecto p ON p.id = h.proyecto_id
             WHERE h.proyecto_id = :proyectoId
               AND h.estado NOT IN ('CERRADA', 'DESCARTADA')
             """, nativeQuery = true)
@@ -101,6 +103,8 @@ public interface DashboardJpaRepository extends Repository<ProyectoEntity, Long>
         String getHistoriaEstado();
         LocalDateTime getCreadoEn();
         LocalDateTime getActualizadoEn();
+        // Con UNION, MySQL lo devuelve como TINYINT (Integer) y Spring no lo pasa a Boolean: va como texto
+        Boolean getRequierePr();
     }
 
     interface PersonaFila {

@@ -20,7 +20,10 @@ public interface TicketMantenimientoJpaRepository extends Repository<TicketEntit
     @Query(value = """
             SELECT t.id AS id, t.tipo AS tipo, t.numero AS numero, t.titulo AS titulo, t.estado AS estado,
                    t.severidad AS severidad, t.rama AS rama, r.id AS responsableId,
-                   CONCAT(r.nombre, COALESCE(CONCAT(' ', SUBSTRING_INDEX(r.apellidos, ' ', 1)), '')) AS responsableNombre
+                   CONCAT(r.nombre, COALESCE(CONCAT(' ', SUBSTRING_INDEX(r.apellidos, ' ', 1)), '')) AS responsableNombre,
+                   t.descripcion AS descripcion,
+                   (SELECT MIN(a.id) FROM adjunto a WHERE a.entidad = 'TICKET' AND a.entidad_id = t.id) AS imagenId,
+                   (SELECT COUNT(*) FROM adjunto a WHERE a.entidad = 'TICKET' AND a.entidad_id = t.id) AS imagenes
             FROM ticket t
             LEFT JOIN usuario r ON r.id = t.responsable_id
             WHERE t.fase_id = :faseId
@@ -100,6 +103,9 @@ public interface TicketMantenimientoJpaRepository extends Repository<TicketEntit
         String getRama();
         Long getResponsableId();
         String getResponsableNombre();
+        String getDescripcion();
+        Long getImagenId();
+        Long getImagenes();
     }
 
     interface ParcheFila {

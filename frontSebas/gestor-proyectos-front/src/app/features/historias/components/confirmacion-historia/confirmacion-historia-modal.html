@@ -2,6 +2,7 @@
   <form id="form-confirmacion-historia" class="formulario" (submit)="$event.preventDefault(); enviar()" novalidate>
     @switch (accion()) {
       @case ('DEVOLVER') {
+        @if (!conDesarrolladores()) {
         <div class="opciones" role="radiogroup" aria-label="Qué falló">
           <label class="opcion" [class.elegida]="modo() === 'reabrir'" [class.deshabilitada]="sinTicketsReabribles()">
             <input type="radio" name="modo" [checked]="modo() === 'reabrir'" [disabled]="sinTicketsReabribles()"
@@ -33,6 +34,7 @@
             }
           </label>
         }
+        }
         <label class="campo">
           <span>Motivo <b>*</b></span>
           <textarea rows="3" [class.con-error]="faltaMotivo()"
@@ -41,7 +43,8 @@
           @if (faltaMotivo()) {
             <small class="mensaje-campo">Escribe el motivo.</small>
           } @else {
-            <small class="pista">Le llega al Desarrollador y queda en el historial de la historia y del ticket.</small>
+            <small class="pista">{{ conDesarrolladores() ? 'Les llega a sus Desarrolladores y queda en el historial de la historia.'
+              : 'Le llega al Desarrollador y queda en el historial de la historia y del ticket.' }}</small>
           }
         </label>
       }
@@ -65,6 +68,17 @@
         </label>
       }
 
+      @case ('PEDIR_CAMBIOS') {
+        <label class="campo">
+          <span>Qué hay que cambiar <b>*</b></span>
+          <textarea #primero rows="3" [class.con-error]="faltaMotivo()"
+                    placeholder="Ej. el login no valida el CCT; falta la prueba del token vencido"
+                    (input)="motivo.set($any($event.target).value)"></textarea>
+          @if (faltaMotivo()) {
+            <small class="mensaje-campo">Escribe qué hay que cambiar.</small>
+          }
+        </label>
+      }
       @case ('MOVER_DE_FASE') {
         <label class="campo">
           <span>Fase destino <b>*</b></span>
@@ -102,6 +116,11 @@
         @case ('DESCARTAR') {
           <button type="submit" form="form-confirmacion-historia" class="boton boton-peligro" [disabled]="enviando()">
             <i class="bi bi-x-lg"></i> {{ enviando() ? 'Descartando…' : 'Descartar historia' }}
+          </button>
+        }
+        @case ('PEDIR_CAMBIOS') {
+          <button type="submit" form="form-confirmacion-historia" class="boton boton-peligro" [disabled]="enviando()">
+            <i class="bi bi-arrow-counterclockwise"></i> {{ enviando() ? 'Enviando…' : 'Pedir cambios' }}
           </button>
         }
         @case ('MOVER_DE_FASE') {

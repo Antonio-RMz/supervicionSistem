@@ -91,7 +91,9 @@ public record Movimiento(
                     : "regresó " + objeto + " a Borrador";
             case "INVESTIGANDO", "REDACTANDO" -> "inició " + objeto;
             case "APROBADA", "APROBADO", "APROBADA_QA" -> veniaDeQa ? "aprobó " + objeto + " en QA"
-                    : veniaDePr ? "aprobó el PR de " + objeto : "aprobó " + objeto;
+                    : veniaDePr ? "aprobó el PR de " + objeto
+                    // Forma Normal sin PR: el Desarrollador la termina
+                    : "EN_PROGRESO".equals(estadoAnterior) ? "terminó " + objeto : "aprobó " + objeto;
             case "BLOQUEADA" -> "bloqueó " + objeto;
             case "CONFIRMADO" -> "confirmó " + objeto;
             case "EN_REVISION" -> "envió el PR de " + objeto;

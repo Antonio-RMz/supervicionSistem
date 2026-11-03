@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 import com.team.gestorproyectos.shared.domain.model.Movimiento;
 
 /**
@@ -21,6 +22,7 @@ public record InfoFase(
         Long proyectoId,
         String proyectoNombre,
         String proyectoCodigo,
+        FormaTrabajo formaTrabajo,
         String clienteNombre,
         int numero,
         String nombre,

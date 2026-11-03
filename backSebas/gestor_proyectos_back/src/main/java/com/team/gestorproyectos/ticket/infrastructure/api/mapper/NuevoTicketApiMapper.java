@@ -8,12 +8,10 @@ import org.mapstruct.Mapping;
 import com.team.gestorproyectos.ticket.domain.model.EdicionTicket;
 import com.team.gestorproyectos.ticket.domain.model.NuevoTicket;
 import com.team.gestorproyectos.ticket.domain.model.PreparacionTicket;
-import com.team.gestorproyectos.ticket.domain.model.TicketImportado;
 import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.EdicionResponse;
 import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.NuevoTicketRequest;
 import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.PreparacionResponse;
 import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.TicketEditableResponse;
-import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.TicketImportadoRequest;
 
 @Mapper(componentModel = "spring")
 public interface NuevoTicketApiMapper {
@@ -25,7 +23,6 @@ public interface NuevoTicketApiMapper {
 
     NuevoTicketRequest aRequest(NuevoTicket datos);
 
-    List<TicketImportado> aImportados(List<TicketImportadoRequest> tickets);
 
     default EdicionResponse aEdicion(EdicionTicket edicion) {
         return new EdicionResponse(aPreparacion(edicion.preparacion()), new TicketEditableResponse(

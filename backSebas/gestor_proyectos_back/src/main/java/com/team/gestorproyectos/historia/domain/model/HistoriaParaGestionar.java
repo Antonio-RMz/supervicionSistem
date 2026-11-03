@@ -16,6 +16,7 @@ import com.team.gestorproyectos.historia.domain.model.CambioHistoria.BugDeDevolu
 import com.team.gestorproyectos.shared.domain.exception.AccesoDenegadoException;
 import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
 import com.team.gestorproyectos.shared.domain.model.CodigoItem;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 import com.team.gestorproyectos.shared.domain.port.PermisosPort;
 
 /**
@@ -29,6 +30,10 @@ import com.team.gestorproyectos.shared.domain.port.PermisosPort;
  * @param criterios     cuántos criterios de aceptación tiene
  * @param modulos       en cuántos módulos se trabaja
  * @param fasesDestino  otras fases del proyecto que todavía reciben historias
+ * @param formaTrabajo  en la forma Normal no hay Integrar: aceptada ya queda integrada (su código ya está en develop)
+ * @param requierePr    el proyecto pide PR: al terminar el desarrollo, el Líder la revisa antes de validarse
+ * @param desarrolladores con alguno, la historia les llega directo (sin Actividades): la Inician y la Terminan ellos
+ * @param trabajoPendiente puntos de "Lo que hice" sin marcar
  */
 public record HistoriaParaGestionar(
         Long id,
@@ -44,7 +49,11 @@ public record HistoriaParaGestionar(
         int criterios,
         int modulos,
         List<TicketDeHistoria> tickets,
-        List<FaseDestino> fasesDestino) {
+        List<FaseDestino> fasesDestino,
+        FormaTrabajo formaTrabajo,
+        boolean requierePr,
+        List<DesarrolladorDeHistoria> desarrolladores,
+        int trabajoPendiente) {
 
     /** Los estados de la fase en que se puede iniciar una historia o reabrirla. */
     private static final Set<String> FASE_RECIBE_HISTORIAS = Set.of("PLANEADA", "EN_CURSO", "PAUSADA");
@@ -55,6 +64,7 @@ public record HistoriaParaGestionar(
             Map.entry("LISTA", "Lista"),
             Map.entry("LISTA_DESARROLLO", "Lista para desarrollo"),
             Map.entry("EN_DESARROLLO", "En desarrollo"),
+            Map.entry("EN_REVISION", "En revisión"),
             Map.entry("EN_VALIDACION", "En validación"),
             Map.entry("ACEPTADA", "Aceptada"),
             Map.entry("INTEGRADA", "Integrada"),
@@ -87,6 +97,44 @@ public record HistoriaParaGestionar(
     public HistoriaParaGestionar {
         tickets = List.copyOf(tickets);
         fasesDestino = List.copyOf(fasesDestino);
+        desarrolladores = List.copyOf(desarrolladores);
+    }
+
+    /** Se trabaja sin Actividades: le llega directo a sus Desarrolladores. */
+    public boolean trabajoDirecto() {
+        return !desarrolladores.isEmpty();
+    }
+
+    public boolean esDesarrollador(Long usuarioId) {
+        return desarrolladores.stream().anyMatch(d -> d.usuarioId().equals(usuarioId));
+    }
+
+    /** "Lo que hice": lo agregan sus Desarrolladores, su Analista o el Líder mientras no se acepta. */
+    public boolean puedeAnotarTrabajo(QuienGestiona quien) {
+        return trabajoDirecto() && !Set.of("ACEPTADA", "INTEGRADA", "CERRADA", "DESCARTADA").contains(estado)
+                && (quien.esAdmin() || esDesarrollador(quien.id()) || quien.id().equals(analistaId)
+                        || quien.id().equals(liderId));
+    }
+
+    /** Lo marcan como hecho sus Desarrolladores mientras la desarrollan. */
+    public boolean puedeMarcarTrabajo(QuienGestiona quien) {
+        return trabajoDirecto() && "EN_DESARROLLO".equals(estado)
+                && (quien.esAdmin() || esDesarrollador(quien.id()));
+    }
+
+    /** Cada Desarrollador marca cuando terminó su parte, mientras está en desarrollo. */
+    public void verificarMiParte(QuienGestiona quien) {
+        if (!esDesarrollador(quien.id())) {
+            throw new AccesoDenegadoException("Solo sus Desarrolladores marcan su parte");
+        }
+        if (!"EN_DESARROLLO".equals(estado)) {
+            throw new ReglaNegocioException("La historia no está en desarrollo");
+        }
+    }
+
+    /** Al terminar el desarrollo: si el proyecto pide PR, primero la revisa el Líder. */
+    private boolean pasaPorRevision() {
+        return requierePr || formaTrabajo == FormaTrabajo.GITFLOW;
     }
 
     public String codigo() {
@@ -95,6 +143,19 @@ public record HistoriaParaGestionar(
 
     /** Quién decide en este estado (PDF pág. 21): "Analista", "Líder" o "Nadie" si avanza sola. */
     public String actor() {
+        if (trabajoDirecto()) {
+            switch (estado) {
+                case "LISTA_DESARROLLO", "EN_DESARROLLO" -> {
+                    return "Desarrollador";
+                }
+                case "EN_REVISION" -> {
+                    return "Líder";
+                }
+                default -> {
+                    // Lo demás, igual que cualquier historia.
+                }
+            }
+        }
         return switch (estado) {
             case "BORRADOR", "EN_PLANEACION", "EN_VALIDACION" -> "Analista";
             // Lista para desarrollo espera a que el Líder inicie la fase.
@@ -107,15 +168,20 @@ public record HistoriaParaGestionar(
     public List<AccionHistoria> acciones(QuienGestiona quien) {
         return Arrays.stream(AccionHistoria.values())
                 .filter(a -> a.aplicaEn(estado) && puede(quien, a))
+                .filter(a -> a != AccionHistoria.INTEGRAR || formaTrabajo == FormaTrabajo.GITFLOW)
+                .filter(a -> !a.deTrabajoDirecto() || trabajoDirecto())
                 .toList();
     }
 
     public boolean puede(QuienGestiona quien, AccionHistoria accion) {
-        if (!quien.tiene(accion.permiso())) {
+        if (accion.permiso() != null && !quien.tiene(accion.permiso())) {
             return false;
         }
         if (quien.esAdmin()) {
             return true;
+        }
+        if (accion.decide() == AccionHistoria.Decide.DESARROLLADOR) {
+            return esDesarrollador(quien.id());
         }
         // El permiso solo lo tienen Analistas y Líderes, y quien ve la historia es del proyecto.
         if (DE_CUALQUIER_ANALISTA.contains(accion)) {
@@ -129,6 +195,7 @@ public record HistoriaParaGestionar(
         return switch (accion.decide()) {
             case ANALISTA -> esAnalista;
             case LIDER -> esLider;
+            case DESARROLLADOR -> false;
         };
     }
 
@@ -223,6 +290,23 @@ public record HistoriaParaGestionar(
                 if (modulos == 0) {
                     faltan.add("Falta elegir al menos un repositorio");
                 }
+                // La historia le llega directo a sus Desarrolladores (ya no hay Actividades).
+                if (!trabajoDirecto()) {
+                    faltan.add("Falta asignar al menos un Desarrollador");
+                }
+            }
+            case INICIAR_DESARROLLO -> {
+                if (!"EN_CURSO".equals(faseEstado)) {
+                    faltan.add("Su fase aún no está en curso");
+                }
+            }
+            case TERMINAR_DESARROLLO -> {
+                desarrolladores.stream().filter(d -> !d.terminado())
+                        .forEach(d -> faltan.add("Falta que " + d.nombre() + " marque su parte como terminada"));
+                if (trabajoPendiente > 0) {
+                    faltan.add(trabajoPendiente == 1 ? "Hay 1 punto de \"Lo que hice\" sin marcar"
+                            : "Hay " + trabajoPendiente + " puntos de \"Lo que hice\" sin marcar");
+                }
             }
             case DESCARTAR, REGRESAR_A_PLANEACION -> {
                 long empezados = tickets.stream().filter(TicketDeHistoria::empezado).count();
@@ -231,7 +315,10 @@ public record HistoriaParaGestionar(
                 }
             }
             case MOVER_DE_FASE -> {
-                if (fasesDestino.isEmpty()) {
+                // Una fase que ya terminó (o que está saliendo a producción) no suelta historias ni recibe otras.
+                if (!FASE_RECIBE_HISTORIAS.contains(faseEstado)) {
+                    faltan.add("Su fase ya terminó o está en release: sus historias ya no se mueven");
+                } else if (fasesDestino.isEmpty()) {
                     faltan.add("No hay otra fase que reciba historias");
                 }
             }
@@ -267,10 +354,14 @@ public record HistoriaParaGestionar(
             throw new ReglaNegocioException("\"" + accion.texto() + "\" no se puede hacer con la historia "
                     + ESTADOS.getOrDefault(estado, estado));
         }
+        if (accion == AccionHistoria.INTEGRAR && formaTrabajo == FormaTrabajo.NORMAL) {
+            throw new ReglaNegocioException("En este proyecto no se integra a develop: la historia se integra al aceptarla");
+        }
         if (!puede(quien, accion)) {
             throw new AccesoDenegadoException("\"" + accion.texto() + "\" le toca al " + switch (accion.decide()) {
                 case ANALISTA -> "Analista de la historia";
                 case LIDER -> "Líder del proyecto";
+                case DESARROLLADOR -> "Desarrollador de la historia";
             });
         }
         impedimentos(accion).stream().findFirst().ifPresent(falta -> {
@@ -285,7 +376,8 @@ public record HistoriaParaGestionar(
         Long ticketAReabrir = null;
         String estadoAlReabrir = null;
         BugDeDevolucion bug = null;
-        if (accion.regresaADesarrollo()) {
+        // Con Desarrolladores no hay ticket que reabrir: regresa a ellos con el motivo.
+        if (accion.regresaADesarrollo() && !trabajoDirecto()) {
             if (datos.crearBug()) {
                 bug = bugDeDevolucion(motivo);
             } else {
@@ -307,10 +399,21 @@ public record HistoriaParaGestionar(
         }
 
         String estadoNuevo = accion.destino() == null ? estado : accion.destino();
+        if (accion == AccionHistoria.TERMINAR_DESARROLLO && pasaPorRevision()) {
+            estadoNuevo = "EN_REVISION";
+        }
         // Igual que cuando se marca Lista su Actividad: si ya tiene una, no se queda en Lista.
         String avanzaSolaA = accion == AccionHistoria.MARCAR_LISTA && tieneActividadLista()
                 ? ("EN_CURSO".equals(faseEstado) ? "EN_DESARROLLO" : "LISTA_DESARROLLO")
                 : null;
+        // Con Desarrolladores ya está lista para ellos: la inician cuando su fase corre.
+        if (accion == AccionHistoria.MARCAR_LISTA && trabajoDirecto()) {
+            avanzaSolaA = "LISTA_DESARROLLO";
+        }
+        // En la forma Normal todo sube directo a develop: al aceptarla queda integrada sin que el Líder haga nada.
+        if (accion == AccionHistoria.ACEPTAR && formaTrabajo == FormaTrabajo.NORMAL) {
+            avanzaSolaA = "INTEGRADA";
+        }
         return new CambioHistoria(id, proyectoId, faseId, accion, estado, estadoNuevo, motivo, ticketAReabrir,
                 estadoAlReabrir, bug, faseDestinoId, avanzaSolaA);
     }

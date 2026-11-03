@@ -32,9 +32,10 @@ public record PreparacionTicket(
      *
      * @param moduloIds módulos de la historia; si no tiene, aplican los de la fase
      */
+    /** @param conDesarrolladores le llega directo a sus Desarrolladores: no lleva Actividades, solo bugs o mejoras */
     public record HistoriaDeTicket(Long id, int numero, String titulo, String estado, String como, String quiero,
                                    String para, String analistaNombre, Set<Long> moduloIds, long tickets,
-                                   List<CriterioDeHistoria> criterios) {
+                                   List<CriterioDeHistoria> criterios, boolean conDesarrolladores) {
     }
 
     /** @param cubiertoPor "ACTV-42 · App móvil" si otro ticket ya lo cubre; null si no */

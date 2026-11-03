@@ -1,124 +1,65 @@
-<div class="pantalla">
-  <section class="lado-form">
-    <div class="marca">
-      <span class="logo">TD</span>
-      <div>
-        <strong>Team Dev</strong>
-        <small>PORTAL DE AVANCE</small>
-      </div>
-    </div>
+<main class="pantalla">
+  <app-fondo-circuito />
 
-    <div class="cuerpo">
-      <h1>Mira cómo va <span>tu proyecto.</span></h1>
-      <p class="bajada">Avance, próximas entregas y demos por revisar, en un solo lugar y cuando quieras.</p>
-
-      <form [formGroup]="login.form" (ngSubmit)="login.entrar()" novalidate>
-        <label class="campo">
-          <span>Correo electrónico</span>
-          <div class="entrada" [class.con-error]="login.invalido('correo')">
-            <i class="bi bi-envelope"></i>
-            <input type="email" formControlName="correo" placeholder="tu.correo@tuempresa.com" autocomplete="email" />
-          </div>
-          @if (login.invalido('correo')) {
-            <small class="mensaje-campo">Escribe un correo válido.</small>
-          }
-        </label>
-
-        <label class="campo">
-          <span>Contraseña</span>
-          <div class="entrada" [class.con-error]="login.invalido('password')">
-            <i class="bi bi-lock"></i>
-            <input [type]="login.mostrarPassword() ? 'text' : 'password'" formControlName="password"
-                   placeholder="••••••••" autocomplete="current-password" />
-            <button type="button" class="mostrar" (click)="login.mostrarPassword.set(!login.mostrarPassword())">
-              {{ login.mostrarPassword() ? 'Ocultar' : 'Mostrar' }}
-            </button>
-          </div>
-          @if (login.invalido('password')) {
-            <small class="mensaje-campo">Escribe tu contraseña.</small>
-          }
-        </label>
-
-        <div class="opciones">
-          <label class="recordarme">
-            <input type="checkbox" formControlName="recordarme" />
-            Recordarme
-          </label>
-          <button type="button" class="enlace" (click)="ayudaPassword.set(true)">¿Olvidaste tu contraseña?</button>
-        </div>
-
-        @if (ayudaPassword()) {
-          <p class="aviso">Escríbele a tu Analista o a <a href="mailto:soporte@teamdev.mx">soporte&#64;teamdev.mx</a> y te enviamos una contraseña temporal.</p>
-        }
-
-        @if (login.error()) {
-          <p class="error" role="alert"><i class="bi bi-exclamation-circle"></i> {{ login.error() }}</p>
-        }
-
-        <button type="submit" class="entrar" [disabled]="login.enviando()">
-          {{ login.enviando() ? 'Entrando…' : 'Ver mi proyecto' }}
-          <i class="bi bi-arrow-right"></i>
-        </button>
-      </form>
-
-      <div class="primera-vez">
-        <i class="bi bi-envelope-paper"></i>
-        <div>
-          <strong>¿Es tu primera vez?</strong>
-          <p>Usa la contraseña temporal que te enviamos por correo; te pediremos cambiarla al entrar.</p>
-        </div>
-      </div>
-    </div>
-
-    <p class="ayuda">
-      ¿Necesitas ayuda? Escribe a tu Analista o a <a href="mailto:soporte@teamdev.mx">soporte&#64;teamdev.mx</a>
-      · <a routerLink="/login">Acceso del equipo</a>
-    </p>
+  <section class="presentacion">
+    <app-logo-inova [sobreOscuro]="true" [tamano]="64" />
+    <p>PORTAL DE CLIENTES</p>
   </section>
+  <section class="tarjeta">
+    <div class="logo"><app-logo-inova [tamano]="44" /></div>
 
-  <aside class="lado-vista" aria-hidden="true">
-    <svg class="circuito" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid slice">
-      <g fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M170 0 V95 l55 55 H360" /><circle cx="368" cy="152" r="7" />
-        <path d="M800 195 H780 l-60 60 H620" /><circle cx="612" cy="250" r="7" />
-        <path d="M0 360 H80" /><circle cx="88" cy="360" r="7" />
-        <path d="M0 830 H120 l55 55 H270" /><circle cx="278" cy="888" r="7" />
-        <path d="M800 970 H810 l-60 55 H645" /><circle cx="638" cy="1025" r="7" />
-        <path d="M450 1000 V940 l55 -55 H630" /><circle cx="638" cy="883" r="7" />
-        <circle cx="888" cy="582" r="7" />
-      </g>
-    </svg>
+    <h1>Iniciar sesión</h1>
+    <p class="bajada">Portal de clientes</p>
 
-    <div class="vista-previa">
-      <div class="vp-cabecera">
-        <span class="vp-codigo">PC</span>
-        <div>
-          <strong>Portal de Clientes</strong>
-          <small>Grupo Ferretero León</small>
+    <form [formGroup]="login.form" (ngSubmit)="login.entrar()" novalidate>
+      <label class="campo">
+        <span>Correo electrónico</span>
+        <div class="entrada" [class.con-error]="login.invalido('correo')">
+          <i class="bi bi-envelope"></i>
+          <input type="email" formControlName="correo" placeholder="tu.correo@empresa.com" autocomplete="email" inputmode="email" />
         </div>
-        <span class="vp-estado">En curso</span>
-      </div>
-      <div class="vp-avance">
-        <span>Avance del proyecto</span>
-        <strong>62%</strong>
-      </div>
-      <div class="vp-barra"><div style="width: 62%"></div></div>
-      <div class="vp-fases">
-        @for (fase of ['F1', 'F2', 'F3', 'F4', 'F5']; track fase; let i = $index) {
-          <div class="vp-fase" [class.actual]="i === 3">
-            <span class="punto" [class.verde]="i < 3" [class.azul]="i === 3"></span>{{ fase }}
-          </div>
+        @if (login.invalido('correo')) {
+          <small class="mensaje-campo">Escribe un correo válido.</small>
         }
-      </div>
-      <div class="vp-entrega">
-        <i class="bi bi-calendar3"></i>
-        <div>
-          <small>Próxima entrega</small>
-          <strong>31 de julio · Fase 4 · Portal móvil</strong>
+      </label>
+
+      <label class="campo">
+        <span>Contraseña</span>
+        <div class="entrada" [class.con-error]="login.invalido('password')">
+          <i class="bi bi-lock"></i>
+          <input [type]="login.mostrarPassword() ? 'text' : 'password'" formControlName="password"
+                 placeholder="••••••••" autocomplete="current-password" />
+          <button type="button" class="mostrar" (click)="login.mostrarPassword.set(!login.mostrarPassword())"
+                  [attr.aria-label]="login.mostrarPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <i class="bi" [class.bi-eye]="!login.mostrarPassword()" [class.bi-eye-slash]="login.mostrarPassword()"></i>
+          </button>
         </div>
+        @if (login.invalido('password')) {
+          <small class="mensaje-campo">Escribe tu contraseña.</small>
+        }
+      </label>
+
+      <div class="opciones">
+        <label class="recordarme">
+          <input type="checkbox" formControlName="recordarme" />
+          Recordarme
+        </label>
+        <button type="button" class="enlace" (click)="ayudaPassword.set(true)">¿Olvidaste tu contraseña?</button>
       </div>
-      <div class="vp-demo"><i class="bi bi-eye"></i> Tienes 1 demo esperando tu visto bueno</div>
-    </div>
-    <p class="vp-nota">Así se ve tu portal al entrar</p>
-  </aside>
-</div>
+
+      @if (ayudaPassword()) {
+        <p class="aviso">Pide a tu Analista una contraseña temporal.</p>
+      }
+
+      @if (login.error()) {
+        <p class="error" role="alert"><i class="bi bi-exclamation-circle"></i> {{ login.error() }}</p>
+      }
+
+      <button type="submit" class="entrar" [disabled]="login.enviando()">
+        {{ login.enviando() ? 'Entrando…' : 'Entrar' }}
+      </button>
+    </form>
+
+    <p class="cambiar-acceso">¿Eres del equipo? <a routerLink="/login">Entra aquí</a></p>
+  </section>
+</main>

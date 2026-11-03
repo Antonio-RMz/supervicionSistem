@@ -52,7 +52,8 @@ public interface TicketEscrituraJpaRepository extends Repository<TicketEntity, L
                    h.como AS como, h.quiero AS quiero, h.para AS para,
                    TRIM(CONCAT(u.nombre, ' ', COALESCE(u.apellidos, ''))) AS analistaNombre,
                    (SELECT COUNT(*) FROM ticket t WHERE t.historia_id = h.id) AS tickets,
-                   (SELECT GROUP_CONCAT(hm.modulo_id) FROM historia_modulo hm WHERE hm.historia_id = h.id) AS modulos
+                   (SELECT GROUP_CONCAT(hm.modulo_id) FROM historia_modulo hm WHERE hm.historia_id = h.id) AS modulos,
+                   (SELECT COUNT(*) FROM historia_desarrollador d WHERE d.historia_id = h.id) AS desarrolladores
             FROM historia h
             JOIN usuario u ON u.id = h.analista_id
             WHERE h.proyecto_id = :proyectoId AND h.estado IN ('LISTA', 'LISTA_DESARROLLO', 'EN_DESARROLLO')
@@ -220,6 +221,7 @@ public interface TicketEscrituraJpaRepository extends Repository<TicketEntity, L
         String getAnalistaNombre();
         Long getTickets();
         String getModulos();
+        Long getDesarrolladores();
     }
 
     interface CriterioFila {

@@ -1,7 +1,7 @@
 package com.team.gestorproyectos.ticket.application;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,11 +21,11 @@ import com.team.gestorproyectos.ticket.domain.model.PreparacionTicket.ModuloDeTi
 import com.team.gestorproyectos.ticket.domain.model.PreparacionTicket.PersonaDeEquipo;
 import com.team.gestorproyectos.ticket.domain.model.PreparacionTicket.TicketAbierto;
 import com.team.gestorproyectos.ticket.domain.model.TicketEditable;
-import com.team.gestorproyectos.ticket.domain.model.TicketImportado;
 import com.team.gestorproyectos.ticket.domain.model.TipoTicket;
 import com.team.gestorproyectos.ticket.domain.port.in.CrearTicketUseCase;
 import com.team.gestorproyectos.ticket.domain.port.out.TicketEscrituraPort;
 import com.team.gestorproyectos.ticket.domain.port.out.TicketEscrituraPort.ProyectoDeTicket;
+import com.team.gestorproyectos.shared.domain.port.AvisosPort;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,10 +33,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CrearTicketService implements CrearTicketUseCase {
 
-    private static final int MAXIMO_IMPORTADOS = 50;
+    /** Ya no hay Actividades: la historia le llega directo a sus Desarrolladores y anotan lo que hacen en ella. */
+    private static final String SIN_ACTIVIDADES = "Ya no se crean Actividades: la historia le llega directo a sus"
+            + " Desarrolladores y lo que hacen se anota en \"Lo que hice\" de la historia";
 
     private final TicketEscrituraPort tickets;
     private final PermisosPort permisos;
+    private final AvisosPort avisos;
 
     @Override
     @Transaccional(soloLectura = true)
@@ -53,7 +56,9 @@ public class CrearTicketService implements CrearTicketUseCase {
         verificar(proyectoId, usuarioId, esAdmin);
         validar(proyectoId, nuevo, null);
         int numero = tickets.siguientesNumeros(proyectoId).getOrDefault(nuevo.tipo(), 1);
-        return tickets.crear(proyectoId, numero, nuevo, usuarioId);
+        Long ticketId = tickets.crear(proyectoId, numero, nuevo, usuarioId);
+        avisos.avisar(AvisosPort.Tipo.ASIGNACION, ticketId, usuarioId, List.of(nuevo.responsableId()));
+        return ticketId;
     }
 
     @Override
@@ -82,75 +87,10 @@ public class CrearTicketService implements CrearTicketUseCase {
                 pedido.estimacionHoras(), pedido.fechaLimite());
         validar(proyectoId, datos, ticketId);
         tickets.actualizar(ticketId, datos);
-    }
-
-    @Override
-    @Transaccional
-    public int importar(Long proyectoId, Long usuarioId, boolean esAdmin, Long historiaId, Long responsableId,
-                        List<TicketImportado> importados) {
-        verificar(proyectoId, usuarioId, esAdmin);
-        if (importados == null || importados.isEmpty()) {
-            throw new ReglaNegocioException("El JSON no trae tickets");
+        // Solo si cambió de responsable: al nuevo le llega el aviso.
+        if (!Objects.equals(actual.responsableId(), datos.responsableId())) {
+            avisos.avisar(AvisosPort.Tipo.ASIGNACION, ticketId, usuarioId, List.of(datos.responsableId()));
         }
-        if (importados.size() > MAXIMO_IMPORTADOS) {
-            throw new ReglaNegocioException("Se pueden importar hasta " + MAXIMO_IMPORTADOS + " tickets a la vez");
-        }
-        FaseDeTicket fase = tickets.fasesConHistorias(proyectoId).stream()
-                .filter(f -> f.historias().stream().anyMatch(h -> h.id().equals(historiaId)))
-                .findFirst()
-                .orElseThrow(() -> new ReglaNegocioException(
-                        "La historia debe estar Lista, Lista para desarrollo o En desarrollo para recibir tickets"));
-        HistoriaDeTicket historia = fase.historias().stream().filter(h -> h.id().equals(historiaId)).findFirst()
-                .orElseThrow();
-        List<ModuloDeTicket> repositorios = fase.modulos().stream()
-                .filter(m -> historia.moduloIds().isEmpty() || historia.moduloIds().contains(m.id()))
-                .toList();
-
-        // Primero se validan todos: si uno falla, no se crea ninguno.
-        List<NuevoTicket> nuevos = new ArrayList<>();
-        for (int i = 0; i < importados.size(); i++) {
-            String cual = "Ticket " + (i + 1) + ": ";
-            TicketImportado t = importados.get(i);
-            if (t == null) {
-                throw new ReglaNegocioException(cual + "viene vacío");
-            }
-            try {
-                NuevoTicket nuevo = new NuevoTicket(fase.id(), historiaId, TipoTicket.ACTV, t.titulo(), t.descripcion(),
-                        repositorio(t.repositorio(), repositorios), Set.of(), Set.of(), t.subtareas(), Set.of(),
-                        responsableId, null, null, null, null);
-                validar(proyectoId, nuevo, null);
-                nuevos.add(nuevo);
-            } catch (ReglaNegocioException e) {
-                throw new ReglaNegocioException(cual + e.getMessage());
-            }
-        }
-
-        int numero = tickets.siguientesNumeros(proyectoId).getOrDefault(TipoTicket.ACTV, 1);
-        for (NuevoTicket nuevo : nuevos) {
-            tickets.crear(proyectoId, numero++, nuevo, usuarioId);
-        }
-        return nuevos.size();
-    }
-
-    /** Por tipo ("API", "Web") o por nombre; si la historia trabaja en uno solo, puede faltar. */
-    private static Long repositorio(String texto, List<ModuloDeTicket> repositorios) {
-        if (texto == null || texto.isBlank()) {
-            if (repositorios.size() == 1) {
-                return repositorios.get(0).id();
-            }
-            throw new ReglaNegocioException("falta \"repositorio\" (" + nombres(repositorios) + ")");
-        }
-        String buscado = texto.trim();
-        return repositorios.stream()
-                .filter(m -> buscado.equalsIgnoreCase(m.tipo()) || buscado.equalsIgnoreCase(m.nombre()))
-                .map(ModuloDeTicket::id)
-                .findFirst()
-                .orElseThrow(() -> new ReglaNegocioException(
-                        "el repositorio \"" + buscado + "\" no es de la historia (" + nombres(repositorios) + ")"));
-    }
-
-    private static String nombres(List<ModuloDeTicket> repositorios) {
-        return repositorios.stream().map(ModuloDeTicket::tipo).collect(Collectors.joining(", "));
     }
 
     private TicketEditable editable(Long proyectoId, Long ticketId, Long usuarioId, boolean esAdmin) {
@@ -173,6 +113,9 @@ public class CrearTicketService implements CrearTicketUseCase {
                 .findFirst()
                 .orElseThrow(() -> new ReglaNegocioException(
                         "La historia debe ser de la Fase " + fase.numero() + " y estar Lista, Lista para desarrollo o En desarrollo"));
+        if (nuevo.tipo() == TipoTicket.ACTV) {
+            throw new ReglaNegocioException(SIN_ACTIVIDADES);
+        }
 
         // Un ticket pertenece a un solo módulo, de los que trabaja su historia (o su fase, si la historia no dice).
         Set<Long> modulosPermitidos = historia.moduloIds().isEmpty()

@@ -37,6 +37,103 @@
           <app-cambio-vista />
         </header>
 
+        <!-- ─── Pestañas: la historia, su desarrollo y cómo subir los cambios (con Desarrolladores) y los prompts ─── -->
+        <nav class="pestanas" role="tablist" aria-label="Secciones de la historia">
+            <button type="button" role="tab" [class.activa]="pestana() === 'historia'" [attr.aria-selected]="pestana() === 'historia'"
+                    (click)="pestanaElegida.set('historia')"><i class="bi bi-journal-text"></i> Historia</button>
+            @if (h.desarrollo; as d) {
+              <button type="button" role="tab" [class.activa]="pestana() === 'desarrollo'" [attr.aria-selected]="pestana() === 'desarrollo'"
+                      (click)="pestanaElegida.set('desarrollo')">
+                <i class="bi bi-code-slash"></i> Desarrollo
+                <span class="contador">{{ d.trabajo.length }}</span>
+              </button>
+              <button type="button" role="tab" [class.activa]="pestana() === 'git'" [attr.aria-selected]="pestana() === 'git'"
+                      (click)="pestanaElegida.set('git')"><i class="bi bi-git"></i> Git</button>
+            }
+            @if (puedePrompt()) {
+              <button type="button" role="tab" [class.activa]="pestana() === 'prompt'" [attr.aria-selected]="pestana() === 'prompt'"
+                      (click)="pestanaElegida.set('prompt')"><i class="bi bi-stars"></i> Prompts IA</button>
+            }
+            <button type="button" role="tab" [class.activa]="pestana() === 'detalles'" [attr.aria-selected]="pestana() === 'detalles'"
+                    (click)="pestanaElegida.set('detalles')"><i class="bi bi-info-circle"></i> Detalles</button>
+        </nav>
+
+        @if (h.desarrollo && pestana() === 'desarrollo') {
+          <app-desarrollo-historia [historia]="h" (cambio)="recargar()" (error)="mostrarError($event)" />
+        } @else if (h.desarrollo && pestana() === 'git') {
+          <app-git-historia [historia]="h" />
+        } @else if (pestana() === 'detalles') {
+          <!-- ─── Detalles e historial de estados ─── -->
+        <section class="tarjeta bloque">
+          <h2>Detalles</h2>
+          <dl class="datos">
+            <div><dt>Analista</dt><dd>{{ h.analistaNombre }}</dd></div>
+            @if (h.desarrollo; as d) {
+              <div>
+                <dt>Desarrolladores</dt>
+                <dd>{{ nombresDesarrolladores(d) }}</dd>
+              </div>
+            }
+            <div><dt>Prioridad</dt><dd><span class="pastilla tono-{{ h.prioridad.tono }}">{{ h.prioridad.texto }}</span></dd></div>
+            <div><dt>Estimación</dt><dd>{{ h.puntos ? h.puntos + ' puntos' : '—' }}</dd></div>
+            <div>
+              <dt>Repositorios</dt>
+              <dd class="chips">
+                @for (m of h.modulos; track m.corto) {
+                  <app-chip-modulo [texto]="m.corto" [icono]="m.icono" [tono]="m.tono" />
+                } @empty {
+                  —
+                }
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="tarjeta bloque">
+          <h2>Historial de estados</h2>
+          <ul class="historial">
+            @for (c of h.historial; track $index) {
+              <li>
+                <span class="punto tono-{{ c.tono }}"></span>
+                <div>
+                  <strong>{{ c.texto }}</strong>
+                  <small>{{ c.detalle }}</small>
+                </div>
+              </li>
+            } @empty {
+              <li class="vacio">Sin cambios registrados.</li>
+            }
+          </ul>
+        </section>
+        } @else if (pestana() === 'prompt' && puedePrompt()) {
+          <!-- Dos prompts: Desarrollo (Líder y sus Desarrolladores) y Diseño en Figma (Líder y Analista) -->
+          <section class="tarjeta bloque prompts">
+            <div class="prompts-cabecera">
+              <h2><i class="bi bi-stars"></i> Prompts para IA</h2>
+              <div class="segmentos" role="tablist" aria-label="Qué prompt">
+                @if (puedePromptDesarrollo()) {
+                  <button type="button" role="tab" [class.activo]="prompt() === 'desarrollo'" [attr.aria-selected]="prompt() === 'desarrollo'"
+                          (click)="promptElegido.set('desarrollo')"><i class="bi bi-code-slash"></i> Desarrollo</button>
+                }
+                @if (puedePromptDiseno()) {
+                  <button type="button" role="tab" [class.activo]="prompt() === 'diseno'" [attr.aria-selected]="prompt() === 'diseno'"
+                          (click)="promptElegido.set('diseno')"><i class="bi bi-palette"></i> Diseño</button>
+                }
+              </div>
+            </div>
+            <p class="pista">
+              {{ prompt() === 'desarrollo'
+                ? 'Para que la IA implemente la historia: repositorios, git, criterios y lo que ya se hizo.'
+                : 'Para que la IA diseñe la pantalla de la historia en Figma, con sus criterios.' }}
+            </p>
+            @if (prompt() === 'desarrollo') {
+              <app-prompt-historia [historia]="h" />
+            } @else {
+              <app-prompt-diseno-historia [historia]="h" />
+            }
+          </section>
+        } @else {
+
         <!-- ─── La historia ─── -->
         <section class="tarjeta bloque">
           <h2>La historia</h2>
@@ -95,23 +192,19 @@
           </ul>
         </section>
 
-        <!-- ─── Tickets de trabajo ─── -->
+        <!-- ─── Bugs y mejoras de la historia (ya no hay Actividades: el trabajo se anota en Desarrollo) ─── -->
+        @if (h.tickets.length || h.puedeCrearTicket) {
         <section class="tarjeta bloque">
           <div class="bloque-cabecera">
-            <h2>Tickets de trabajo · {{ h.tickets.length }}</h2>
-            <div class="botones-cabecera">
-              @if (h.puedeCrearTicket) {
-                <a class="boton boton-secundario" [routerLink]="['/proyectos', h.proyectoId, 'historias', h.id, 'importar-tickets']">
-                  <i class="bi bi-braces"></i> Importar JSON</a>
+            <h2>Bugs y mejoras · {{ h.tickets.length }}</h2>
+            @if (h.puedeCrearTicket) {
+              <div class="botones-cabecera">
                 <a class="boton boton-suave" [routerLink]="['/proyectos', h.proyectoId, 'tickets', 'nuevo']"
                    [queryParams]="{ historia: h.id }"><i class="bi bi-plus-lg"></i> Nuevo ticket</a>
-              } @else if (h.tickets.length) {
-                <a class="boton boton-secundario" [routerLink]="['/proyectos', h.proyectoId, 'historias', h.id, 'importar-tickets']"
-                   [queryParams]="{ ver: 'copiar' }"><i class="bi bi-copy"></i> JSON de tickets</a>
-              }
-            </div>
+              </div>
+            }
           </div>
-          <p class="pista">Los crea el Líder (Actividad, Bug o Mejora). El Desarrollador divide el suyo en subtareas desde el ticket.</p>
+          <p class="pista">Errores o mejoras que salen de la historia. Lo que hacen sus Desarrolladores se anota en Desarrollo.</p>
           <ul class="filas">
             @for (t of h.tickets; track t.id) {
               <li class="ticket">
@@ -131,6 +224,7 @@
             }
           </ul>
         </section>
+        }
 
         <!-- ─── Comentarios ─── -->
         <section class="tarjeta bloque">
@@ -154,6 +248,7 @@
             </button>
           </form>
         </section>
+        }
       </div>
 
       <aside class="lateral">
@@ -222,42 +317,6 @@
             </span>
             <i class="bi bi-box-arrow-up-right"></i>
           </a>
-        </section>
-
-        <section class="tarjeta bloque">
-          <h2>Detalles</h2>
-          <dl class="datos">
-            <div><dt>Analista</dt><dd>{{ h.analistaNombre }}</dd></div>
-            <div><dt>Prioridad</dt><dd><span class="pastilla tono-{{ h.prioridad.tono }}">{{ h.prioridad.texto }}</span></dd></div>
-            <div><dt>Estimación</dt><dd>{{ h.puntos ? h.puntos + ' puntos' : '—' }}</dd></div>
-            <div>
-              <dt>Repositorios</dt>
-              <dd class="chips">
-                @for (m of h.modulos; track m.corto) {
-                  <app-chip-modulo [texto]="m.corto" [icono]="m.icono" [tono]="m.tono" />
-                } @empty {
-                  —
-                }
-              </dd>
-            </div>
-          </dl>
-        </section>
-
-        <section class="tarjeta bloque">
-          <h2>Historial de estados</h2>
-          <ul class="historial">
-            @for (c of h.historial; track $index) {
-              <li>
-                <span class="punto tono-{{ c.tono }}"></span>
-                <div>
-                  <strong>{{ c.texto }}</strong>
-                  <small>{{ c.detalle }}</small>
-                </div>
-              </li>
-            } @empty {
-              <li class="vacio">Sin cambios registrados.</li>
-            }
-          </ul>
         </section>
 
       </aside>

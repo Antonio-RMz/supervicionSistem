@@ -34,6 +34,8 @@ public class UsuarioEntity {
     private String nombre;
     private String apellidos;
     private String correo;
+    /** Usuario en la plataforma de git; null = sin capturar */
+    private String usuarioGit;
     private String passwordHash;
     private String tipo;
 

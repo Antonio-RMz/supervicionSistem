@@ -56,6 +56,8 @@
         <section class="tarjeta bloque">
           <h2>Descripción técnica</h2>
           <p class="descripcion">{{ t.descripcion || 'Sin descripción técnica.' }}</p>
+          <!-- Las capturas con las que se reportó (solo si tiene) -->
+          <app-imagenes-ticket [proyectoId]="t.proyectoId" [ticketId]="t.id" />
           @if (t.capas.length) {
             <div class="capas">
               @for (c of t.capas; track c) {
@@ -64,11 +66,6 @@
             </div>
           }
         </section>
-
-        <!-- ─── Trabajar con IA (las Actividades no lo llevan) ─── -->
-        @if (t.tipo !== 'ACTV') {
-          <app-prompt-ia [ticket]="t" />
-        }
 
         <!-- ─── Subtareas: las agregan quien lo trabaja o el Líder ─── -->
         @if (t.subtareas.length || t.puedeEditarSubtareas) {
@@ -139,7 +136,9 @@
               }
             </div>
           } @empty {
-            <p class="pista">Aún no hay PR. Se registra al subir la rama.</p>
+            @if (t.requierePr) {
+              <p class="pista">Aún no hay PR. Se registra al subir la rama.</p>
+            }
           }
         </section>
         }

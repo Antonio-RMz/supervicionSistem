@@ -41,3 +41,18 @@ const TONOS_AVATAR: Tono[] = ['morado', 'violeta', 'verde', 'azul', 'turquesa', 
 export function tonoDeAvatar(id: number, activo = true): Tono {
   return activo ? TONOS_AVATAR[id % TONOS_AVATAR.length] : 'gris';
 }
+
+/** El Administrador ve todo; los demás, si tienen alguno de esos roles. */
+function tieneRol(mios: readonly string[], ...roles: string[]): boolean {
+  return mios.includes('ADMIN') || roles.some((r) => mios.includes(r));
+}
+
+/** Prompt de desarrollo de una historia: Líder y Desarrollador. */
+export function puedePromptDesarrollo(roles: readonly string[]): boolean {
+  return tieneRol(roles, 'LIDER', 'DESARROLLADOR');
+}
+
+/** Prompt de diseño de una historia (Figma): Líder y Analista. */
+export function puedePromptDiseno(roles: readonly string[]): boolean {
+  return tieneRol(roles, 'LIDER', 'ANALISTA');
+}

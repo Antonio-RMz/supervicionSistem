@@ -19,13 +19,15 @@ public interface HistoriaGestionJpaRepository extends Repository<HistoriaEntity,
 
     @Query(value = """
             SELECT h.id FROM historia h
-            WHERE h.proyecto_id = :proyectoId AND h.estado IN ('BORRADOR', 'EN_PLANEACION', 'LISTA', 'EN_VALIDACION', 'ACEPTADA')
+            WHERE h.proyecto_id = :proyectoId AND h.estado IN ('BORRADOR', 'EN_PLANEACION', 'LISTA', 'EN_VALIDACION', 'ACEPTADA',
+                                                           'LISTA_DESARROLLO', 'EN_DESARROLLO', 'EN_REVISION')
             ORDER BY h.numero
             """, nativeQuery = true)
     List<Long> historiasPorDecidir(@Param("proyectoId") Long proyectoId);
 
     @Query(value = """
-            SELECT h.id AS id, h.proyecto_id AS proyectoId, p.nombre AS proyectoNombre, h.numero AS numero,
+            SELECT h.id AS id, h.proyecto_id AS proyectoId, p.nombre AS proyectoNombre,
+                   p.forma_trabajo AS formaTrabajo, p.requiere_pr AS requierePr, h.numero AS numero,
                    h.titulo AS titulo, h.como AS como, h.quiero AS quiero, h.para AS para, h.estado AS estado,
                    h.prioridad AS prioridad, h.puntos AS puntos, h.analista_id AS analistaId,
                    CONCAT(a.nombre, COALESCE(CONCAT(' ', a.apellidos), '')) AS analistaNombre,
@@ -343,10 +345,117 @@ public interface HistoriaGestionJpaRepository extends Repository<HistoriaEntity,
 
     // ─── Filas ──────────────────────────────────────────────────────────────
 
+    // ─── Historia con Desarrolladores ───────────────────────────────────────
+
+    @Query(value = """
+            SELECT d.usuario_id AS usuarioId, TRIM(CONCAT(u.nombre, ' ', COALESCE(u.apellidos, ''))) AS nombre,
+                   d.modulo_id AS moduloId, m.nombre AS moduloNombre, d.terminado AS terminado
+            FROM historia_desarrollador d
+            JOIN usuario u      ON u.id = d.usuario_id
+            LEFT JOIN modulo m  ON m.id = d.modulo_id
+            WHERE d.historia_id = :historiaId
+            ORDER BY u.nombre
+            """, nativeQuery = true)
+    List<DesarrolladorFila> desarrolladores(@Param("historiaId") Long historiaId);
+
+    @Query(value = """
+            SELECT t.id AS id, t.descripcion AS descripcion, t.modulo_id AS moduloId, m.nombre AS moduloNombre,
+                   t.hecho AS hecho, TRIM(CONCAT(u.nombre, ' ', COALESCE(u.apellidos, ''))) AS creadoPor,
+                   t.creado_en AS creadoEn
+            FROM historia_trabajo t
+            JOIN usuario u     ON u.id = t.creado_por
+            LEFT JOIN modulo m ON m.id = t.modulo_id
+            WHERE t.historia_id = :historiaId
+            ORDER BY t.orden, t.id
+            """, nativeQuery = true)
+    List<TrabajoFila> trabajo(@Param("historiaId") Long historiaId);
+
+    @Query(value = """
+            SELECT m.id AS id, m.tipo AS tipo, m.nombre AS nombre, m.tecnologia AS tecnologia, m.rama_base AS ramaBase,
+                   m.repositorio AS url
+            FROM historia_modulo hm JOIN modulo m ON m.id = hm.modulo_id
+            WHERE hm.historia_id = :historiaId
+            ORDER BY m.tipo, m.nombre
+            """, nativeQuery = true)
+    List<RepositorioFila> repositorios(@Param("historiaId") Long historiaId);
+
+    @Modifying
+    @Query(value = """
+            UPDATE historia_desarrollador SET terminado = :terminado
+            WHERE historia_id = :historiaId AND usuario_id = :usuarioId
+            """, nativeQuery = true)
+    int marcarParte(@Param("historiaId") Long historiaId, @Param("usuarioId") Long usuarioId,
+                    @Param("terminado") boolean terminado);
+
+    /** Al devolverla o pedir cambios: todos vuelven a trabajar en ella. */
+    @Modifying
+    @Query(value = "UPDATE historia_desarrollador SET terminado = FALSE WHERE historia_id = :historiaId",
+            nativeQuery = true)
+    void reiniciarPartes(@Param("historiaId") Long historiaId);
+
+    @Modifying
+    @Query(value = """
+            INSERT INTO historia_trabajo (historia_id, descripcion, modulo_id, hecho, orden, creado_por, creado_en)
+            SELECT :historiaId, :descripcion, :moduloId, FALSE,
+                   COALESCE((SELECT MAX(t.orden) FROM historia_trabajo t WHERE t.historia_id = :historiaId), 0) + 1,
+                   :usuarioId, :fecha
+            """, nativeQuery = true)
+    void agregarTrabajo(@Param("historiaId") Long historiaId, @Param("descripcion") String descripcion,
+                        @Param("moduloId") Long moduloId, @Param("usuarioId") Long usuarioId,
+                        @Param("fecha") LocalDateTime fecha);
+
+    @Modifying
+    @Query(value = "UPDATE historia_trabajo SET hecho = :hecho WHERE id = :trabajoId AND historia_id = :historiaId",
+            nativeQuery = true)
+    int marcarTrabajo(@Param("historiaId") Long historiaId, @Param("trabajoId") Long trabajoId,
+                      @Param("hecho") boolean hecho);
+
+    @Modifying
+    @Query(value = "DELETE FROM historia_trabajo WHERE id = :trabajoId AND historia_id = :historiaId",
+            nativeQuery = true)
+    int quitarTrabajo(@Param("historiaId") Long historiaId, @Param("trabajoId") Long trabajoId);
+
+    @Modifying
+    @Query(value = "DELETE FROM historia_trabajo WHERE historia_id = :historiaId", nativeQuery = true)
+    void quitarTodoElTrabajo(@Param("historiaId") Long historiaId);
+
+    @Modifying
+    @Query(value = "DELETE FROM historia_desarrollador WHERE historia_id = :historiaId", nativeQuery = true)
+    void quitarDesarrolladores(@Param("historiaId") Long historiaId);
+
+    interface DesarrolladorFila {
+        Long getUsuarioId();
+        String getNombre();
+        Long getModuloId();
+        String getModuloNombre();
+        Boolean getTerminado();
+    }
+
+    interface TrabajoFila {
+        Long getId();
+        String getDescripcion();
+        Long getModuloId();
+        String getModuloNombre();
+        Boolean getHecho();
+        String getCreadoPor();
+        LocalDateTime getCreadoEn();
+    }
+
+    interface RepositorioFila {
+        Long getId();
+        String getTipo();
+        String getNombre();
+        String getTecnologia();
+        String getRamaBase();
+        String getUrl();
+    }
+
     interface HistoriaFila {
         Long getId();
         Long getProyectoId();
         String getProyectoNombre();
+        String getFormaTrabajo();
+        Boolean getRequierePr();
         Integer getNumero();
         String getTitulo();
         String getComo();

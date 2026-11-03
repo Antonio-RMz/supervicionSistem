@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, input, signal, untracked } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Avatar } from '../../../../shared/components/avatar/avatar';
@@ -12,11 +12,15 @@ import { TicketDetalleService } from '../../../tickets/data/ticket-detalle.servi
 import { NuevoTicketModal } from '../../components/nuevo-ticket-modal/nuevo-ticket-modal';
 import { ReportarFallaModal } from '../../components/reportar-falla-modal/reportar-falla-modal';
 import { MantenimientoService } from '../../data/mantenimiento.service';
-import { Mantenimiento, PreparacionMantenimiento } from '../../models/mantenimiento.models';
+import { Mantenimiento, PreparacionMantenimiento, TicketMantenimiento } from '../../models/mantenimiento.models';
+
+/** Los tres grupos de la vista, con "todos" para no filtrar. */
+type Grupo = 'todos' | 'urgentes' | 'listos' | 'normales';
 
 /**
- * Mantenimiento (PDF pág. 37): la fase permanente del proyecto. Lo urgente (Crítica y Alta) va por hotfix
- * desde main y sale en un parche; lo normal se trabaja desde develop y sale con la siguiente fase.
+ * Bugs (antes Mantenimiento, PDF pág. 37): la fase permanente del proyecto, como lista de tarjetas.
+ * Lo urgente (Crítica y Alta) va por hotfix desde main y sale en un parche; lo normal se trabaja desde
+ * develop y sale con la siguiente fase. Abajo quedan publicar el parche y los parches publicados.
  */
 @Component({
   selector: 'app-mantenimiento-page',
@@ -44,11 +48,61 @@ export class MantenimientoPage {
   protected readonly creandoTicket = signal(false);
   protected readonly reportandoFalla = signal(false);
 
+  protected readonly filtro = signal<Grupo>('todos');
+  /** URL local de la miniatura de cada bug con imagen, por id de ticket. */
+  protected readonly miniaturas = signal<Record<number, string>>({});
+
+  /** Todos los bugs abiertos, del más urgente al normal, con su grupo. */
+  private readonly todos = computed(() => {
+    const m = this.mantenimiento();
+    if (!m) return [];
+    const con = (lista: TicketMantenimiento[], grupo: Grupo) => lista.map((ticket) => ({ ticket, grupo }));
+    return [...con(m.urgentes, 'urgentes'), ...con(m.listos, 'listos'), ...con(m.normales, 'normales')];
+  });
+
+  protected readonly visibles = computed(() => {
+    const filtro = this.filtro();
+    return filtro === 'todos' ? this.todos() : this.todos().filter((b) => b.grupo === filtro);
+  });
+
+  protected readonly filtros = computed(() => {
+    const m = this.mantenimiento();
+    return [
+      { grupo: 'todos' as Grupo, texto: 'Todos', cuenta: this.todos().length },
+      { grupo: 'urgentes' as Grupo, texto: 'Urgentes · hotfix', cuenta: m?.urgentes.length ?? 0 },
+      { grupo: 'listos' as Grupo, texto: 'Listos para el parche', cuenta: m?.listos.length ?? 0 },
+      { grupo: 'normales' as Grupo, texto: 'Con la siguiente fase', cuenta: m?.normales.length ?? 0 },
+    ];
+  });
+
+  /** "Va con la Fase 5" */
+  protected readonly vaCon = computed(() => {
+    const texto = this.mantenimiento()?.conLaFase ?? 'va con la siguiente fase';
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+  });
+
   protected readonly proyectoNombre = computed(
     () => this.proyectos.proyectos().find((p) => p.id === Number(this.id()))?.nombre ?? 'Proyecto',
   );
 
   constructor() {
+    // Cada vez que llega la lista se piden las miniaturas; las anteriores se liberan.
+    effect((onCleanup) => {
+      const proyectoId = Number(this.id());
+      const conImagen = this.todos().filter((b) => b.ticket.imagenId);
+      const pedidas = conImagen.map((b) =>
+        this.service.imagen(proyectoId, b.ticket.id, b.ticket.imagenId!).subscribe({
+          next: (blob) => this.miniaturas.update((m) => ({ ...m, [b.ticket.id]: URL.createObjectURL(blob) })),
+          error: () => undefined, // sin miniatura: la tarjeta muestra el ícono
+        }),
+      );
+      onCleanup(() => {
+        pedidas.forEach((s) => s.unsubscribe());
+        this.liberarMiniaturas();
+      });
+    });
+    inject(DestroyRef).onDestroy(() => this.liberarMiniaturas());
+
     effect(() => {
       const id = Number(this.id());
       untracked(() => {
@@ -88,11 +142,25 @@ export class MantenimientoPage {
     this.recargar();
   }
 
-  protected fallaReportada(falla: { codigo: string; hotfix: boolean }): void {
+  protected fallaReportada(falla: { codigo: string; hotfix: boolean; imagenesFallidas: boolean }): void {
     this.reportandoFalla.set(false);
     const ruta = falla.hotfix ? 'Irá por hotfix en cuanto el Líder lo confirme.' : 'Irá con la siguiente fase.';
-    this.aviso.set({ texto: `Se reportó ${falla.codigo}. ${ruta}`, error: false });
+    if (falla.imagenesFallidas) {
+      this.aviso.set({
+        texto: `Se reportó ${falla.codigo}, pero alguna imagen no se pudo subir. ${ruta}`,
+        error: true,
+      });
+    } else {
+      this.aviso.set({ texto: `Se reportó ${falla.codigo}. ${ruta}`, error: false });
+    }
     this.recargar();
+  }
+
+  private liberarMiniaturas(): void {
+    untracked(() => {
+      Object.values(this.miniaturas()).forEach((url) => URL.revokeObjectURL(url));
+      this.miniaturas.set({});
+    });
   }
 
   /** Tras crear, el siguiente número de cada tipo cambia. */

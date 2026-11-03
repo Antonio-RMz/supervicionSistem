@@ -8,9 +8,10 @@ import { TipoTicket } from '../../../../shared/components/tipo-ticket/tipo-ticke
 import { ORDEN_ESTADOS, textoEstado } from '../../../../shared/utils/tickets';
 import { ProyectoActualStore } from '../../../gestor/data/proyecto-actual.store';
 import { MisTicketsService } from '../../data/mis-tickets.service';
-import { ColumnaTablero, Filtros, SIN_FILTROS, TicketMio } from '../../models/mis-tickets.models';
+import { Filtros, SIN_FILTROS, TicketMio } from '../../models/mis-tickets.models';
 
-type Vista = 'lista' | 'tablero';
+/** Tarjetas (por defecto) o lista. El tablero por estado se quitó: con pocos tickets quedaba casi vacío. */
+type Vista = 'tarjetas' | 'lista';
 
 const CLAVE_VISTA = 'misTickets.vista';
 const ORDEN_PRIORIDAD = ['ALTA', 'MEDIA', 'BAJA'];
@@ -71,16 +72,14 @@ export class MisTicketsPage {
 
   protected readonly hayFiltros = computed(() => JSON.stringify(this.filtros()) !== JSON.stringify(SIN_FILTROS));
 
-  /** Vista de tablero: una columna por estado, en el orden en que avanza el trabajo. */
-  protected readonly columnas = computed<ColumnaTablero[]>(() => {
-    const porEstado = new Map<string, TicketMio[]>();
-    for (const ticket of this.visibles()) {
-      porEstado.set(ticket.estado, [...(porEstado.get(ticket.estado) ?? []), ticket]);
-    }
-    return [...porEstado.keys()]
-      .sort((a, b) => ORDEN_ESTADOS.indexOf(a) - ORDEN_ESTADOS.indexOf(b))
-      .map((estado) => ({ estado, titulo: textoEstado(estado), tickets: porEstado.get(estado)! }));
-  });
+  /** Tarjetas: primero lo rechazado en QA (hay que corregirlo), luego por prioridad. */
+  protected readonly enTarjetas = computed(() =>
+    [...this.visibles()].sort(
+      (a, b) =>
+        Number(b.rechazadaEnQa) - Number(a.rechazadaEnQa) ||
+        ORDEN_PRIORIDAD.indexOf(a.prioridad) - ORDEN_PRIORIDAD.indexOf(b.prioridad),
+    ),
+  );
 
   constructor() {
     const proyectoId = computed(() => this.proyectos.actual()?.id ?? null);
@@ -138,8 +137,9 @@ export class MisTicketsPage {
 
 function leerVista(): Vista {
   try {
-    return localStorage.getItem(CLAVE_VISTA) === 'tablero' ? 'tablero' : 'lista';
+    // "tablero" (la vista de antes) también abre en tarjetas.
+    return localStorage.getItem(CLAVE_VISTA) === 'lista' ? 'lista' : 'tarjetas';
   } catch {
-    return 'lista';
+    return 'tarjetas';
   }
 }

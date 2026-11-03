@@ -19,6 +19,8 @@ export interface NuevoUsuarioDto {
   activo: boolean;
   roles: string[];
   proyectoIds: number[];
+  /** opcional; null = sin capturar */
+  usuarioGit: string | null;
 }
 
 export interface PermisoExtraDto {
@@ -68,6 +70,7 @@ export interface PerfilDto {
   roles: string[];
   activo: boolean;
   ultimoAcceso: string | null;
+  usuarioGit: string | null;
   metricas: {
     trabajandoAhora: number;
     leToca: number;

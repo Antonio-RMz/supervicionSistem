@@ -37,7 +37,12 @@ public final class UsuariosDtos {
             boolean cambiarPassword,
             boolean activo,
             @NotEmpty Set<String> roles,
-            Set<Long> proyectoIds) {
+            Set<Long> proyectoIds,
+            @Size(max = 100) String usuarioGit) {
+    }
+
+    /** @param usuarioGit vacío o null lo quita */
+    public record UsuarioGitRequest(@Size(max = 100) String usuarioGit) {
     }
 
     public record EstadoRequest(@NotNull Boolean activo) {
@@ -86,7 +91,8 @@ public final class UsuariosDtos {
             List<TareaResponse> leToca,
             List<TareaResponse> esperandoAOtros,
             List<HechoResponse> actividad,
-            List<ProyectoUsuarioResponse> proyectos) {
+            List<ProyectoUsuarioResponse> proyectos,
+            String usuarioGit) {
     }
 
     public record MetricasPerfilResponse(

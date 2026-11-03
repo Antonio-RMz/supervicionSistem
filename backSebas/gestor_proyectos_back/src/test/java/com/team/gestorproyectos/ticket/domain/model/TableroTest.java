@@ -22,7 +22,7 @@ class TableroTest {
 
     private static FilaTicket ticket(String tipo, int numero, String estado) {
         var item = new ItemTrabajo((long) numero, tipo, numero, tipo + " " + numero, estado, "MEDIA",
-                PEDRO, ANA, JORGE, "EN_DESARROLLO", AHORA, AHORA);
+                PEDRO, ANA, JORGE, "EN_DESARROLLO", AHORA, AHORA, true);
         return new FilaTicket(new ItemDeProyecto(item, JORGE, null), 10L, 2, null, null, "PR");
     }
 

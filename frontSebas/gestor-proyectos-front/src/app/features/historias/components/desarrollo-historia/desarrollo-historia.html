@@ -1,0 +1,90 @@
+@let d = desarrollo();
+
+<!-- ─── Quiénes la desarrollan ─── -->
+<section class="tarjeta bloque">
+  <div class="bloque-cabecera">
+    <h2>Desarrolladores</h2>
+    <span class="detalle">{{ d.desarrolladores.length }}</span>
+  </div>
+  <ul class="filas">
+    @for (dev of d.desarrolladores; track dev.usuarioId) {
+      <li class="dev">
+        <app-avatar [iniciales]="dev.iniciales" tono="verde" class="chico" />
+        <span class="nombre">{{ dev.nombre }}</span>
+        <span class="repo">{{ dev.repositorio ?? 'Todos los repositorios' }}</span>
+        @if (dev.terminado) {
+          <span class="pastilla tono-verde"><i class="bi bi-check-lg"></i> Terminó su parte</span>
+        } @else if (enDesarrollo()) {
+          <span class="pastilla tono-morado">Trabajando</span>
+        }
+      </li>
+    }
+  </ul>
+
+  @if (d.miParteTerminada !== null && enDesarrollo()) {
+    <div class="mi-parte">
+      @if (d.miParteTerminada) {
+        <p><i class="bi bi-check-circle-fill"></i> Ya marcaste tu parte como terminada.</p>
+        <button type="button" class="boton boton-secundario chico" [disabled]="enviando() !== null"
+                (click)="marcarMiParte(false)">Todavía no termino</button>
+      } @else {
+        <p>Cuando hayas subido todo lo tuyo, márcalo. La historia se termina cuando todos terminen.</p>
+        <button type="button" class="boton boton-primario chico" [disabled]="enviando() !== null"
+                (click)="marcarMiParte(true)">
+          <i class="bi bi-check-lg"></i> {{ enviando() === 'parte' ? 'Un momento…' : 'Terminé mi parte' }}
+        </button>
+      }
+    </div>
+  }
+</section>
+
+<!-- ─── Lo que hice ─── -->
+<section class="tarjeta bloque">
+  <div class="bloque-cabecera">
+    <h2>Lo que hice</h2>
+    <span class="detalle">{{ hechos() }} de {{ d.trabajo.length }} hechos</span>
+  </div>
+  <p class="pista">
+    Anota lo que vas haciendo. La Analista o el Líder también pueden dejar puntos como guía para que los marques.
+  </p>
+  <ul class="filas">
+    @for (t of d.trabajo; track t.id) {
+      <li class="trabajo" [class.hecho]="t.hecho">
+        <label>
+          <input type="checkbox" [checked]="t.hecho" [disabled]="!d.puedeMarcar || enviando() !== null"
+                 (change)="marcar(t.id, $any($event.target).checked)" />
+          <span class="texto">{{ t.descripcion }}</span>
+        </label>
+        @if (t.repositorio) {
+          <span class="repo">{{ t.repositorio }}</span>
+        }
+        <small class="quien">{{ t.detalle }}</small>
+        @if (d.puedeAnotar) {
+          <button type="button" class="quitar" title="Quitar" [disabled]="enviando() !== null" (click)="quitar(t.id)">
+            <i class="bi bi-x-lg"></i><span class="solo-lectores">Quitar</span>
+          </button>
+        }
+      </li>
+    } @empty {
+      <li class="vacio">Todavía no hay nada anotado.</li>
+    }
+  </ul>
+
+  @if (d.puedeAnotar) {
+    <form class="agregar" (submit)="$event.preventDefault(); agregar()">
+      <input type="text" maxlength="300" placeholder="Ej. Endpoint de login con CCT y pruebas"
+             [value]="nuevo()" (input)="nuevo.set($any($event.target).value)" />
+      @if (d.repositorios.length > 1) {
+        <select aria-label="Repositorio" (change)="repositorio.set($any($event.target).value ? +$any($event.target).value : null)">
+          <option value="">Repositorio…</option>
+          @for (r of d.repositorios; track r.id) {
+            <option [value]="r.id">{{ r.tipo || r.nombre }}</option>
+          }
+        </select>
+      }
+      <button type="submit" class="boton boton-secundario" [disabled]="!nuevo().trim() || enviando() !== null">
+        <i class="bi bi-plus-lg"></i> {{ enviando() === 'agregar' ? 'Agregando…' : 'Agregar' }}
+      </button>
+    </form>
+  }
+</section>

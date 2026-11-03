@@ -1,0 +1,65 @@
+<button type="button" class="campana" (click)="alternar()" [attr.aria-expanded]="abierto()"
+        [title]="servicio.noLeidas() ? servicio.noLeidas() + ' notificaciones sin leer' : 'Notificaciones'">
+  <i class="bi" [class.bi-bell]="!servicio.hayNuevas()" [class.bi-bell-fill]="servicio.hayNuevas()"></i>
+  @if (servicio.noLeidas()) {
+    <span class="contador">{{ servicio.noLeidas() > 99 ? '99+' : servicio.noLeidas() }}</span>
+  }
+  <span class="solo-lectores">Notificaciones</span>
+</button>
+
+<!-- Las que acaban de llegar: salen solas abajo a la izquierda -->
+<div class="emergentes" aria-live="polite">
+  @for (n of servicio.emergentes(); track n.id) {
+    <div class="emergente tarjeta tipo-{{ n.tipo.toLowerCase() }}" role="status">
+      <button type="button" class="emergente-cuerpo" (click)="abrir(n)" title="Abrir">
+        <span class="icono-tipo tipo-{{ n.tipo.toLowerCase() }}"><i class="bi {{ iconos[n.tipo] }}"></i></span>
+        <span class="cuerpo">
+          <strong>Nueva notificación</strong>
+          <span class="texto">{{ n.texto }}</span>
+        </span>
+      </button>
+      <button type="button" class="icono cerrar" (click)="servicio.cerrarEmergente(n)" title="Cerrar">
+        <i class="bi bi-x-lg"></i><span class="solo-lectores">Cerrar</span>
+      </button>
+    </div>
+  }
+</div>
+
+@if (abierto()) {
+  <section class="panel tarjeta" aria-label="Notificaciones">
+    <header class="panel-cabecera">
+      <h2>Notificaciones</h2>
+      <button type="button" class="icono" (click)="servicio.alternarSonido()"
+              [title]="servicio.conSonido() ? 'Silenciar' : 'Activar sonido'">
+        <i class="bi" [class.bi-volume-up]="servicio.conSonido()" [class.bi-volume-mute]="!servicio.conSonido()"></i>
+        <span class="solo-lectores">{{ servicio.conSonido() ? 'Silenciar' : 'Activar sonido' }}</span>
+      </button>
+      @if (servicio.noLeidas()) {
+        <button type="button" class="enlace" (click)="servicio.marcarTodasLeidas()">Marcar todas como leídas</button>
+      }
+    </header>
+
+    <ul class="lista">
+      @for (n of servicio.notificaciones(); track n.id) {
+        <li>
+          <button type="button" class="item" [class.sin-leer]="!n.leida" (click)="abrir(n)">
+            <span class="icono-tipo tipo-{{ n.tipo.toLowerCase() }}"><i class="bi {{ iconos[n.tipo] }}"></i></span>
+            <span class="cuerpo">
+              <span class="texto">{{ n.texto }}</span>
+              <small>{{ haceCuanto(n.fecha) }}</small>
+            </span>
+            @if (!n.leida) {
+              <span class="punto" aria-label="Sin leer"></span>
+            }
+          </button>
+        </li>
+      } @empty {
+        <li class="vacio">
+          <i class="bi bi-bell-slash"></i>
+          <span>No tienes notificaciones.</span>
+          <small>Te llegan cuando te asignan un ticket o una historia, reportan un bug en tu proyecto o comentan un ticket tuyo.</small>
+        </li>
+      }
+    </ul>
+  </section>
+}

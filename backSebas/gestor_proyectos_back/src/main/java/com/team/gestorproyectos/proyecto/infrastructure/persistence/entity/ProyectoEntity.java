@@ -37,4 +37,7 @@ public class ProyectoEntity {
     private boolean comentarioAlRechazar;
     private boolean ramaAlIniciar;
     private boolean notificarClienteFase;
+    /** GITFLOW o NORMAL; se elige al crear el proyecto y ya no cambia */
+    private String formaTrabajo;
+    private boolean requierePr;
 }

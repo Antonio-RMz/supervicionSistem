@@ -62,7 +62,7 @@
     @for (p of visibles(); track p.id) {
       <a class="tarjeta proyecto" [routerLink]="['/proyectos', p.id]">
         <div class="cabecera">
-          <app-avatar [iniciales]="p.codigo" [tono]="p.tono" [cuadro]="true" class="grande" />
+          <app-icono-proyecto [proyectoId]="p.id" [codigo]="p.codigo" [tono]="p.tono" [tamano]="48" />
           <div class="nombre">
             <h2>{{ p.nombre }}</h2>
             <small><i class="bi bi-buildings"></i> {{ p.clienteNombre }}</small>

@@ -12,8 +12,9 @@ import com.team.gestorproyectos.proyecto.domain.model.ReglasFlujo;
 import com.team.gestorproyectos.proyecto.domain.model.VistaEquipo.Candidato;
 import com.team.gestorproyectos.proyecto.domain.model.VistaEquipo.PermisoDelProyecto;
 import com.team.gestorproyectos.proyecto.domain.port.out.EquipoProyectoPort;
-import com.team.gestorproyectos.proyecto.infrastructure.persistence.repository.EquipoProyectoJpaRepository;
 import com.team.gestorproyectos.proyecto.infrastructure.persistence.repository.EquipoProyectoJpaRepository.PersonaFila;
+import com.team.gestorproyectos.proyecto.infrastructure.persistence.repository.EquipoProyectoJpaRepository;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +28,8 @@ public class EquipoProyectoAdapter implements EquipoProyectoPort {
     public Optional<ProyectoDelEquipo> proyecto(Long proyectoId) {
         return repository.proyecto(proyectoId).map(p -> new ProyectoDelEquipo(p.getId(), p.getLiderId(),
                 new ReglasFlujo(si(p.getPermitirAutovalidacion()), si(p.getComentarioAlRechazar()),
-                        si(p.getRamaAlIniciar()), si(p.getNotificarClienteFase()))));
+                        si(p.getRamaAlIniciar()), si(p.getNotificarClienteFase()),
+                        FormaTrabajo.valueOf(p.getFormaTrabajo()), si(p.getRequierePr()))));
     }
 
     @Override

@@ -19,7 +19,8 @@ public record PerfilUsuario(
         long cerradosEsteMes,
         long rechazadosEnQaEsteMes,
         List<Hecho> actividad,
-        List<ProyectoDeUsuario> proyectos) {
+        List<ProyectoDeUsuario> proyectos,
+        String usuarioGit) {
 
     /** Junta cambios de estado y comentarios en una sola línea de tiempo y deja los más recientes. */
     public static List<Hecho> lineaDeTiempo(List<Movimiento> movimientos, List<ComentarioHecho> comentarios, int limite) {

@@ -23,6 +23,7 @@ public interface FaseGestionJpaRepository extends Repository<FaseEntity, Long> {
 
     @Query(value = """
             SELECT f.id AS id, f.proyecto_id AS proyectoId, p.nombre AS proyectoNombre, p.codigo AS proyectoCodigo,
+                   p.forma_trabajo AS formaTrabajo,
                    COALESCE(c.nombre_corto, 'Interno') AS clienteNombre, f.numero AS numero, f.nombre AS nombre, f.objetivo AS objetivo,
                    f.estado AS estado, f.prioridad AS prioridad, f.fecha_inicio AS fechaInicio,
                    f.fecha_fin AS fechaFin, p.lider_id AS liderId, f.responsable_id AS responsableId,
@@ -232,6 +233,14 @@ public interface FaseGestionJpaRepository extends Repository<FaseEntity, Long> {
 
     // ─── Escrituras ─────────────────────────────────────────────────────────
 
+    /** Al arrancar la primera fase, el proyecto deja Planeación y pasa a En curso (con fecha de inicio si no tenía). */
+    @Modifying
+    @Query(value = """
+            UPDATE proyecto SET estado = 'EN_CURSO', fecha_inicio = COALESCE(fecha_inicio, :hoy)
+            WHERE id = :proyectoId AND estado = 'PLANEACION'
+            """, nativeQuery = true)
+    int iniciarProyecto(@Param("proyectoId") Long proyectoId, @Param("hoy") LocalDate hoy);
+
     /** Solo si sigue en el estado que se validó: si alguien más la movió a la vez, no se pisa. */
     @Modifying
     @Query(value = """
@@ -262,12 +271,16 @@ public interface FaseGestionJpaRepository extends Repository<FaseEntity, Long> {
                             @Param("nuevo") String nuevo, @Param("motivo") String motivo,
                             @Param("usuarioId") Long usuarioId, @Param("fecha") LocalDateTime fecha);
 
-    /** Al iniciar o reanudar la fase: las historias Listas para desarrollo (ya tienen sus Actividades). */
+    /**
+     * Al iniciar o reanudar la fase: las historias Listas para desarrollo que ya tienen sus Actividades.
+     * Las que tienen Desarrolladores (sin Actividades) las inician ellos.
+     */
     @Modifying
     @Query(value = """
             INSERT INTO historial_estado (entidad, entidad_id, estado_anterior, estado_nuevo, motivo, automatico, usuario_id, creado_en)
             SELECT 'HISTORIA', h.id, 'LISTA_DESARROLLO', 'EN_DESARROLLO', 'Se inició con la fase', TRUE, :usuarioId, :fecha
             FROM historia h WHERE h.fase_id = :faseId AND h.estado = 'LISTA_DESARROLLO'
+              AND NOT EXISTS (SELECT 1 FROM historia_desarrollador d WHERE d.historia_id = h.id)
             """, nativeQuery = true)
     void registrarHistoriasListas(@Param("faseId") Long faseId, @Param("usuarioId") Long usuarioId,
                                   @Param("fecha") LocalDateTime fecha);
@@ -276,6 +289,7 @@ public interface FaseGestionJpaRepository extends Repository<FaseEntity, Long> {
     @Query(value = """
             UPDATE historia h SET h.estado = 'EN_DESARROLLO'
             WHERE h.fase_id = :faseId AND h.estado = 'LISTA_DESARROLLO'
+              AND NOT EXISTS (SELECT 1 FROM historia_desarrollador d WHERE d.historia_id = h.id)
             """, nativeQuery = true)
     int iniciarHistoriasListas(@Param("faseId") Long faseId);
 
@@ -343,6 +357,7 @@ public interface FaseGestionJpaRepository extends Repository<FaseEntity, Long> {
         Long getProyectoId();
         String getProyectoNombre();
         String getProyectoCodigo();
+        String getFormaTrabajo();
         String getClienteNombre();
         Integer getNumero();
         String getNombre();

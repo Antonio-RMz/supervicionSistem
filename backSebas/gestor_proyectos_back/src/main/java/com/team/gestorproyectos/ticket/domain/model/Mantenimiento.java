@@ -31,9 +31,15 @@ public record Mantenimiento(Long faseId, String enProduccion, String siguientePa
     private static final Set<String> HOTFIX = Set.of("CRITICA", "ALTA");
     private static final Map<String, Integer> ORDEN_SEVERIDAD = Map.of("CRITICA", 0, "ALTA", 1);
 
-    /** @param severidad de un bug: CRITICA, ALTA, MEDIA o BAJA; null si aún no se confirma */
+    /**
+     * @param severidad   de un bug: CRITICA, ALTA, MEDIA o BAJA; null si aún no se confirma
+     * @param descripcion lo que se escribió al reportarlo; null si solo trae imagen
+     * @param imagenId    la primera imagen, para la miniatura de la tarjeta; null si no tiene
+     * @param imagenes    cuántas imágenes tiene
+     */
     public record TicketDeMantenimiento(Long id, String tipo, int numero, String titulo, String estado,
-                                        String severidad, String rama, Long responsableId, String responsableNombre) {
+                                        String severidad, String rama, Long responsableId, String responsableNombre,
+                                        String descripcion, Long imagenId, int imagenes) {
 
         public String codigo() {
             return CodigoItem.de(tipo, numero);

@@ -5,7 +5,6 @@ import java.util.List;
 import com.team.gestorproyectos.ticket.domain.model.EdicionTicket;
 import com.team.gestorproyectos.ticket.domain.model.NuevoTicket;
 import com.team.gestorproyectos.ticket.domain.model.PreparacionTicket;
-import com.team.gestorproyectos.ticket.domain.model.TicketImportado;
 
 /** Nuevo ticket de trabajo (PDF pág. 19). Pide "ticket.crear" y ser miembro del proyecto. */
 public interface CrearTicketUseCase {
@@ -20,10 +19,4 @@ public interface CrearTicketUseCase {
 
     void editar(Long proyectoId, Long ticketId, Long usuarioId, boolean esAdmin, NuevoTicket pedido);
 
-    /**
-     * Importar tickets: crea varias Actividades de un JSON dentro de la historia, todas con el mismo responsable.
-     * Si una no es válida no se crea ninguna. Devuelve cuántas se crearon.
-     */
-    int importar(Long proyectoId, Long usuarioId, boolean esAdmin, Long historiaId, Long responsableId,
-                 List<TicketImportado> importados);
 }

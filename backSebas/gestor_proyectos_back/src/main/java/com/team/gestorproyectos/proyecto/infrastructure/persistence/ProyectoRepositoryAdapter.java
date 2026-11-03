@@ -26,6 +26,7 @@ import com.team.gestorproyectos.proyecto.infrastructure.persistence.mapper.Proye
 import com.team.gestorproyectos.proyecto.infrastructure.persistence.repository.FaseJpaRepository;
 import com.team.gestorproyectos.proyecto.infrastructure.persistence.repository.ModuloJpaRepository;
 import com.team.gestorproyectos.proyecto.infrastructure.persistence.repository.ProyectoJpaRepository;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 
 import lombok.RequiredArgsConstructor;
 
@@ -73,6 +74,9 @@ public class ProyectoRepositoryAdapter implements ProyectoRepositoryPort {
         ProyectoEntity proyecto = new ProyectoEntity();
         proyecto.setCodigo(codigo);
         copiar(datos, proyecto);
+        // Solo al crear: después ya no cambia.
+        proyecto.setFormaTrabajo(datos.reglas().formaTrabajo().name());
+        proyecto.setRequierePr(datos.reglas().requierePr());
         Long id = repository.saveAndFlush(proyecto).getId();
 
         datos.miembroIds().forEach(usuarioId -> repository.agregarMiembro(id, usuarioId));
@@ -103,7 +107,8 @@ public class ProyectoRepositoryAdapter implements ProyectoRepositoryPort {
                                         m.getTecnologia(), m.getRepositorio(), m.getRamaBase()))
                                 .toList(),
                         new ReglasFlujo(p.isPermitirAutovalidacion(), p.isComentarioAlRechazar(), p.isRamaAlIniciar(),
-                                p.isNotificarClienteFase()))));
+                                p.isNotificarClienteFase(), FormaTrabajo.valueOf(p.getFormaTrabajo()),
+                                p.isRequierePr()))));
     }
 
     @Override

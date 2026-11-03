@@ -1,3 +1,5 @@
+import { FormaTrabajo } from '../../../shared/utils/flujos';
+
 // JSON de /api/equipo/proyectos/... (ver ProyectosDtos.java).
 
 export interface MiembroDto {
@@ -35,6 +37,10 @@ export interface ReglasDto {
   comentarioAlRechazar: boolean;
   ramaAlIniciar: boolean;
   notificarClienteFase: boolean;
+  /** Se elige al crear el proyecto y ya no cambia */
+  formaTrabajo: FormaTrabajo;
+  /** En Normal: la Actividad pasa por PR o se termina; en Gitflow siempre true */
+  requierePr: boolean;
 }
 
 export interface InfoDto {

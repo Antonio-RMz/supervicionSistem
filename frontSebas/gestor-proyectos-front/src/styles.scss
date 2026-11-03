@@ -15,16 +15,17 @@
   --sobre-color: #ffffff;    // texto e íconos encima de un color sólido (botones, avatares)
   --pista: #eef0f4;          // fondo de las barras
 
-  --morado: #4f46e5;         // acción principal del portal
-  --morado-hover: #4338ca;
-  --morado-suave: #eef2ff;
-  --morado-borde: #c7d2fe;
+  // Marca Inova Byte Systems: verde del logo + carbón
+  --morado: #0f8a58;         // acción principal (verde Inova Byte)
+  --morado-hover: #0b6f47;
+  --morado-suave: #e8f6ef;
+  --morado-borde: #b7e4cd;
 
-  --azul: #1f9bd7;           // marca Team Dev (login)
-  --azul-texto: #0a72a6;
-  --azul-suave: #e0f2fe;
-  --marino: #0f2f4f;
-  --marino-texto: #0f2f4f;   // títulos de marca sobre el fondo de la página
+  --azul: #1fb57a;           // verde de marca (logins, acentos sobre fondo oscuro)
+  --azul-texto: #0b7a4d;
+  --azul-suave: #e6f6ee;
+  --marino: #16191d;         // carbón del logo
+  --marino-texto: #16191d;   // títulos de marca sobre el fondo de la página
 
   // Estados: el sólido para íconos y botones, -texto para letras, -suave para fondos
   --rojo: #dc2626;
@@ -71,14 +72,14 @@
   --blanco: #131b2c;
   --pista: #222d41;
 
-  --morado: #6366f1;
-  --morado-hover: #818cf8;
-  --morado-suave: #23264d;
-  --morado-borde: #4338ca;
+  --morado: #22b573;
+  --morado-hover: #4cc98f;
+  --morado-suave: #10291f;
+  --morado-borde: #166b46;
 
-  --azul-texto: #7dd3fc;
-  --azul-suave: #0c2a3d;
-  --marino-texto: #e2edf7;
+  --azul-texto: #6ee7b0;
+  --azul-suave: #0f2a1f;
+  --marino-texto: #e8ecef;
 
   --rojo: #ef4444;
   --rojo-texto: #fca5a5;
@@ -281,4 +282,13 @@ select optgroup {
   height: 1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
+}
+
+// Botones a la derecha del título de un detalle (Prompt para IA + Detalles/Árbol)
+.lado-encabezado {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }

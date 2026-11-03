@@ -109,5 +109,14 @@ app-avatar.grande ::ng-deep .avatar {
       border-bottom-color: var(--morado);
       color: var(--morado);
     }
+
+    &.reportar-bug {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--rojo);
+
+      &:hover { color: var(--rojo); text-decoration: underline; }
+    }
   }
 }

@@ -38,7 +38,8 @@ export class NuevoTicketPage implements OnInit {
   protected readonly form = inject(NonNullableFormBuilder).group({
     faseId: [null as number | null, Validators.required],
     historiaId: [null as number | null, Validators.required],
-    tipo: ['ACTV'],
+    // Ya no hay Actividades: lo nuevo se hace en la historia; aquí solo errores y mejoras.
+    tipo: ['BUGS'],
     titulo: ['', [Validators.required, Validators.maxLength(200)]],
     descripcion: [''],
     moduloId: [null as number | null, Validators.required],
@@ -90,13 +91,13 @@ export class NuevoTicketPage implements OnInit {
 
   protected readonly numero = computed(() => {
     const actual = this.codigoActual();
-    return actual ? Number(actual.split('-')[1]) : (this.preparacion()?.siguientes[this.valor().tipo ?? 'ACTV'] ?? 1);
+    return actual ? Number(actual.split('-')[1]) : (this.preparacion()?.siguientes[this.valor().tipo ?? 'BUGS'] ?? 1);
   });
   protected readonly codigo = computed(
     () => this.codigoActual() ?? `${this.valor().tipo}-${String(this.numero()).padStart(2, '0')}`,
   );
   protected readonly rama = computed(() =>
-    ramaSugerida(this.valor().tipo ?? 'ACTV', this.numero(), this.valor().titulo || 'nuevo ticket'),
+    ramaSugerida(this.valor().tipo ?? 'BUGS', this.numero(), this.valor().titulo || 'nuevo ticket'),
   );
 
   protected readonly tonoRol = TONO_ROL;
@@ -107,7 +108,7 @@ export class NuevoTicketPage implements OnInit {
     const v = this.valor();
     const nombre = (id: number | null | undefined) =>
       p?.equipo.find((e) => e.id === id)?.nombreCompleto.split(' ')[0] ?? '¿?';
-    return (FLUJOS[v.tipo ?? 'ACTV'] ?? []).map((paso) => ({
+    return (FLUJOS[v.tipo ?? 'BUGS'] ?? []).map((paso) => ({
       estado: paso.estado,
       rol: paso.actor ? ROL_DE_ACTOR[paso.actor] : null,
       detalle:

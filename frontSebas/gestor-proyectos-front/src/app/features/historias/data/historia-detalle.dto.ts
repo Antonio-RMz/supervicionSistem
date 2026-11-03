@@ -1,3 +1,5 @@
+import { FormaTrabajo } from '../../../shared/utils/flujos';
+
 // JSON tal como lo manda el back en /equipo/proyectos/{id}/historias/{historiaId} (GestionHistoriaDtos).
 
 export interface DetalleHistoriaDto {
@@ -13,12 +15,14 @@ export interface DetalleHistoriaDto {
   ticketsReabribles: { id: number; codigo: string; titulo: string }[];
   fasesDestino: { id: number; titulo: string }[];
   puedeEliminar: boolean;
+  desarrollo: DesarrolloDto | null;
 }
 
 export interface InfoHistoriaDto {
   id: number;
   proyectoId: number;
   proyectoNombre: string;
+  formaTrabajo: FormaTrabajo;
   faseId: number;
   faseNumero: number;
   faseNombre: string;
@@ -77,4 +81,22 @@ export interface AccionDeListaHistoriaDto {
   accion: string;
   texto: string;
   impedimento: string | null;
+}
+
+export interface DesarrolloDto {
+  desarrolladores: { usuarioId: number; nombre: string; moduloId: number | null; moduloNombre: string | null; terminado: boolean }[];
+  trabajo: {
+    id: number;
+    descripcion: string;
+    moduloId: number | null;
+    moduloNombre: string | null;
+    hecho: boolean;
+    creadoPor: string;
+    creadoEn: string;
+  }[];
+  repositorios: { id: number; tipo: string; nombre: string; tecnologia: string | null; ramaBase: string; url: string | null }[];
+  miParteTerminada: boolean | null;
+  puedeAnotar: boolean;
+  puedeMarcar: boolean;
+  requierePr: boolean;
 }

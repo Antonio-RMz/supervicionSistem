@@ -12,6 +12,8 @@ import com.team.gestorproyectos.historia.domain.model.HistoriaParaGestionar.Fase
  * @param ticketsSinEmpezar los que se cancelarían al descartarla
  * @param ticketsReabribles los que el Analista puede reabrir al devolverla
  * @param puedeEliminar     la puede borrar del todo: aún no se inicia y es el Líder del proyecto o un Admin
+ * @param desarrollo        con Desarrolladores (sin Actividades): sus Desarrolladores, "Lo que hice" y repositorios;
+ *                          null si la historia se trabaja con Actividades
  */
 public record DetalleHistoria(
         InfoHistoria info,
@@ -25,7 +27,8 @@ public record DetalleHistoria(
         int ticketsSinEmpezar,
         List<TicketReabrible> ticketsReabribles,
         List<FaseDestino> fasesDestino,
-        boolean puedeEliminar) {
+        boolean puedeEliminar,
+        DesarrolloHistoria desarrollo) {
 
     public record AccionDisponible(AccionHistoria accion, String texto, List<String> impedimentos) {
     }

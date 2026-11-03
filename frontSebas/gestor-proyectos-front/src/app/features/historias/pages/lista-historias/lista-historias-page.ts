@@ -8,6 +8,12 @@ import { ProyectoActualStore } from '../../../gestor/data/proyecto-actual.store'
 import { HistoriaDetalleService } from '../../data/historia-detalle.service';
 import { ListadoHistorias } from '../../models/listado-historias.models';
 
+/** Tarjetas (por defecto) o tabla. */
+type Vista = 'tarjetas' | 'tabla';
+
+/** La vista elegida se recuerda en este navegador. */
+const CLAVE_VISTA = 'gestor.historias.vista';
+
 /**
  * Menú Historias: todas las historias del proyecto elegido arriba, para buscarlas y abrir cada una.
  * Se filtran por texto (código o título), fase y estado.
@@ -29,6 +35,7 @@ export class ListaHistoriasPage {
   protected readonly texto = signal('');
   protected readonly fase = signal('');
   protected readonly estado = signal('');
+  protected readonly vista = signal<Vista>(leerVista());
 
   /** Las fases y estados que hay, para los filtros. */
   protected readonly opciones = computed(() => {
@@ -63,6 +70,15 @@ export class ListaHistoriasPage {
     this.estado.set('');
   }
 
+  protected cambiarVista(vista: Vista): void {
+    this.vista.set(vista);
+    try {
+      localStorage.setItem(CLAVE_VISTA, vista);
+    } catch {
+      // Sin almacenamiento (modo privado): solo se pierde la preferencia.
+    }
+  }
+
   private cargar(id: number): void {
     this.cargando.set(true);
     this.error.set(null);
@@ -78,5 +94,13 @@ export class ListaHistoriasPage {
         this.cargando.set(false);
       },
     });
+  }
+}
+
+function leerVista(): Vista {
+  try {
+    return localStorage.getItem(CLAVE_VISTA) === 'tabla' ? 'tabla' : 'tarjetas';
+  } catch {
+    return 'tarjetas';
   }
 }

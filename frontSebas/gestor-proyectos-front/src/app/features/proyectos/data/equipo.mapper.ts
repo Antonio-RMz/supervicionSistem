@@ -1,4 +1,5 @@
 import { aFechaHora, haceCuanto } from '../../../shared/utils/fechas';
+import { textoFormaTrabajo } from '../../../shared/utils/flujos';
 import { infoModulo } from '../../../shared/utils/proyectos';
 import { etiquetaDeRol, nombresDeRoles, ordenarRoles, tonoDeAvatar } from '../../../shared/utils/roles';
 import { Candidato, EquipoProyecto, MiembroEquipo } from '../models/equipo.models';
@@ -26,6 +27,7 @@ export function aEquipo(dto: EquipoDto, ahora = new Date()): EquipoProyecto {
       etiqueta: p.otorgado ? { texto: 'Otorgado', tono: 'verde' } : { texto: 'Quitado', tono: 'rojo' },
     })),
     reglas: [
+      { nombre: 'Forma de trabajo', valor: textoFormaTrabajo(r.formaTrabajo, r.requierePr) },
       { nombre: 'Autovalidación', valor: r.permitirAutovalidacion ? 'Permitida' : 'No permitida' },
       { nombre: 'Comentario al rechazar', valor: r.comentarioAlRechazar ? 'Obligatorio' : 'Opcional' },
       { nombre: 'Rama al iniciar', valor: r.ramaAlIniciar ? 'Automática' : 'Manual' },

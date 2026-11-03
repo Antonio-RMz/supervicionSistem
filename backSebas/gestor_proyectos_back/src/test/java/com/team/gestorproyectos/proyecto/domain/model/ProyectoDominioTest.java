@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import com.team.gestorproyectos.proyecto.domain.port.out.ProyectoConsultaPort.HistoriaBase;
 import com.team.gestorproyectos.proyecto.domain.port.out.ProyectoConsultaPort.TicketBase;
 import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 import com.team.gestorproyectos.shared.domain.model.ItemDeProyecto;
 import com.team.gestorproyectos.shared.domain.model.ItemTrabajo;
 import com.team.gestorproyectos.shared.domain.model.Persona;
@@ -48,6 +49,20 @@ class ProyectoDominioTest {
                 new ModuloProyecto(null, TipoModulo.API, "portal-api", null, null, null),
                 new ModuloProyecto(null, TipoModulo.WEB, "Portal-API", null, null, null))))
                 .isInstanceOf(ReglaNegocioException.class);
+    }
+
+    @Test
+    void enLaFormaNormalLasRamasTambienSalenDeDevelop() {
+        ReglasFlujo normal = new ReglasFlujo(false, true, true, false, FormaTrabajo.NORMAL, false);
+        DatosProyecto datos = new DatosProyecto("Portal", 1L, "ALTA", null, null, null, null, 1L, Set.of(),
+                List.of(new ModuloProyecto(null, TipoModulo.API, "portal-api", null, null, null),
+                        new ModuloProyecto(null, TipoModulo.WEB, "portal-web", null, null, "release")), normal);
+        assertThat(datos.modulos()).extracting(ModuloProyecto::ramaBase).containsExactly("develop", "release");
+        assertThat(datos.reglas().requierePr()).isFalse();
+        // Gitflow siempre pasa por PR, y sin forma es Gitflow.
+        assertThat(new ReglasFlujo(false, false, false, false, null, false).requierePr()).isTrue();
+        // Al editar, la forma no cambia.
+        assertThat(reglas().conFormaDe(normal).formaTrabajo()).isEqualTo(FormaTrabajo.NORMAL);
     }
 
     @Test
@@ -93,7 +108,7 @@ class ProyectoDominioTest {
     private static TicketBase ticket(int numero, String estado, Long historiaId, Long responsable, Long tester,
                                      Long lider) {
         var item = new ItemTrabajo((long) numero, "ACTV", numero, "T" + numero, estado, "ALTA", responsable, tester,
-                lider, "EN_DESARROLLO", LocalDateTime.now(), LocalDateTime.now());
+                lider, "EN_DESARROLLO", LocalDateTime.now(), LocalDateTime.now(), true);
         return new TicketBase(new ItemDeProyecto(item, lider, null), 10L, historiaId, TipoModulo.API, "PR");
     }
 
@@ -103,6 +118,6 @@ class ProyectoDominioTest {
     }
 
     private static ReglasFlujo reglas() {
-        return new ReglasFlujo(false, true, true, false);
+        return new ReglasFlujo(false, true, true, false, null, true);
     }
 }

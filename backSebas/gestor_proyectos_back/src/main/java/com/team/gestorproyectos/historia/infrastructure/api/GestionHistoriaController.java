@@ -19,6 +19,9 @@ import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaD
 import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaDtos.AccionHistoriaRequest;
 import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaDtos.ComentarioRequest;
 import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaDtos.CriterioRequest;
+import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaDtos.TrabajoHechoRequest;
+import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaDtos.NuevoTrabajoRequest;
+import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaDtos.MiParteRequest;
 import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaDtos.DetalleHistoriaResponse;
 import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaDtos.IntegracionResponse;
 import com.team.gestorproyectos.historia.infrastructure.api.dto.GestionHistoriaDtos.ResultadoResponse;
@@ -86,6 +89,45 @@ public class GestionHistoriaController {
                          @Valid @RequestBody ComentarioRequest request,
                          @AuthenticationPrincipal UsuarioSesion sesion) {
         gestionarHistoria.comentar(proyectoId, historiaId, request.texto(), sesion.id(), sesion.esAdmin());
+    }
+
+    // ─── Historia con Desarrolladores ───
+
+    @PutMapping("/{historiaId}/desarrollo/mi-parte")
+    public void marcarMiParte(@PathVariable("proyectoId") Long proyectoId,
+                              @PathVariable("historiaId") Long historiaId,
+                              @RequestBody MiParteRequest request,
+                              @AuthenticationPrincipal UsuarioSesion sesion) {
+        gestionarHistoria.marcarMiParte(proyectoId, historiaId, request.terminado(), sesion.id(), sesion.esAdmin());
+    }
+
+    @PostMapping("/{historiaId}/trabajo")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void agregarTrabajo(@PathVariable("proyectoId") Long proyectoId,
+                               @PathVariable("historiaId") Long historiaId,
+                               @Valid @RequestBody NuevoTrabajoRequest request,
+                               @AuthenticationPrincipal UsuarioSesion sesion) {
+        gestionarHistoria.agregarTrabajo(proyectoId, historiaId, request.descripcion(), request.moduloId(),
+                sesion.id(), sesion.esAdmin());
+    }
+
+    @PutMapping("/{historiaId}/trabajo/{trabajoId}")
+    public void marcarTrabajo(@PathVariable("proyectoId") Long proyectoId,
+                              @PathVariable("historiaId") Long historiaId,
+                              @PathVariable("trabajoId") Long trabajoId,
+                              @RequestBody TrabajoHechoRequest request,
+                              @AuthenticationPrincipal UsuarioSesion sesion) {
+        gestionarHistoria.marcarTrabajo(proyectoId, historiaId, trabajoId, request.hecho(), sesion.id(),
+                sesion.esAdmin());
+    }
+
+    @DeleteMapping("/{historiaId}/trabajo/{trabajoId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void quitarTrabajo(@PathVariable("proyectoId") Long proyectoId,
+                              @PathVariable("historiaId") Long historiaId,
+                              @PathVariable("trabajoId") Long trabajoId,
+                              @AuthenticationPrincipal UsuarioSesion sesion) {
+        gestionarHistoria.quitarTrabajo(proyectoId, historiaId, trabajoId, sesion.id(), sesion.esAdmin());
     }
 
     /** Solo si aún no se inicia; si ya se inició, se descarta. */

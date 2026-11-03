@@ -39,8 +39,9 @@ public class GestionarModulosService implements GestionarModulosUseCase {
 
     @Override
     @Transaccional
-    public Long guardar(Long proyectoId, ModuloProyecto modulo, Long responsableId, Long usuarioId, boolean esAdmin) {
-        verificarGestion(proyectoId, usuarioId, esAdmin);
+    public Long guardar(Long proyectoId, ModuloProyecto datos, Long responsableId, Long usuarioId, boolean esAdmin) {
+        ProyectoDelEquipo proyecto = verificarGestion(proyectoId, usuarioId, esAdmin);
+        ModuloProyecto modulo = datos;
         if (modulo.tipo() == null) {
             throw new ReglaNegocioException("Elige qué parte del sistema es: API, Web, Móvil…");
         }
@@ -84,10 +85,12 @@ public class GestionarModulosService implements GestionarModulosUseCase {
         return equipos.proyecto(proyectoId).orElseThrow(() -> new NoEncontradoException("No encontramos ese proyecto"));
     }
 
-    private void verificarGestion(Long proyectoId, Long usuarioId, boolean esAdmin) {
-        if (!puedeGestionar(verificar(proyectoId, usuarioId, esAdmin), usuarioId, esAdmin)) {
+    private ProyectoDelEquipo verificarGestion(Long proyectoId, Long usuarioId, boolean esAdmin) {
+        ProyectoDelEquipo proyecto = verificar(proyectoId, usuarioId, esAdmin);
+        if (!puedeGestionar(proyecto, usuarioId, esAdmin)) {
             throw new AccesoDenegadoException("Solo el Líder del proyecto o un Administrador gestionan sus repositorios");
         }
+        return proyecto;
     }
 
     private boolean puedeGestionar(ProyectoDelEquipo proyecto, Long usuarioId, boolean esAdmin) {

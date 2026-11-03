@@ -33,6 +33,7 @@ export class NuevoUsuarioModal {
       nombre: ['', [Validators.required, Validators.maxLength(80)]],
       apellidos: ['', Validators.maxLength(120)],
       correo: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
+      usuarioGit: ['', [Validators.maxLength(100), Validators.pattern(/^\s*@?\S*\s*$/)]],
       password: ['', [Validators.required, Validators.minLength(LARGO_MINIMO_PASSWORD)]],
       confirmar: ['', Validators.required],
       cambiarPassword: [true],
@@ -59,7 +60,7 @@ export class NuevoUsuarioModal {
     return this.proyectos().filter((p) => !ids.includes(p.id));
   });
 
-  protected invalido(campo: 'nombre' | 'correo' | 'password' | 'confirmar' | 'roles'): boolean {
+  protected invalido(campo: 'nombre' | 'correo' | 'usuarioGit' | 'password' | 'confirmar' | 'roles'): boolean {
     const control = this.form.controls[campo];
     return control.invalid && control.touched;
   }

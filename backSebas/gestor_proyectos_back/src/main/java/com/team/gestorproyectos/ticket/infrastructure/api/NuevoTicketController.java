@@ -14,11 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.team.gestorproyectos.shared.infrastructure.security.UsuarioSesion;
 import com.team.gestorproyectos.ticket.domain.port.in.CrearTicketUseCase;
 import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.EdicionResponse;
-import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.ImportarTicketsRequest;
 import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.NuevoTicketRequest;
 import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.PreparacionResponse;
 import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.TicketCreadoResponse;
-import com.team.gestorproyectos.ticket.infrastructure.api.dto.NuevoTicketDtos.TicketsImportadosResponse;
 import com.team.gestorproyectos.ticket.infrastructure.api.mapper.NuevoTicketApiMapper;
 
 import jakarta.validation.Valid;
@@ -47,16 +45,6 @@ public class NuevoTicketController {
                                       @AuthenticationPrincipal UsuarioSesion sesion) {
         return new TicketCreadoResponse(crearTicket.crear(proyectoId, sesion.id(), sesion.esAdmin(),
                 mapper.aNuevoTicket(request)));
-    }
-
-    /** Importar tickets: varias Actividades de un JSON dentro de la historia. Usa la misma preparación que /nuevo. */
-    @PostMapping("/importar")
-    @ResponseStatus(HttpStatus.CREATED)
-    public TicketsImportadosResponse importar(@PathVariable("proyectoId") Long proyectoId,
-                                              @Valid @RequestBody ImportarTicketsRequest request,
-                                              @AuthenticationPrincipal UsuarioSesion sesion) {
-        return new TicketsImportadosResponse(crearTicket.importar(proyectoId, sesion.id(), sesion.esAdmin(),
-                request.historiaId(), request.responsableId(), mapper.aImportados(request.tickets())));
     }
 
     @GetMapping("/{ticketId}/edicion")

@@ -10,6 +10,7 @@ import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
  * @param password       contraseña temporal, en texto plano (se cifra antes de guardar)
  * @param cambiarPassword pedir que la cambie al primer inicio
  * @param proyectoIds    proyectos donde queda como miembro
+ * @param usuarioGit     su usuario de git; opcional
  */
 public record NuevoUsuario(
         String nombre,
@@ -19,7 +20,8 @@ public record NuevoUsuario(
         boolean cambiarPassword,
         boolean activo,
         Set<String> roles,
-        Set<Long> proyectoIds) {
+        Set<Long> proyectoIds,
+        String usuarioGit) {
 
     public static final int LARGO_MINIMO_PASSWORD = 8;
 
@@ -29,6 +31,7 @@ public record NuevoUsuario(
         correo = correo.trim().toLowerCase();
         roles = Set.copyOf(roles);
         proyectoIds = proyectoIds == null ? Set.of() : Set.copyOf(proyectoIds);
+        usuarioGit = UsuarioGit.normalizar(usuarioGit);
         if (password.length() < LARGO_MINIMO_PASSWORD) {
             throw new ReglaNegocioException(
                     "La contraseña temporal debe tener al menos " + LARGO_MINIMO_PASSWORD + " caracteres");

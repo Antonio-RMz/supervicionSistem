@@ -38,9 +38,3 @@ export interface Filtros {
 
 export const SIN_FILTROS: Filtros = { texto: '', tipo: '', estado: '', prioridad: '', fase: '', historia: '' };
 
-/** Una columna de la vista de tablero. */
-export interface ColumnaTablero {
-  estado: string;
-  titulo: string;
-  tickets: TicketMio[];
-}

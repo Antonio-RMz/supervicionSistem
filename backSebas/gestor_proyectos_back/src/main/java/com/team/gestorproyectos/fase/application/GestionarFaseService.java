@@ -11,12 +11,12 @@ import com.team.gestorproyectos.fase.domain.model.AccionDeLista;
 import com.team.gestorproyectos.fase.domain.model.AccionFase;
 import com.team.gestorproyectos.fase.domain.model.CambioFase;
 import com.team.gestorproyectos.fase.domain.model.DatosAccionFase;
-import com.team.gestorproyectos.fase.domain.model.DetalleFase;
 import com.team.gestorproyectos.fase.domain.model.DetalleFase.AccionDisponible;
+import com.team.gestorproyectos.fase.domain.model.DetalleFase;
 import com.team.gestorproyectos.fase.domain.model.FaseParaGestionar;
 import com.team.gestorproyectos.fase.domain.model.GrupoTickets;
-import com.team.gestorproyectos.fase.domain.model.InfoFase;
 import com.team.gestorproyectos.fase.domain.model.InfoFase.HistoriaDeFase;
+import com.team.gestorproyectos.fase.domain.model.InfoFase;
 import com.team.gestorproyectos.fase.domain.model.InfoRelease;
 import com.team.gestorproyectos.fase.domain.model.QuienGestiona;
 import com.team.gestorproyectos.fase.domain.model.ReleaseFase;
@@ -58,7 +58,7 @@ public class GestionarFaseService implements GestionarFaseUseCase {
         return fases.fases(proyectoId).stream()
                 .flatMap(id -> fases.buscarParaGestionar(proyectoId, id).stream())
                 .flatMap(fase -> fase.acciones(quien).stream().filter(AccionFase::enLista).findFirst()
-                        .map(a -> new AccionDeLista(fase.id(), fase.numero(), fase.nombre(), fase.estado(), a, a.texto(),
+                        .map(a -> new AccionDeLista(fase.id(), fase.numero(), fase.nombre(), fase.estado(), a, fase.textoDe(a),
                                 fase.impedimentos(a).stream().findFirst().orElse(null)))
                         .stream())
                 .toList();
@@ -170,10 +170,12 @@ public class GestionarFaseService implements GestionarFaseUseCase {
         return new QuienGestiona(usuarioId, esAdmin, tiene);
     }
 
-    /** El texto del botón en el detalle, con su versión: "Subir a main y crear tag v1.3.0", "Revertir a v1.2.0". */
+    /**
+     * El texto del botón en el detalle, con su versión: "Subir a main y crear tag v1.3.0", "Revertir a v1.2.0".
+     */
     private static String texto(AccionFase accion, FaseParaGestionar fase) {
         return switch (accion) {
-            case SUBIR_A_MAIN -> fase.versionRelease() == null ? accion.texto()
+            case SUBIR_A_MAIN -> fase.versionRelease() == null ? fase.textoDe(accion)
                     : "Subir a main y crear tag " + fase.versionRelease();
             case REVERTIR -> Stream.ofNullable(fase.versionAnterior()).map(v -> "Revertir a " + v).findFirst()
                     .orElse("Revertir publicación");

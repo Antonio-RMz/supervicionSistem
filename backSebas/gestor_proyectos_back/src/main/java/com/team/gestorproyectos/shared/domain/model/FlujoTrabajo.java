@@ -19,9 +19,9 @@ public final class FlujoTrabajo {
             // Historia de usuario
             Map.entry("HIST:BORRADOR", new AccionPendiente("Iniciar planeación", RESPONSABLE, null)),
             Map.entry("HIST:EN_PLANEACION", new AccionPendiente("Marcar como Lista", RESPONSABLE, null)),
-            // Ya definida: el Líder crea sus Actividades. Lista para desarrollo espera a que inicie la fase.
-            Map.entry("HIST:LISTA", new AccionPendiente("Crear actividades", LIDER, null)),
             Map.entry("HIST:EN_VALIDACION", new AccionPendiente("Aceptar", RESPONSABLE, null)),
+            // Historia con Desarrolladores: el Líder revisa el código antes de que la valide su Analista.
+            Map.entry("HIST:EN_REVISION", new AccionPendiente("Aprobar revisión", LIDER, null)),
             Map.entry("HIST:ACEPTADA", new AccionPendiente("Integrar", LIDER, null)),
             // Actividad: el Líder revisa su PR; QA se hace a la historia completa.
             Map.entry("ACTV:BORRADOR", new AccionPendiente("Marcar como Lista", LIDER, "POR_HACER")),
@@ -59,6 +59,14 @@ public final class FlujoTrabajo {
             Map.entry("BUGS:PUBLICADO", new AccionPendiente("Sigue fallando", TESTER, "EN_CORRECCION")),
             Map.entry("MEJR:EN_REVISION", new AccionPendiente("Pedir cambios", LIDER, "EN_PROGRESO")));
 
+    /** Lo que le toca a cada Desarrollador de una historia sin Actividades (su fila en Mis tickets). */
+    private static final Map<String, AccionPendiente> DE_DESARROLLADOR = Map.of(
+            "LISTA_DESARROLLO", new AccionPendiente("Iniciar desarrollo", RESPONSABLE, null),
+            "EN_DESARROLLO", new AccionPendiente("Terminar desarrollo", RESPONSABLE, null));
+
+    /** En un proyecto Normal sin PR, el Desarrollador termina la Actividad él mismo: ya la subió a develop. */
+    private static final AccionPendiente TERMINAR = new AccionPendiente("Terminar", RESPONSABLE, "APROBADA");
+
     /** Mientras alguien lo trabaja: ahí se puede marcar como bloqueado (PDF pág. 22). */
     private static final Set<String> EN_TRABAJO = Set.of("EN_PROGRESO", "EN_CORRECCION");
 
@@ -78,11 +86,17 @@ public final class FlujoTrabajo {
         if (esperaHistoria) {
             return Optional.empty();
         }
-        return Optional.ofNullable(ACCIONES.get(item.tipo() + ":" + item.estado()));
+        return accionDelEstado(item);
     }
 
     /** La acción del estado aunque todavía no se pueda hacer (ej. su historia aún no se inicia). */
     public static Optional<AccionPendiente> accionDelEstado(ItemTrabajo item) {
+        if (item.esHistoriaDeDesarrollador()) {
+            return Optional.ofNullable(DE_DESARROLLADOR.get(item.estado()));
+        }
+        if (!item.requierePr() && "ACTV".equals(item.tipo()) && "EN_PROGRESO".equals(item.estado())) {
+            return Optional.of(TERMINAR);
+        }
         return Optional.ofNullable(ACCIONES.get(item.tipo() + ":" + item.estado()));
     }
 

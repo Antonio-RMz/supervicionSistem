@@ -38,6 +38,7 @@ public interface TicketRepositoryPort {
      */
     void historiaConActividadLista(Long historiaId, Long usuarioId);
 
-    record HistoriaDelTicket(Long id, String estado, List<TicketEstado> tickets) {
+    /** @param conDesarrolladores se trabaja sin Actividades: sus Desarrolladores la terminan, no sus tickets */
+    record HistoriaDelTicket(Long id, String estado, List<TicketEstado> tickets, boolean conDesarrolladores) {
     }
 }

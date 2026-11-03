@@ -30,6 +30,7 @@ import com.team.gestorproyectos.shared.domain.model.Persona;
 
 import lombok.RequiredArgsConstructor;
 import com.team.gestorproyectos.shared.domain.model.CodigoItem;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 
 @Component
 @RequiredArgsConstructor
@@ -91,7 +92,8 @@ public class ProyectoConsultaAdapter implements ProyectoConsultaPort {
                 f.getDescripcion(), f.getEstado(), f.getClienteId(), f.getClienteNombre(), f.getPrioridad(),
                 f.getFechaInicio(), f.getFechaEntrega(), f.getLiderId(), f.getLiderNombre(),
                 new ReglasFlujo(si(f.getPermitirAutovalidacion()), si(f.getComentarioAlRechazar()),
-                        si(f.getRamaAlIniciar()), si(f.getNotificarClienteFase()))));
+                        si(f.getRamaAlIniciar()), si(f.getNotificarClienteFase()),
+                        FormaTrabajo.valueOf(f.getFormaTrabajo()), si(f.getRequierePr()))));
     }
 
     @Override
@@ -163,7 +165,7 @@ public class ProyectoConsultaAdapter implements ProyectoConsultaPort {
     private static TicketBase aTicket(TicketFila f) {
         ItemTrabajo item = new ItemTrabajo(f.getId(), f.getTipo(), f.getNumero(), f.getTitulo(), f.getEstado(),
                 f.getPrioridad(), f.getResponsableId(), f.getTesterId(), f.getCreadoPorId(), f.getHistoriaEstado(),
-                f.getCreadoEn(), f.getActualizadoEn());
+                f.getCreadoEn(), f.getActualizadoEn(), !Boolean.FALSE.equals(f.getRequierePr()));
         return new TicketBase(new ItemDeProyecto(item, f.getLiderId(), f.getUltimoEstadoAnterior()),
                 f.getFaseId(), f.getHistoriaId(),
                 f.getModuloTipo() == null ? null : TipoModulo.valueOf(f.getModuloTipo()),

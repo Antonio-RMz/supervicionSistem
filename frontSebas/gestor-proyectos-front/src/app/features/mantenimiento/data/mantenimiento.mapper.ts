@@ -59,6 +59,9 @@ function aTicket(t: TicketMantenimientoDto): TicketMantenimiento {
     responsable: t.responsableId && t.responsableNombre
       ? { nombre: t.responsableNombre, iniciales: iniciales(t.responsableNombre), tono: tonoDeAvatar(t.responsableId) }
       : null,
+    descripcion: t.descripcion,
+    imagenId: t.imagenId,
+    imagenes: t.imagenes ?? 0,
   };
 }
 

@@ -25,7 +25,8 @@ public final class GestionFaseDtos {
     }
 
     public record InfoFaseResponse(
-            Long id, Long proyectoId, String proyectoNombre, String proyectoCodigo, String clienteNombre, int numero,
+            Long id, Long proyectoId, String proyectoNombre, String proyectoCodigo, String formaTrabajo,
+            String clienteNombre, int numero,
             String nombre, String objetivo, String estado, String prioridad, LocalDate fechaInicio, LocalDate fechaFin,
             String responsableNombre, String versionRelease, boolean mantenimiento, String figmaUrl,
             boolean figmaParaTodas, String motivoEstado,

@@ -5,13 +5,15 @@ import { Avisos } from '../../../shared/components/avisos/avisos';
 import { BotonTema } from '../../../shared/components/boton-tema/boton-tema';
 import { nombresDeRoles } from '../../../shared/utils/roles';
 import { ProyectoActualStore } from '../data/proyecto-actual.store';
+import { LogoInova } from '../../../shared/components/logo-inova/logo-inova';
+import { Campana } from '../components/campana/campana';
 
 const CLAVE_MENU = 'gestor.menuContraido';
 
 /** Menú lateral (contraíble) + barra superior (selector de proyecto, búsqueda) del Gestor de Proyectos. */
 @Component({
   selector: 'app-gestor-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Avisos, BotonTema],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Avisos, BotonTema, LogoInova, Campana],
   templateUrl: './gestor-layout.html',
   styleUrl: './gestor-layout.scss',
   host: { '[class.contraido]': 'contraido()' },

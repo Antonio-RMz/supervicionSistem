@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
+
 /**
  * Lo que se lee de una historia para su detalle (PDF pág. 24). Las acciones las decide
  * {@link HistoriaParaGestionar}.
@@ -15,6 +17,7 @@ public record InfoHistoria(
         Long id,
         Long proyectoId,
         String proyectoNombre,
+        FormaTrabajo formaTrabajo,
         Long faseId,
         int faseNumero,
         String faseNombre,

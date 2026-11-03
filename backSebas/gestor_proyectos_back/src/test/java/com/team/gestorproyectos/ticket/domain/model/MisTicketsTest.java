@@ -27,7 +27,7 @@ class MisTicketsTest {
     private static FilaTicket ticket(String tipo, int numero, String estado, Long responsable, Long creadoPor,
                                      String ultimoEstadoAnterior) {
         var item = new ItemTrabajo((long) numero, tipo, numero, tipo + " " + numero, estado, "MEDIA",
-                responsable, ANA, creadoPor, "EN_DESARROLLO", AHORA.minusDays(3), AHORA.minusDays(1));
+                responsable, ANA, creadoPor, "EN_DESARROLLO", AHORA.minusDays(3), AHORA.minusDays(1), true);
         return new FilaTicket(new ItemDeProyecto(item, JORGE, ultimoEstadoAnterior), 10L, 2, 20L, 12, "PR");
     }
 
@@ -66,15 +66,21 @@ class MisTicketsTest {
     }
 
     @Test
-    void unaHistoriaListaLeTocaAlLiderCrearSusActividades() {
-        var item = new ItemTrabajo(8L, "HIST", 8, "Pedidos", "LISTA", "ALTA", ANA, null, ANA, null,
-                AHORA.minusDays(1), AHORA);
-        var historia = new FilaTicket(new ItemDeProyecto(item, JORGE, null), 10L, 2, null, null, "AN");
+    void cadaDesarrolladorVeLaHistoriaQueLeToca() {
+        // La fila de su Analista y la de cada Desarrollador (marcada como DEV): a cada quien, la suya.
+        var analista = new ItemTrabajo(8L, "HIST", 8, "Pedidos", "EN_DESARROLLO", "ALTA", ANA, null, ANA, null,
+                AHORA.minusDays(1), AHORA, true);
+        var dePedro = new ItemTrabajo(8L, "HIST", 8, "Pedidos", "EN_DESARROLLO", "ALTA", PEDRO, null, null,
+                ItemTrabajo.FILA_DE_DESARROLLADOR, AHORA.minusDays(1), AHORA, true);
+        var filas = List.of(new FilaTicket(new ItemDeProyecto(analista, JORGE, null), 10L, 2, null, null, "AN"),
+                new FilaTicket(new ItemDeProyecto(dePedro, JORGE, null), 10L, 2, null, null, "PE"));
 
-        TicketMio delLider = MisTickets.armar(JORGE, List.of(historia), PERSONAS).get(0);
-        assertThat(delLider.meToca()).isTrue();
-        assertThat(delLider.accion()).isEqualTo("Crear actividades");
-        assertThat(delLider.ejecutable()).isFalse();
-        assertThat(MisTickets.armar(ANA, List.of(historia), PERSONAS).get(0).meToca()).isFalse();
+        List<TicketMio> dePedroLista = MisTickets.armar(PEDRO, filas, PERSONAS);
+        assertThat(dePedroLista).hasSize(1);
+        assertThat(dePedroLista.get(0).meToca()).isTrue();
+        assertThat(dePedroLista.get(0).accion()).isEqualTo("Terminar desarrollo");
+        // La Analista y el Líder la ven una sola vez y no les toca.
+        assertThat(MisTickets.armar(ANA, filas, PERSONAS)).hasSize(1).allMatch(t -> !t.meToca());
+        assertThat(MisTickets.armar(JORGE, filas, PERSONAS)).hasSize(1);
     }
 }

@@ -1,6 +1,6 @@
 import { Component, effect, inject, input, untracked } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { Avatar } from '../../../../shared/components/avatar/avatar';
+import { IconoProyecto } from '../../components/icono-proyecto/icono-proyecto';
 import { BarraAvance } from '../../../../shared/components/barra-avance/barra-avance';
 import { ChipModulo } from '../../../../shared/components/chip-modulo/chip-modulo';
 import { EtiquetaEstado } from '../../../../shared/components/etiqueta-estado/etiqueta-estado';
@@ -10,7 +10,7 @@ import { ProyectoDetalleStore } from '../../data/proyecto-detalle.store';
 /** Encabezado y pestañas del detalle de un proyecto (PDF págs. 14-15). Cada pestaña es una ruta hija. */
 @Component({
   selector: 'app-proyecto-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Avatar, BarraAvance, ChipModulo, EtiquetaEstado],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, IconoProyecto, BarraAvance, ChipModulo, EtiquetaEstado],
   providers: [ProyectoDetalleStore],
   templateUrl: './proyecto-layout.html',
   styleUrl: './proyecto-layout.scss',

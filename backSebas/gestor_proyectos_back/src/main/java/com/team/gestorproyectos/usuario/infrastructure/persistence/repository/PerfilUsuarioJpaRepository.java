@@ -21,7 +21,8 @@ public interface PerfilUsuarioJpaRepository extends Repository<UsuarioEntity, Lo
                    (SELECT he.estado_anterior FROM historial_estado he
                     WHERE he.entidad = 'TICKET' AND he.entidad_id = t.id
                     ORDER BY he.creado_en DESC, he.id DESC
-                    LIMIT 1) AS ultimoEstadoAnterior
+                    LIMIT 1) AS ultimoEstadoAnterior,
+                   IF(p.requiere_pr, 'true', 'false') AS requierePr
             FROM ticket t
             JOIN proyecto p     ON p.id = t.proyecto_id
             LEFT JOIN historia h ON h.id = t.historia_id
@@ -30,7 +31,7 @@ public interface PerfilUsuarioJpaRepository extends Repository<UsuarioEntity, Lo
                    OR t.creado_por = :usuarioId OR p.lider_id = :usuarioId)
             UNION ALL
             SELECT h.id, 'HIST', h.numero, h.titulo, h.estado, h.prioridad, h.analista_id, NULL,
-                   h.creado_por, NULL, h.creado_en, h.actualizado_en, p.lider_id, NULL
+                   h.creado_por, NULL, h.creado_en, h.actualizado_en, p.lider_id, NULL, IF(p.requiere_pr, 'true', 'false')
             FROM historia h
             JOIN proyecto p ON p.id = h.proyecto_id
             WHERE h.estado NOT IN ('CERRADA', 'DESCARTADA')
@@ -124,6 +125,8 @@ public interface PerfilUsuarioJpaRepository extends Repository<UsuarioEntity, Lo
         LocalDateTime getActualizadoEn();
         Long getLiderId();
         String getUltimoEstadoAnterior();
+        // Con UNION, MySQL lo devuelve como TINYINT (Integer) y Spring no lo pasa a Boolean: va como texto
+        Boolean getRequierePr();
     }
 
     interface PersonaFila {

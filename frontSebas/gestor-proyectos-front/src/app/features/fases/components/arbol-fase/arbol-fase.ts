@@ -9,6 +9,7 @@ import { ChipModulo } from '../../../../shared/components/chip-modulo/chip-modul
 import { EtiquetaEstado } from '../../../../shared/components/etiqueta-estado/etiqueta-estado';
 import { TipoTicket } from '../../../../shared/components/tipo-ticket/tipo-ticket';
 import { mensajeDeError } from '../../../../shared/utils/errores';
+import { puedePromptDesarrollo, puedePromptDiseno } from '../../../../shared/utils/roles';
 import { TIPOS_TICKET } from '../../../../shared/utils/flujos';
 import { etiquetaEstadoTicket, etiquetaHistoria } from '../../../../shared/utils/tickets';
 import { ProyectosDetalleService } from '../../../proyectos/data/proyectos-detalle.service';
@@ -46,6 +47,8 @@ const ZOOM_MAXIMO = 150;
   imports: [NgTemplateOutlet, RouterLink, Avatar, BarraAvance, ChipModulo, EtiquetaEstado, TipoTicket],
   templateUrl: './arbol-fase.html',
   styleUrl: './arbol-fase.scss',
+  // Esc (o el navegador) también sale de pantalla completa: el botón se entera aquí.
+  host: { '(document:fullscreenchange)': 'alCambiarPantallaCompleta()' },
 })
 export class ArbolFase implements OnInit {
   private readonly service = inject(ProyectosDetalleService);
@@ -71,6 +74,8 @@ export class ArbolFase implements OnInit {
   protected readonly filtroEtapa = signal<Etapa | ''>('');
   protected readonly soloMios = signal(false);
   protected readonly zoom = signal(100);
+  /** El árbol ocupa todo el monitor, sin menú ni encabezados. */
+  protected readonly pantallaCompleta = signal(false);
   /** Cuánto se ha movido el diagrama dentro del lienzo, en píxeles de pantalla. */
   protected readonly desplazamiento = signal({ x: 0, y: 0 });
   /** Dónde empezó a arrastrarse el fondo con la manita; null si no se está arrastrando. */
@@ -82,6 +87,11 @@ export class ArbolFase implements OnInit {
     const escala = this.zoom() / 100;
     return `translate(${x / escala}px, ${y / escala}px)`;
   });
+
+  /** Prompt de diseño de una historia (para Figma): solo el Líder y la Analista. */
+  protected readonly puedePromptDiseno = computed(() => puedePromptDiseno(this.usuario()?.roles ?? []));
+  /** Prompt de desarrollo de una historia: solo el Líder y el Desarrollador. */
+  protected readonly puedePromptDesarrollo = computed(() => puedePromptDesarrollo(this.usuario()?.roles ?? []));
 
   protected readonly etapas = ETAPAS;
   protected readonly tipos = TIPOS_TICKET;
@@ -211,6 +221,20 @@ export class ArbolFase implements OnInit {
   protected centrar(): void {
     this.desplazamiento.set({ x: 0, y: 0 });
     this.zoom.set(100);
+  }
+
+  /** Abre o cierra la pantalla completa; Esc también la cierra. */
+  protected alternarPantallaCompleta(): void {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      // Si el navegador no lo permite, la vista sigue igual.
+      this.elemento.nativeElement.requestFullscreen().catch(() => undefined);
+    }
+  }
+
+  protected alCambiarPantallaCompleta(): void {
+    this.pantallaCompleta.set(document.fullscreenElement === this.elemento.nativeElement);
   }
 
   /** Mueve el diagrama para que el nodo elegido quede al centro del lienzo. */

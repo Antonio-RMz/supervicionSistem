@@ -30,4 +30,10 @@ public interface UsuarioRepositoryPort {
     void guardarAccesos(Long usuarioId, Accesos accesos);
 
     void cambiarActivo(Long usuarioId, boolean activo);
+
+    /** @param usuarioGit null lo quita */
+    void cambiarUsuarioGit(Long usuarioId, String usuarioGit);
+
+    /** Vacío si no lo tiene capturado. */
+    Optional<String> usuarioGit(Long usuarioId);
 }

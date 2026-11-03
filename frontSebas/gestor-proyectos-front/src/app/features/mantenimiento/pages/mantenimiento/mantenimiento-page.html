@@ -3,7 +3,7 @@
   <i class="bi bi-chevron-right"></i>
   <a [routerLink]="['/proyectos', id()]">{{ proyectoNombre() }}</a>
   <i class="bi bi-chevron-right"></i>
-  <span>Mantenimiento</span>
+  <span>Bugs</span>
 </nav>
 
 @if (cargando()) {
@@ -14,12 +14,11 @@
   <header class="encabezado">
     <div>
       <div class="titulo">
-        <i class="bi bi-wrench icono-titulo"></i>
-        <h1>Mantenimiento</h1>
-        <span class="tipo-fila">Permanente</span>
+        <i class="bi bi-bug icono-titulo"></i>
+        <h1>Bugs</h1>
       </div>
       <p>
-        Correcciones en producción y trabajo técnico que no pertenece a ninguna fase. Nunca se cierra.
+        Lo que salió mal en producción y su corrección. Cada tarjeta es un bug o una mejora pendiente.
         En producción hoy: {{ m.enProduccion ?? 'nada todavía' }}.
       </p>
     </div>
@@ -32,7 +31,7 @@
         }
         @if (p.puedeReportar) {
           <button type="button" class="boton boton-peligro-suave" (click)="reportandoFalla.set(true)">
-            <i class="bi bi-exclamation-triangle"></i> Reportar falla en producción
+            <i class="bi bi-bug"></i> Reportar bug
           </button>
         }
       </div>
@@ -49,63 +48,35 @@
     }
   </section>
 
-  <div class="columnas">
-    <div class="principal">
-      <!-- ─── Urgente · va por hotfix ─── -->
-      <section class="tarjeta bloque urgente">
-        <div class="bloque-cabecera">
-          <h2>Urgente · va por hotfix</h2>
-          <span class="rama"><i class="bi bi-git"></i> main → hotfix/…</span>
-        </div>
-        <p class="pista">Crítica y Alta. La rama sale de main y se publica en un parche sin esperar a la fase.</p>
-        <ul class="filas">
-          @for (t of m.urgentes; track t.id) {
-            <ng-container *ngTemplateOutlet="fila; context: { $implicit: t }" />
-          } @empty {
-            <li class="vacio">Nada urgente en producción.</li>
-          }
-        </ul>
-      </section>
+  <!-- ─── Lista de bugs ─── -->
+  <div class="filtros-bugs" role="group" aria-label="Mostrar">
+    @for (f of filtros(); track f.grupo) {
+      <button type="button" class="chip" [class.activo]="filtro() === f.grupo" [attr.aria-pressed]="filtro() === f.grupo"
+              (click)="filtro.set(f.grupo)">
+        {{ f.texto }} <span class="cuenta">{{ f.cuenta }}</span>
+      </button>
+    }
+  </div>
 
-      <!-- ─── Siguiente parche ─── -->
-      <section class="tarjeta bloque">
-        <div class="bloque-cabecera">
-          <h2>Siguiente parche · {{ m.siguienteParche }}</h2>
-          <span class="pastilla tono-verde">{{ m.listos.length }} {{ m.listos.length === 1 ? 'listo' : 'listos' }}</span>
-        </div>
-        <p class="pista">Lo que ya pasó QA y saldrá en el próximo parche.</p>
-        <ul class="filas">
-          @for (t of m.listos; track t.id) {
-            <ng-container *ngTemplateOutlet="fila; context: { $implicit: t }" />
-          } @empty {
-            <li class="vacio">Aún no hay hotfix aprobados.</li>
-          }
-          @for (t of m.urgentes; track t.id) {
-            @if (t.severidad?.texto !== 'Por confirmar') {
-              <li class="espera"><i class="bi bi-circle"></i> {{ t.codigo }} entrará si se aprueba antes de publicar</li>
-            }
-          }
-        </ul>
-      </section>
+  <ul class="tarjetas-bugs">
+    @for (b of visibles(); track b.ticket.id) {
+      <li>
+        <ng-container *ngTemplateOutlet="tarjetaBug; context: { $implicit: b.ticket, grupo: b.grupo }" />
+      </li>
+    } @empty {
+      <li class="tarjeta vacio">
+        @if (filtro() === 'todos') {
+          No hay bugs abiertos. Si algo sale mal en producción, usa <strong>Reportar bug</strong>.
+        } @else {
+          No hay nada en este grupo.
+        }
+      </li>
+    }
+  </ul>
 
-      <!-- ─── Mantenimiento normal ─── -->
-      <section class="tarjeta bloque">
-        <div class="bloque-cabecera">
-          <h2>Mantenimiento normal · {{ m.conLaFase }}</h2>
-          <span class="rama clara"><i class="bi bi-git"></i> develop</span>
-        </div>
-        <p class="pista">Media y Baja, tareas técnicas y deuda. Se trabaja desde develop y sale en el release de la fase.</p>
-        <ul class="filas">
-          @for (t of m.normales; track t.id) {
-            <ng-container *ngTemplateOutlet="fila; context: { $implicit: t }" />
-          } @empty {
-            <li class="vacio">Sin trabajo de mantenimiento pendiente.</li>
-          }
-        </ul>
-      </section>
-    </div>
-
-    <aside class="lateral">
+  <!-- ─── Parches (hotfix): publicar, cómo se decide y lo ya publicado ─── -->
+  <h2 class="titulo-seccion"><i class="bi bi-lightning-charge"></i> Parches (hotfix)</h2>
+  <div class="parches-grid">
       <!-- ─── Acciones ─── -->
       <section class="tarjeta bloque acciones" [class.activo]="m.puedePublicar">
         <div class="bloque-cabecera">
@@ -177,7 +148,6 @@
           }
         </ul>
       </section>
-    </aside>
   </div>
 
   @if (confirmando()) {
@@ -210,22 +180,53 @@
                             (reportado)="fallaReportada($event)" />
 }
 
-<ng-template #fila let-t>
-  <li>
-    <app-tipo-ticket [tipo]="t.tipo" />
-    <span class="codigo">{{ t.codigo }}</span>
-    <div class="nombre">
-      <a class="enlace-titulo" [routerLink]="['/proyectos', id(), 'tickets', t.id]">{{ t.titulo }}</a>
-      @if (t.rama) {
-        <div><span class="rama"><i class="bi bi-git"></i> {{ t.rama }}</span></div>
+<!-- Una tarjeta de bug: clic abre su detalle -->
+<ng-template #tarjetaBug let-t let-grupo="grupo">
+  <a class="tarjeta tarjeta-bug" [class.urgente]="grupo === 'urgentes'" [routerLink]="['/proyectos', id(), 'tickets', t.id]">
+    @if (t.imagenId) {
+      <div class="miniatura">
+        @if (miniaturas()[t.id]; as url) {
+          <img [src]="url" [alt]="'Imagen de ' + t.codigo" />
+        } @else {
+          <i class="bi bi-image"></i>
+        }
+        @if (t.imagenes > 1) {
+          <span class="mas-imagenes"><i class="bi bi-images"></i> {{ t.imagenes }}</span>
+        }
+      </div>
+    }
+    <span class="bug-arriba">
+      <app-tipo-ticket [tipo]="t.tipo" />
+      <span class="codigo">{{ t.codigo }}</span>
+      @if (t.severidad; as s) {
+        <span class="pastilla tono-{{ s.tono }} derecha">{{ s.texto }}</span>
       }
-    </div>
-    @if (t.severidad; as s) {
-      <span class="pastilla tono-{{ s.tono }}">{{ s.texto }}</span>
+    </span>
+    <strong class="bug-titulo">{{ t.titulo }}</strong>
+    @if (t.descripcion) {
+      <p class="bug-descripcion">{{ t.descripcion }}</p>
+    } @else if (t.imagenId) {
+      <p class="bug-descripcion suave">Reportado con imagen, sin descripción.</p>
     }
-    <app-etiqueta-estado [etiqueta]="t.etiqueta" />
-    @if (t.responsable; as r) {
-      <app-avatar [iniciales]="r.iniciales" [tono]="r.tono" class="chico" [title]="r.nombre" />
-    }
-  </li>
+    <span class="bug-estado">
+      <app-etiqueta-estado [etiqueta]="t.etiqueta" />
+      <span class="ruta-bug">
+        @switch (grupo) {
+          @case ('urgentes') { <i class="bi bi-lightning-charge-fill"></i> Va por hotfix }
+          @case ('listos') { <i class="bi bi-check-circle"></i> Listo para el parche }
+          @default { <i class="bi bi-clock"></i> {{ vaCon() }} }
+        }
+      </span>
+    </span>
+    <span class="bug-abajo">
+      @if (t.responsable; as r) {
+        <span class="persona"><app-avatar [iniciales]="r.iniciales" [tono]="r.tono" class="chico" /> {{ r.nombre }}</span>
+      } @else {
+        <span class="persona suave">Sin asignar</span>
+      }
+      @if (t.rama) {
+        <span class="rama" [title]="t.rama"><i class="bi bi-git"></i> {{ t.rama }}</span>
+      }
+    </span>
+  </a>
 </ng-template>

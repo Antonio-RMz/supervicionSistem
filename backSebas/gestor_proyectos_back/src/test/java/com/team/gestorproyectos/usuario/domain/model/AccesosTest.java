@@ -39,13 +39,13 @@ class AccesosTest {
 
     @Test
     void nuevoUsuarioNormalizaElCorreoYPideContrasenaLarga() {
-        var nuevo = new NuevoUsuario(" Ana ", " ", " Ana@Equipo.MX ", "Temporal1", true, true, Set.of("ANALISTA"), null);
+        var nuevo = new NuevoUsuario(" Ana ", " ", " Ana@Equipo.MX ", "Temporal1", true, true, Set.of("ANALISTA"), null, null);
         assertThat(nuevo.correo()).isEqualTo("ana@equipo.mx");
         assertThat(nuevo.nombre()).isEqualTo("Ana");
         assertThat(nuevo.apellidos()).isNull();
         assertThat(nuevo.proyectoIds()).isEmpty();
 
-        assertThatThrownBy(() -> new NuevoUsuario("Ana", null, "ana@equipo.mx", "corta", true, true, Set.of("ANALISTA"), Set.of()))
+        assertThatThrownBy(() -> new NuevoUsuario("Ana", null, "ana@equipo.mx", "corta", true, true, Set.of("ANALISTA"), Set.of(), null))
                 .isInstanceOf(ReglaNegocioException.class);
     }
 }

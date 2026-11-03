@@ -18,12 +18,14 @@ import com.team.gestorproyectos.ticket.domain.model.TicketParaMover.Opcion;
  * @param equipo              quién puede destrabarlo (y a quién asignar un bug al confirmarlo)
  * @param severidad           de un bug: CRITICA, ALTA, MEDIA o BAJA; null si no tiene
  * @param hotfix              bug de producción que sale en parche, sin esperar a una fase (PDF pág. 23)
+ * @param requierePr          la Actividad termina con PR; false en un proyecto Normal sin PR (se termina)
  * @param parche              si es un hotfix aprobado: la versión y los bugs que saldrían con él
  */
 public record DetalleTicket(
         InfoTicket info,
         String severidad,
         boolean hotfix,
+        boolean requierePr,
         Parche parche,
         String actor,
         boolean meToca,

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +20,7 @@ import com.team.gestorproyectos.historia.domain.model.PreparacionHistoria.Usuari
 import com.team.gestorproyectos.historia.domain.model.ResultadoImportacion;
 import com.team.gestorproyectos.historia.domain.port.out.HistoriaRepositoryPort;
 import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
+import com.team.gestorproyectos.shared.domain.port.AvisosPort;
 
 class ImportarHistoriasTest {
 
@@ -27,7 +29,8 @@ class ImportarHistoriasTest {
     private static final Long ALMA = 7L;
 
     private final HistoriasEnMemoria historias = new HistoriasEnMemoria();
-    private final CrearHistoriaService service = new CrearHistoriaService(historias, (usuario, permiso) -> true);
+    private final AvisosEnMemoria avisos = new AvisosEnMemoria();
+    private final CrearHistoriaService service = new CrearHistoriaService(historias, (usuario, permiso) -> true, avisos);
 
     @Test
     void creaTodasEnBorradorConLosRepositoriosDeLaFase() {
@@ -45,6 +48,8 @@ class ImportarHistoriasTest {
             assertThat(h.moduloIds()).containsExactlyInAnyOrder(100L, 101L);
         });
         assertThat(historias.creadas.get(0).prioridad()).isEqualTo("ALTA");
+        // Un solo aviso al responsable por todas las importadas, no uno por historia.
+        assertThat(avisos.importadas).containsExactly("1 → 7: 2 historias");
     }
 
     @Test
@@ -55,6 +60,7 @@ class ImportarHistoriasTest {
                 .isInstanceOf(ReglaNegocioException.class)
                 .hasMessage("Historia 2: falta \"como\"");
         assertThat(historias.creadas).isEmpty();
+        assertThat(avisos.importadas).isEmpty();
     }
 
     @Test
@@ -114,6 +120,25 @@ class ImportarHistoriasTest {
 
         @Override
         public void actualizar(Long historiaId, NuevaHistoria cambios, HistoriaGuardada antes, Long usuarioId) {
+        }
+    }
+
+    /** Guarda los avisos de historias importadas como "actor → destinatario: N historias". */
+    private static final class AvisosEnMemoria implements AvisosPort {
+
+        final List<String> importadas = new ArrayList<>();
+
+        @Override
+        public void avisar(Tipo tipo, Long ticketId, Long actorId, Collection<Long> destinatarios) {
+        }
+
+        @Override
+        public void historiaAsignada(Long historiaId, Papel papel, Long actorId, Collection<Long> destinatarios) {
+        }
+
+        @Override
+        public void historiasAsignadas(List<Long> historiaIds, Long actorId, Long destinatario) {
+            importadas.add(actorId + " → " + destinatario + ": " + historiaIds.size() + " historias");
         }
     }
 }

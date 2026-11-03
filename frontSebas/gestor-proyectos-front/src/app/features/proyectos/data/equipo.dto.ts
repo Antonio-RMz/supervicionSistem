@@ -1,3 +1,5 @@
+import { FormaTrabajo } from '../../../shared/utils/flujos';
+
 /** JSON de GET /api/equipo/proyectos/{id}/equipo (PDF pág. 34). */
 export interface EquipoDto {
   proyectoId: number;
@@ -10,6 +12,8 @@ export interface EquipoDto {
     comentarioAlRechazar: boolean;
     ramaAlIniciar: boolean;
     notificarClienteFase: boolean;
+    formaTrabajo: FormaTrabajo;
+    requierePr: boolean;
   };
   puedeGestionar: boolean;
 }

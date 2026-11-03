@@ -8,7 +8,7 @@
   <p class="error-carga">No encontramos ese proyecto o no eres miembro. <a routerLink="/proyectos">Volver a Proyectos</a></p>
 } @else if (store.resumen(); as p) {
   <header class="cabecera">
-    <app-avatar [iniciales]="p.codigo" [tono]="p.tono" [cuadro]="true" class="grande" />
+    <app-icono-proyecto [proyectoId]="p.id" [codigo]="p.codigo" [tono]="p.tono" [tamano]="64" />
     <div class="datos">
       <div class="titulo">
         <h1>{{ p.nombre }}</h1>
@@ -26,12 +26,6 @@
       <app-barra-avance [valor]="p.avance" [tono]="p.tono" />
     </div>
     <div class="acciones">
-      <a class="boton boton-secundario" [routerLink]="['/proyectos', p.id, 'mantenimiento']">
-        <i class="bi bi-wrench"></i> Mantenimiento
-        @if (p.mantenimientoAbiertos) {
-          <span class="contador">{{ p.mantenimientoAbiertos }}</span>
-        }
-      </a>
       @if (p.puedeEditar) {
         <a class="boton boton-secundario" [routerLink]="['/proyectos', p.id, 'editar']"><i class="bi bi-pencil"></i> Editar</a>
       }
@@ -47,6 +41,13 @@
     <a routerLink="equipo" routerLinkActive="activa">Equipo · {{ p.equipo.length }}</a>
     <a routerLink="usuarios-sistema" routerLinkActive="activa">Usuarios del sistema</a>
     <a routerLink="modulos" routerLinkActive="activa">Repositorios · {{ p.modulos.length }}</a>
+    <!-- Los bugs del proyecto en tarjetas; desde ahí se reporta uno -->
+    <a class="reportar-bug" [routerLink]="['/proyectos', p.id, 'bugs']">
+      <i class="bi bi-bug"></i> Bugs
+      @if (p.mantenimientoAbiertos) {
+        <span class="contador">{{ p.mantenimientoAbiertos }}</span>
+      }
+    </a>
     <a routerLink="releases" routerLinkActive="activa">Releases</a>
   </nav>
 

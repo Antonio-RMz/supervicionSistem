@@ -21,6 +21,7 @@ import com.team.gestorproyectos.shared.application.Transaccional;
 import com.team.gestorproyectos.shared.domain.exception.AccesoDenegadoException;
 import com.team.gestorproyectos.shared.domain.exception.NoEncontradoException;
 import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
+import com.team.gestorproyectos.shared.domain.port.AvisosPort;
 import com.team.gestorproyectos.shared.domain.port.PermisosPort;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class EditarHistoriaService implements EditarHistoriaUseCase {
     private final HistoriaRepositoryPort historias;
     private final HistoriaGestionPort gestion;
     private final PermisosPort permisos;
+    private final AvisosPort avisos;
 
     @Override
     @Transaccional(soloLectura = true)
@@ -46,8 +48,12 @@ public class EditarHistoriaService implements EditarHistoriaUseCase {
         // Solo su fase: para cambiarla de fase está "Mover de fase".
         List<FaseParaHistoria> fase = historias.fasesAbiertas(proyectoId).stream()
                 .filter(f -> f.id().equals(historia.faseId())).toList();
+        Set<Long> yaAsignados = historia.desarrolladores().stream()
+                .map(NuevaHistoria.Desarrollador::usuarioId).collect(Collectors.toSet());
+        List<Analista> desarrolladores = historias.equipo(proyectoId).stream()
+                .filter(a -> a.esDesarrollador() || yaAsignados.contains(a.id())).toList();
         return new EdicionHistoria(new PreparacionHistoria(proyectoId, proyecto, historia.numero(), fase, equipo,
-                historias.usuariosDelSistema(proyectoId)),
+                historias.usuariosDelSistema(proyectoId), desarrolladores),
                 historia);
     }
 
@@ -78,7 +84,19 @@ public class EditarHistoriaService implements EditarHistoriaUseCase {
             throw new ReglaNegocioException("El responsable debe ser un Analista o un Líder del equipo del proyecto");
         }
 
+        // Igual que el Analista: solo a quien se agrega se le pide el rol de Desarrollador.
+        Set<Long> antesDevs = antes.desarrolladores().stream().map(NuevaHistoria.Desarrollador::usuarioId)
+                .collect(Collectors.toSet());
+        cambios.verificarDesarrolladores(historias.equipo(proyectoId), antesDevs);
+
         historias.actualizar(historiaId, cambios, antes, usuarioId);
+
+        // Solo a quien entra: el nuevo responsable y los Desarrolladores que se agregaron.
+        if (cambiaResponsable) {
+            avisos.historiaAsignada(historiaId, AvisosPort.Papel.RESPONSABLE, usuarioId, List.of(cambios.analistaId()));
+        }
+        avisos.historiaAsignada(historiaId, AvisosPort.Papel.DESARROLLADOR, usuarioId, cambios.desarrolladores().stream()
+                .map(NuevaHistoria.Desarrollador::usuarioId).filter(id -> !antesDevs.contains(id)).toList());
     }
 
     private String verificar(Long proyectoId, Long historiaId, Long usuarioId, boolean esAdmin) {

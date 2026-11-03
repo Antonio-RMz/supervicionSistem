@@ -8,6 +8,7 @@ import { Avatar } from '../../../../shared/components/avatar/avatar';
 import { EtiquetaEstado } from '../../../../shared/components/etiqueta-estado/etiqueta-estado';
 import { mensajeDeError } from '../../../../shared/utils/errores';
 import { fechaCorta } from '../../../../shared/utils/fechas';
+import { FormaTrabajo, textoFormaTrabajo } from '../../../../shared/utils/flujos';
 import {
   etiquetaProyecto,
   infoModulo,
@@ -21,6 +22,7 @@ import { Cliente } from '../../../clientes/models/clientes.models';
 import { ProyectoActualStore } from '../../../gestor/data/proyecto-actual.store';
 import { ProyectosDetalleService } from '../../data/proyectos-detalle.service';
 import { DatosProyecto, ModuloForm, Persona } from '../../models/proyectos.models';
+import { EditorIcono } from '../../components/editor-icono/editor-icono';
 
 /** Al nombre del módulo se le sugiere "<proyecto>-api", "<proyecto>-web"... */
 const SUFIJOS: Record<string, string> = {
@@ -33,7 +35,7 @@ const SUFIJOS: Record<string, string> = {
  */
 @Component({
   selector: 'app-proyecto-form-page',
-  imports: [ReactiveFormsModule, RouterLink, Avatar, EtiquetaEstado],
+  imports: [EditorIcono, ReactiveFormsModule, RouterLink, Avatar, EtiquetaEstado],
   templateUrl: './proyecto-form-page.html',
   styleUrl: './proyecto-form-page.scss',
 })
@@ -65,6 +67,8 @@ export class ProyectoFormPage implements OnInit {
       comentarioAlRechazar: [true],
       ramaAlIniciar: [true],
       notificarClienteFase: [false],
+      formaTrabajo: ['GITFLOW' as FormaTrabajo],
+      requierePr: [true],
     }),
   });
 
@@ -78,6 +82,8 @@ export class ProyectoFormPage implements OnInit {
   protected readonly miembroIds = signal<number[]>([]);
 
   protected readonly editando = computed(() => !!this.id());
+  /** El id como número, para el ícono (solo al editar). */
+  protected readonly proyectoIdNumero = computed(() => (this.id() ? Number(this.id()) : null));
   /** El Líder edita su proyecto, pero el equipo lo arma el Administrador. */
   protected readonly armaEquipo = computed(() => this.usuario()?.roles.includes('ADMIN') ?? false);
   protected readonly estados = ORDEN_ESTADOS_PROYECTO.map((e) => ({ codigo: e, texto: etiquetaProyecto(e).texto }));
@@ -86,6 +92,12 @@ export class ProyectoFormPage implements OnInit {
   protected readonly etiquetaDeRol = etiquetaDeRol;
 
   private readonly valor = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
+
+  /** Al editar, la forma de trabajo está deshabilitada (ya no cambia) y no sale en value: se lee completa. */
+  protected readonly normal = computed(() => {
+    this.valor();
+    return this.form.controls.reglas.getRawValue().formaTrabajo === 'NORMAL';
+  });
 
   protected readonly miembros = computed(() => {
     const ids = this.miembroIds();
@@ -133,6 +145,8 @@ export class ProyectoFormPage implements OnInit {
       equipo: `${this.miembroIds().length} ${this.miembroIds().length === 1 ? 'persona' : 'personas'}`,
       modulos: modulos.length ? `${modulos.length} · ${modulos.join(', ')}` : 'Ninguno',
       autovalidacion: v.reglas?.permitirAutovalidacion ? 'Permitida' : 'No permitida',
+      formaTrabajo: textoFormaTrabajo(this.form.controls.reglas.getRawValue().formaTrabajo,
+        this.form.controls.reglas.getRawValue().requierePr),
     };
   });
 
@@ -289,6 +303,9 @@ export class ProyectoFormPage implements OnInit {
           modulos: [],
         });
         datos.modulos.forEach((m) => this.modulos.push(this.grupoModulo(m)));
+        // Se eligió al crear el proyecto y ya no cambia.
+        this.form.controls.reglas.controls.formaTrabajo.disable();
+        this.form.controls.reglas.controls.requierePr.disable();
         this.miembroIds.set([
           datos.liderId!,
           ...datos.miembroIds.filter((m) => m !== datos.liderId),

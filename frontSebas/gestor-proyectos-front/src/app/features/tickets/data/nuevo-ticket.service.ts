@@ -5,7 +5,6 @@ import { environment } from '../../../../environments/environment';
 import { infoModulo } from '../../../shared/utils/proyectos';
 import { codigoHistoria, textoEstado } from '../../../shared/utils/tickets';
 import { EdicionTicket, NuevoTicket, PreparacionTicket } from '../models/nuevo-ticket.models';
-import { TicketImportado } from '../models/importacion-tickets.models';
 import { EdicionTicketDto, NuevoTicketDto, PreparacionTicketDto } from './nuevo-ticket.dto';
 
 @Injectable({ providedIn: 'root' })
@@ -19,17 +18,6 @@ export class NuevoTicketService {
   }
 
   /** Devuelve el id del ticket creado. */
-  /** Importar tickets: varias Actividades dentro de la historia, todas con el mismo responsable. */
-  importar(proyectoId: number, historiaId: number, responsableId: number, tickets: TicketImportado[]): Observable<number> {
-    return this.http
-      .post<{ creados: number }>(`${environment.apiUrl}/equipo/proyectos/${proyectoId}/tickets/importar`, {
-        historiaId,
-        responsableId,
-        tickets,
-      })
-      .pipe(map((r) => r.creados));
-  }
-
   crear(proyectoId: number, nuevo: NuevoTicket): Observable<number> {
     return this.http
       .post<{ id: number }>(`${environment.apiUrl}/equipo/proyectos/${proyectoId}/tickets`, aDto(nuevo))

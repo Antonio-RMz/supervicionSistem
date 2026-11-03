@@ -25,7 +25,7 @@ class TrabajoActualTest {
 
     private static ItemDeProyecto ticket(String tipo, int numero, String estado, String ultimoEstadoAnterior) {
         var item = new ItemTrabajo((long) numero, tipo, numero, tipo + " " + numero, estado, "MEDIA",
-                PEDRO, ANA, JORGE, "EN_DESARROLLO", AHORA.minusDays(3), AHORA.minusDays(1));
+                PEDRO, ANA, JORGE, "EN_DESARROLLO", AHORA.minusDays(3), AHORA.minusDays(1), true);
         return new ItemDeProyecto(item, JORGE, ultimoEstadoAnterior);
     }
 

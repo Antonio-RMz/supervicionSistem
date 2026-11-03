@@ -1,4 +1,5 @@
 import { Etiqueta, Tono } from '../../../shared/models/etiqueta.model';
+import { FormaTrabajo } from '../../../shared/utils/flujos';
 import { InfoModulo } from '../../../shared/utils/proyectos';
 
 /** Las decisiones sobre una historia (PDF pág. 21). Las mismas del back (AccionHistoria). */
@@ -11,17 +12,67 @@ export type AccionHistoria =
   | 'ACEPTAR'
   | 'DEVOLVER'
   | 'INTEGRAR'
-  | 'REABRIR';
+  | 'REABRIR'
+  // Historia con Desarrolladores (sin Actividades)
+  | 'INICIAR_DESARROLLO'
+  | 'TERMINAR_DESARROLLO'
+  | 'APROBAR_REVISION'
+  | 'PEDIR_CAMBIOS';
 
 /** Las que abren una ventana de confirmación antes de ejecutarse (PDF pág. 33). */
 export type AccionConConfirmacion = Extract<
   AccionHistoria,
-  'DEVOLVER' | 'DESCARTAR' | 'MOVER_DE_FASE'
+  'DEVOLVER' | 'DESCARTAR' | 'MOVER_DE_FASE' | 'PEDIR_CAMBIOS'
 >;
 
 export const ACCIONES_CON_CONFIRMACION: readonly AccionHistoria[] = [
-  'DEVOLVER', 'DESCARTAR', 'MOVER_DE_FASE',
+  'DEVOLVER', 'DESCARTAR', 'MOVER_DE_FASE', 'PEDIR_CAMBIOS',
 ];
+
+/** Un Desarrollador de la historia y si ya terminó su parte. */
+export interface DesarrolladorDeHistoria {
+  usuarioId: number;
+  nombre: string;
+  iniciales: string;
+  /** "sis-control-escolar-api"; null = en todos los repositorios */
+  repositorio: string | null;
+  terminado: boolean;
+}
+
+/** Un punto de "Lo que hice". */
+export interface TrabajoDeHistoria {
+  id: number;
+  descripcion: string;
+  repositorio: string | null;
+  hecho: boolean;
+  /** "Jorge · 2 nov" */
+  detalle: string;
+}
+
+export interface RepositorioDeHistoria {
+  id: number;
+  tipo: string;
+  nombre: string;
+  tecnologia: string | null;
+  ramaBase: string;
+  /** Para clonar: "https://github.com/.../repo.git"; null si el proyecto no lo tiene */
+  url: string | null;
+  /** Para abrirlo en el navegador (sin ".git") */
+  enlace: string | null;
+}
+
+/** Pestaña Desarrollo: solo en historias con Desarrolladores (sin Actividades como ticket). */
+export interface DesarrolloHistoria {
+  desarrolladores: DesarrolladorDeHistoria[];
+  trabajo: TrabajoDeHistoria[];
+  repositorios: RepositorioDeHistoria[];
+  /** Si quien la ve es uno de sus Desarrolladores: si ya terminó su parte; null si no lo es */
+  miParteTerminada: boolean | null;
+  puedeAnotar: boolean;
+  puedeMarcar: boolean;
+  /** El proyecto pide PR (o es Gitflow): al terminar la revisa el Líder */
+  requierePr: boolean;
+}
 
 export interface AccionDisponible {
   accion: AccionHistoria;
@@ -47,7 +98,11 @@ export interface DetalleHistoria {
   id: number;
   proyectoId: number;
   proyectoNombre: string;
+  /** En la forma Normal no hay Integrar: aceptada ya queda integrada */
+  formaTrabajo: FormaTrabajo;
   faseId: number;
+  faseNumero: number;
+  faseNombre: string;
   /** "Fase 4 · Portal móvil" */
   faseTitulo: string;
   faseEtiqueta: Etiqueta;
@@ -94,6 +149,8 @@ export interface DetalleHistoria {
   fasesDestino: { id: number; titulo: string }[];
   /** Aún no se inicia y es su Analista, el Líder o el Admin: se puede borrar del todo. */
   puedeEliminar: boolean;
+  /** Con Desarrolladores (sin Actividades): sus Desarrolladores, "Lo que hice" y repositorios; null si no */
+  desarrollo: DesarrolloHistoria | null;
 }
 
 export interface ImagenDeHistoria {

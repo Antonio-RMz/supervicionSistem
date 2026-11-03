@@ -93,6 +93,7 @@ const TONOS_HISTORIA: Record<string, Tono> = {
   LISTA_DESARROLLO: 'turquesa',
   EN_DESARROLLO: 'morado',
   EN_QA: 'ambar',
+  EN_REVISION: 'ambar',
   EN_VALIDACION: 'naranja',
   ACEPTADA: 'turquesa',
   INTEGRADA: 'verde',
@@ -102,7 +103,9 @@ const TONOS_HISTORIA: Record<string, Tono> = {
 
 /** "EN_VALIDACION" -> En validación en naranja */
 export function etiquetaHistoria(estado: string): Etiqueta {
-  return { texto: textoEstado(estado), tono: TONOS_HISTORIA[estado] ?? 'gris' };
+  // En una historia, En revisión es la del Líder antes de validarla (no un PR suelto).
+  const texto = estado === 'EN_REVISION' ? 'En revisión' : textoEstado(estado);
+  return { texto, tono: TONOS_HISTORIA[estado] ?? 'gris' };
 }
 
 /** Color del estado de un ticket en una lista: en trabajo, en revisión, aprobado o cerrado. */

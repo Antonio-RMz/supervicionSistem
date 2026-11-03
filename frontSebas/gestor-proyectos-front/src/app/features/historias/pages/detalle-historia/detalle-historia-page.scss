@@ -196,3 +196,82 @@
   flex-wrap: wrap;
   gap: 0.6rem;
 }
+
+// Pestañas de una historia con Desarrolladores
+.pestanas {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--borde);
+  overflow-x: auto;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 0.9rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--texto-suave);
+    font: inherit;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover { color: var(--tinta); }
+
+    &.activa {
+      border-bottom-color: var(--morado);
+      color: var(--morado);
+    }
+  }
+
+  .contador {
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: var(--fondo);
+    color: var(--texto-suave);
+    font-size: 0.75rem;
+  }
+}
+
+// Pestaña Prompts: Desarrollo o Diseño
+.prompts-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  h2 { display: flex; align-items: center; gap: 0.5rem; }
+  h2 i { color: var(--morado); }
+}
+
+.segmentos {
+  display: inline-flex;
+  padding: 0.2rem;
+  border-radius: 10px;
+  background: var(--fondo);
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.8rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--texto-suave);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+
+    &.activo {
+      background: var(--blanco);
+      color: var(--morado);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.1);
+    }
+  }
+}
+
+.prompts .pista { margin: 0.6rem 0 1rem; }

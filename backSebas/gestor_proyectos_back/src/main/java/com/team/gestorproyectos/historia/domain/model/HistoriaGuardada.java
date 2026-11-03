@@ -19,10 +19,12 @@ public record HistoriaGuardada(
         Long analistaId,
         String prioridad,
         Integer puntos,
-        Set<Long> moduloIds) {
+        Set<Long> moduloIds,
+        List<NuevaHistoria.Desarrollador> desarrolladores) {
 
     public HistoriaGuardada {
         criterios = List.copyOf(criterios);
         moduloIds = Set.copyOf(moduloIds);
+        desarrolladores = List.copyOf(desarrolladores);
     }
 }

@@ -50,6 +50,8 @@ export interface NuevoUsuario {
   activo: boolean;
   roles: string[];
   proyectoIds: number[];
+  /** Su usuario de GitHub, GitLab…; vacío = sin capturar */
+  usuarioGit: string;
 }
 
 // ─── Detalle de una persona ─────────────────────────────────────────────────
@@ -88,6 +90,8 @@ export interface PerfilUsuario {
   activo: boolean;
   tonoAvatar: Tono;
   ultimoAcceso: Date | null;
+  /** null = sin capturar */
+  usuarioGit: string | null;
   metricas: {
     trabajandoAhora: number;
     leToca: number;

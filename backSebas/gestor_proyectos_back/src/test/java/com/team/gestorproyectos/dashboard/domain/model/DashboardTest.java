@@ -26,7 +26,7 @@ class DashboardTest {
 
     private static ItemTrabajo ticket(String tipo, int numero, String estado, String historiaEstado) {
         return new ItemTrabajo((long) numero, tipo, numero, tipo + " " + numero, estado, "ALTA",
-                PEDRO, ANA, JORGE, historiaEstado, AHORA.minusDays(1), AHORA.minusDays(5));
+                PEDRO, ANA, JORGE, historiaEstado, AHORA.minusDays(1), AHORA.minusDays(5), true);
     }
 
     private static Dashboard de(Long usuario, List<ItemTrabajo> items) {
@@ -60,7 +60,7 @@ class DashboardTest {
     @Test
     void metricasCuentanSoloTickets() {
         ItemTrabajo historia = new ItemTrabajo(1L, "HIST", 16, "Pedidos", "EN_VALIDACION", "ALTA",
-                ANA, null, ANA, null, AHORA, AHORA);
+                ANA, null, ANA, null, AHORA, AHORA, true);
         Metricas m = de(JORGE, List.of(historia, ticket("ACTV", 30, "EN_QA", null), ticket("BUGS", 31, "REPORTADO", null)))
                 .metricas();
 

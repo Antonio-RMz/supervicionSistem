@@ -2,6 +2,7 @@ package com.team.gestorproyectos.ticket.domain.model;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +36,7 @@ public final class MisTickets {
 
     public static List<TicketMio> armar(Long usuarioId, List<FilaTicket> filas, Map<Long, Persona> personas) {
         List<TicketMio> mios = new ArrayList<>();
-        for (FilaTicket fila : filas) {
+        for (FilaTicket fila : unaPorItem(usuarioId, filas)) {
             ItemDeProyecto deProyecto = fila.item();
             ItemTrabajo item = deProyecto.item();
             boolean soyLider = usuarioId.equals(deProyecto.liderId());
@@ -62,5 +63,23 @@ public final class MisTickets {
         }
         mios.sort(MAS_URGENTE_PRIMERO);
         return List.copyOf(mios);
+    }
+
+    /**
+     * Una historia con Desarrolladores viene una vez por cada uno además de la de su Analista: a cada quien se le
+     * deja la suya (donde es el responsable) y a los demás, la primera.
+     */
+    private static List<FilaTicket> unaPorItem(Long usuarioId, List<FilaTicket> filas) {
+        Map<String, FilaTicket> porItem = new LinkedHashMap<>();
+        for (FilaTicket fila : filas) {
+            ItemTrabajo item = fila.item().item();
+            String clave = item.tipo() + ":" + item.id();
+            FilaTicket anterior = porItem.get(clave);
+            if (anterior == null || (usuarioId.equals(item.responsableId())
+                    && !usuarioId.equals(anterior.item().item().responsableId()))) {
+                porItem.put(clave, fila);
+            }
+        }
+        return List.copyOf(porItem.values());
     }
 }

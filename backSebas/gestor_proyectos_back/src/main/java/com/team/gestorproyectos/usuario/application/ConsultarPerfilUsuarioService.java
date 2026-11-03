@@ -46,6 +46,7 @@ public class ConsultarPerfilUsuarioService implements ConsultarPerfilUsuarioUseC
                         consulta.movimientosDe(usuarioId, HECHOS_RECIENTES),
                         consulta.comentariosDe(usuarioId, HECHOS_RECIENTES),
                         HECHOS_RECIENTES),
-                consulta.proyectosDe(usuarioId));
+                consulta.proyectosDe(usuarioId),
+                usuarios.usuarioGit(usuarioId).orElse(null));
     }
 }

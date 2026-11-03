@@ -55,6 +55,7 @@ public record DatosProyecto(
         }
         miembroIds = Set.copyOf(miembros);
 
+        reglas = reglas == null ? new ReglasFlujo(false, false, false, false, null, true) : reglas;
         modulos = modulos == null ? List.of() : List.copyOf(modulos);
         Set<String> nombres = new HashSet<>();
         for (ModuloProyecto modulo : modulos) {

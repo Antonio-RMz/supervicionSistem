@@ -19,6 +19,7 @@ import com.team.gestorproyectos.shared.application.Transaccional;
 import com.team.gestorproyectos.shared.domain.exception.AccesoDenegadoException;
 import com.team.gestorproyectos.shared.domain.exception.NoEncontradoException;
 import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
+import com.team.gestorproyectos.shared.domain.port.AvisosPort;
 import com.team.gestorproyectos.shared.domain.port.PermisosPort;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class CrearHistoriaService implements CrearHistoriaUseCase {
 
     private final HistoriaRepositoryPort historias;
     private final PermisosPort permisos;
+    private final AvisosPort avisos;
 
     @Override
     @Transaccional(soloLectura = true)
@@ -41,8 +43,10 @@ public class CrearHistoriaService implements CrearHistoriaUseCase {
                 .filter(Analista::puedeSerResponsable)
                 .sorted(Comparator.comparing(Analista::esAnalista).reversed())
                 .toList();
+        List<Analista> desarrolladores = historias.equipo(proyectoId).stream().filter(Analista::esDesarrollador).toList();
         return new PreparacionHistoria(proyectoId, nombre, historias.siguienteNumero(proyectoId),
-                historias.fasesAbiertas(proyectoId), equipo, historias.usuariosDelSistema(proyectoId));
+                historias.fasesAbiertas(proyectoId), equipo, historias.usuariosDelSistema(proyectoId),
+                desarrolladores);
     }
 
     @Override
@@ -56,8 +60,13 @@ public class CrearHistoriaService implements CrearHistoriaUseCase {
             throw new ReglaNegocioException("Solo se pueden elegir repositorios de la Fase " + fase.numero());
         }
         verificarResponsable(proyectoId, nueva.analistaId());
+        nueva.verificarDesarrolladores(historias.equipo(proyectoId), Set.of());
 
-        return historias.crear(proyectoId, historias.siguienteNumero(proyectoId), nueva, usuarioId);
+        Long historiaId = historias.crear(proyectoId, historias.siguienteNumero(proyectoId), nueva, usuarioId);
+        // Les llega como en Mis tickets: al responsable y a cada Desarrollador.
+        avisos.historiaAsignada(historiaId, AvisosPort.Papel.RESPONSABLE, usuarioId, List.of(nueva.analistaId()));
+        avisos.historiaAsignada(historiaId, AvisosPort.Papel.DESARROLLADOR, usuarioId, desarrolladores(nueva));
+        return historiaId;
     }
 
     @Override
@@ -85,12 +94,14 @@ public class CrearHistoriaService implements CrearHistoriaUseCase {
         }
 
         int incompletas = 0;
+        List<Long> creadas = new ArrayList<>();
         for (NuevaHistoria nueva : nuevas) {
-            historias.crear(proyectoId, historias.siguienteNumero(proyectoId), nueva, usuarioId);
+            creadas.add(historias.crear(proyectoId, historias.siguienteNumero(proyectoId), nueva, usuarioId));
             if (incompleta(nueva)) {
                 incompletas++;
             }
         }
+        avisos.historiasAsignadas(creadas, usuarioId, analistaId);
         return new ResultadoImportacion(nuevas.size(), incompletas);
     }
 
@@ -106,7 +117,7 @@ public class CrearHistoriaService implements CrearHistoriaUseCase {
         }
         try {
             return new NuevaHistoria(true, faseId, h.titulo(), h.como(), h.quiero(), h.para(), h.criterios(), null,
-                    false, analistaId, h.prioridad(), h.puntos(), repositorios);
+                    false, analistaId, h.prioridad(), h.puntos(), repositorios, List.of());
         } catch (ReglaNegocioException e) {
             throw new ReglaNegocioException(cual + e.getMessage());
         }
@@ -139,6 +150,10 @@ public class CrearHistoriaService implements CrearHistoriaUseCase {
             throw new AccesoDenegadoException("No tienes permiso para crear historias de usuario");
         }
         return nombre;
+    }
+
+    private static List<Long> desarrolladores(NuevaHistoria historia) {
+        return historia.desarrolladores().stream().map(NuevaHistoria.Desarrollador::usuarioId).toList();
     }
 
     private static Set<Long> ids(List<FaseParaHistoria.Opcion> opciones) {

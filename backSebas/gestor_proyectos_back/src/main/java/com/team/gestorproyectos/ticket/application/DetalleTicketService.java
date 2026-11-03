@@ -1,6 +1,7 @@
 package com.team.gestorproyectos.ticket.application;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 import com.team.gestorproyectos.shared.application.ServicioAplicacion;
@@ -20,6 +21,7 @@ import com.team.gestorproyectos.ticket.domain.port.out.TicketDetallePort;
 import com.team.gestorproyectos.ticket.domain.port.out.TicketEscrituraPort;
 import com.team.gestorproyectos.ticket.domain.port.out.TicketParchePort;
 import com.team.gestorproyectos.ticket.domain.port.out.TicketRepositoryPort;
+import com.team.gestorproyectos.shared.domain.port.AvisosPort;
 
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +36,7 @@ public class DetalleTicketService implements DetalleTicketUseCase {
     private final TicketRepositoryPort tickets;
     private final TicketDetallePort detalles;
     private final TicketParchePort parches;
+    private final AvisosPort avisos;
 
     @Override
     @Transaccional(soloLectura = true)
@@ -52,6 +55,7 @@ public class DetalleTicketService implements DetalleTicketUseCase {
                 info,
                 ticket.severidad(),
                 ticket.esHotfix(),
+                ticket.item().requierePr(),
                 parche,
                 actor,
                 meToca,
@@ -111,7 +115,7 @@ public class DetalleTicketService implements DetalleTicketUseCase {
     @Override
     @Transaccional
     public void comentar(Long proyectoId, Long ticketId, String texto, Long usuarioId, boolean esAdmin) {
-        buscar(proyectoId, ticketId, usuarioId, esAdmin);
+        InfoTicket info = buscar(proyectoId, ticketId, usuarioId, esAdmin);
         String limpio = texto == null ? "" : texto.trim();
         if (limpio.isEmpty()) {
             throw new ReglaNegocioException("Escribe el comentario");
@@ -120,6 +124,9 @@ public class DetalleTicketService implements DetalleTicketUseCase {
             throw new ReglaNegocioException("El comentario es muy largo (máximo " + LARGO_COMENTARIO + " letras)");
         }
         detalles.comentar(ticketId, usuarioId, limpio, LocalDateTime.now());
+        avisos.avisar(AvisosPort.Tipo.COMENTARIO, ticketId, usuarioId, Arrays.asList(
+                info.responsable() == null ? null : info.responsable().id(),
+                info.creadoPor() == null ? null : info.creadoPor().id()));
     }
 
     private InfoTicket buscar(Long proyectoId, Long ticketId, Long usuarioId, boolean esAdmin) {

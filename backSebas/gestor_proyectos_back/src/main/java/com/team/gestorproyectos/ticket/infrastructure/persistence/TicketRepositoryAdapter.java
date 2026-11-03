@@ -88,7 +88,8 @@ public class TicketRepositoryAdapter implements TicketRepositoryPort {
     public Optional<HistoriaDelTicket> historiaDe(Long ticketId) {
         return repository.historiaDe(ticketId).map(h -> new HistoriaDelTicket(h.getId(), h.getEstado(),
                 repository.ticketsDeHistoria(h.getId()).stream()
-                        .map(t -> new TicketEstado(t.getTipo(), t.getEstado())).toList()));
+                        .map(t -> new TicketEstado(t.getTipo(), t.getEstado())).toList(),
+                repository.desarrolladoresDeHistoria(h.getId()) > 0));
     }
 
     @Override
@@ -101,6 +102,6 @@ public class TicketRepositoryAdapter implements TicketRepositoryPort {
     private static ItemTrabajo aItem(TicketParaMoverFila f) {
         return new ItemTrabajo(f.getId(), f.getTipo(), f.getNumero(), f.getTitulo(), f.getEstado(), f.getPrioridad(),
                 f.getResponsableId(), f.getTesterId(), f.getCreadoPorId(), f.getHistoriaEstado(),
-                f.getCreadoEn(), f.getActualizadoEn());
+                f.getCreadoEn(), f.getActualizadoEn(), !Boolean.FALSE.equals(f.getRequierePr()));
     }
 }

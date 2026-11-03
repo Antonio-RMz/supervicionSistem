@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import com.team.gestorproyectos.fase.domain.model.FaseParaGestionar.BugReversion;
 import com.team.gestorproyectos.shared.domain.exception.AccesoDenegadoException;
 import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 import com.team.gestorproyectos.shared.domain.port.PermisosPort;
 
 class FaseParaGestionarTest {
@@ -41,8 +42,13 @@ class FaseParaGestionarTest {
 
     private static FaseParaGestionar fase(String estado, List<CriterioCierre> criterios, String otraActiva,
                                           BugReversion bug) {
+        return fase(estado, criterios, otraActiva, bug, FormaTrabajo.GITFLOW);
+    }
+
+    private static FaseParaGestionar fase(String estado, List<CriterioCierre> criterios, String otraActiva,
+                                          BugReversion bug, FormaTrabajo forma) {
         return new FaseParaGestionar(1004L, 1001L, 4, "Portal móvil", estado, false, JORGE, JORGE, "v1.3.0",
-                "v1.2.0", true, otraActiva, 3, 3, 0, criterios, bug, Set.of(JORGE, ANA, PEDRO));
+                "v1.2.0", true, otraActiva, 3, 3, 0, criterios, bug, Set.of(JORGE, ANA, PEDRO), forma);
     }
 
     private static DatosAccionFase datos(String estado) {
@@ -167,7 +173,7 @@ class FaseParaGestionarTest {
     @Test
     void sinHistoriasNoSeInicia() {
         var vacia = new FaseParaGestionar(1007L, 1001L, 6, "Pagos", "PLANEADA", false, JORGE, JORGE, "v1.5.0",
-                "v1.2.0", false, null, 0, 0, 0, List.of(), null, Set.of(JORGE));
+                "v1.2.0", false, null, 0, 0, 0, List.of(), null, Set.of(JORGE), FormaTrabajo.GITFLOW);
         assertThat(vacia.impedimentos(AccionFase.INICIAR)).containsExactly(
                 "Agrega al menos una historia de usuario antes de iniciarla");
         assertThatThrownBy(() -> vacia.ejecutar(LIDER, AccionFase.INICIAR, datos("PLANEADA"), HOY))
@@ -178,14 +184,14 @@ class FaseParaGestionarTest {
     @Test
     void conUnaHistoriaListaParaDesarrolloYaSeInicia() {
         var planeandose = new FaseParaGestionar(1007L, 1001L, 6, "Pagos", "PLANEADA", false, JORGE, JORGE, "v1.5.0",
-                "v1.2.0", false, null, 2, 0, 0, List.of(), null, Set.of(JORGE));
+                "v1.2.0", false, null, 2, 0, 0, List.of(), null, Set.of(JORGE), FormaTrabajo.GITFLOW);
         assertThat(planeandose.impedimentos(AccionFase.INICIAR))
                 .containsExactly("Al menos una historia debe estar Lista para desarrollo (con sus Actividades)");
         assertThatThrownBy(() -> planeandose.ejecutar(LIDER, AccionFase.INICIAR, datos("PLANEADA"), HOY))
                 .isInstanceOf(ReglaNegocioException.class);
 
         var unaLista = new FaseParaGestionar(1007L, 1001L, 6, "Pagos", "PLANEADA", false, JORGE, JORGE, "v1.5.0",
-                "v1.2.0", false, null, 5, 1, 0, List.of(), null, Set.of(JORGE));
+                "v1.2.0", false, null, 5, 1, 0, List.of(), null, Set.of(JORGE), FormaTrabajo.GITFLOW);
         assertThat(unaLista.impedimentos(AccionFase.INICIAR)).isEmpty();
     }
 
@@ -197,7 +203,7 @@ class FaseParaGestionarTest {
         assertThat(fase("LISTA_PARA_RELEASE").puedeEditar(LIDER)).isFalse();
         assertThat(fase("PUBLICADA").motivoSinEdicion()).contains("ya no se editan");
         var conTickets = new FaseParaGestionar(1004L, 1001L, 4, "Portal móvil", "EN_CURSO", false, JORGE, JORGE,
-                "v1.3.0", "v1.2.0", true, null, 3, 0, 12, List.of(), null, Set.of(JORGE));
+                "v1.3.0", "v1.2.0", true, null, 3, 0, 12, List.of(), null, Set.of(JORGE), FormaTrabajo.GITFLOW);
         assertThat(conTickets.puedeEditar(LIDER)).isFalse();
         assertThat(conTickets.motivoSinEdicion()).contains("ya tiene tickets");
     }
@@ -205,7 +211,7 @@ class FaseParaGestionarTest {
     @Test
     void mantenimientoNoCambiaDeEstado() {
         var mantenimiento = new FaseParaGestionar(1006L, 1001L, 0, "Mantenimiento", "EN_CURSO", true, JORGE, JORGE,
-                null, null, false, null, 0, 0, 0, List.of(), null, Set.of(JORGE));
+                null, null, false, null, 0, 0, 0, List.of(), null, Set.of(JORGE), FormaTrabajo.GITFLOW);
         assertThat(mantenimiento.acciones(LIDER)).isEmpty();
         assertThatThrownBy(() -> mantenimiento.ejecutar(LIDER, AccionFase.PAUSAR, datos("EN_CURSO"), HOY))
                 .hasMessageContaining("permanente");
@@ -278,7 +284,15 @@ class FaseParaGestionarTest {
     @Test
     void mantenimientoNoSeElimina() {
         var mantenimiento = new FaseParaGestionar(1008L, 1001L, 0, "Mantenimiento", "EN_CURSO", true, JORGE, JORGE,
-                null, null, false, null, 0, 0, 0, List.of(), null, Set.of(JORGE));
+                null, null, false, null, 0, 0, 0, List.of(), null, Set.of(JORGE), FormaTrabajo.GITFLOW);
         assertThat(mantenimiento.puedeEliminar(EL_ADMIN)).isFalse();
+    }
+
+    @Test
+    void enLaFormaNormalLaFaseTambienSubeAMain() {
+        var normal = fase("LISTA_PARA_RELEASE", List.of(CUMPLIDO), null, null, FormaTrabajo.NORMAL);
+        assertThat(normal.acciones(LIDER)).containsExactly(AccionFase.SUBIR_A_MAIN);
+        assertThat(normal.textoDe(AccionFase.SUBIR_A_MAIN)).isEqualTo("Subir a main");
+        assertThat(fase("LISTA_PARA_RELEASE").textoDe(AccionFase.SUBIR_A_MAIN)).isEqualTo("Subir a main");
     }
 }

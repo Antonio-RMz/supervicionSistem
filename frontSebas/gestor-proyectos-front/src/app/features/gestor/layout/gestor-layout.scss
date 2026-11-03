@@ -8,11 +8,16 @@
   .contador,
   .datos { display: none; }
 
+  .logo-icono { display: inline-flex; }
+
   .marca {
     flex-direction: column;
     gap: 0.6rem;
     padding-inline: 0;
   }
+
+  // En columna, el margin-left: auto la corría a la derecha del logo
+  .contraer { margin-left: 0; }
 
   nav a {
     justify-content: center;
@@ -73,16 +78,8 @@
   &:hover { background: var(--fondo); color: var(--tinta); }
 }
 
-.logo {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--morado);
-  color: var(--sobre-color);
-  font-size: 1.1rem;
-}
+// Con el menú abierto va el logo completo; contraído, solo los cuadros.
+.logo-icono { display: none; }
 
 nav {
   display: flex;
@@ -254,14 +251,6 @@ nav {
 
 .tema {
   margin-left: auto;
-}
-
-.campana {
-  border: 0;
-  background: none;
-  color: var(--texto-suave);
-  font-size: 1.3rem;
-  cursor: pointer;
 }
 
 .contenido {

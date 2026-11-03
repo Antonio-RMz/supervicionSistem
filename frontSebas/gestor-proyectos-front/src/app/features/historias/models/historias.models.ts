@@ -19,6 +19,14 @@ export interface PreparacionHistoria {
   analistas: { id: number; nombreCompleto: string; esAnalista: boolean }[];
   /** Quiénes usan el sistema que se construye: las opciones del "Como" (pestaña Usuarios del sistema). */
   usuariosDelSistema: { nombre: string; descripcion: string | null }[];
+  /** Los del equipo con rol Desarrollador: a quienes les llega la historia (sin Actividades como ticket). */
+  desarrolladores: { id: number; nombreCompleto: string }[];
+}
+
+/** Un Desarrollador de la historia; moduloId null = en todos sus repositorios. */
+export interface DesarrolladorAsignado {
+  usuarioId: number;
+  moduloId: number | null;
 }
 
 export interface NuevaHistoria {
@@ -35,6 +43,7 @@ export interface NuevaHistoria {
   prioridad: string;
   puntos: number | null;
   moduloIds: number[];
+  desarrolladores: DesarrolladorAsignado[];
 }
 
 /** Editar historia: cómo está guardada hoy. */

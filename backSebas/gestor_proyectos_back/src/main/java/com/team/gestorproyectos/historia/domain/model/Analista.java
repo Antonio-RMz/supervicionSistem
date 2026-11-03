@@ -9,6 +9,10 @@ public record Analista(Long id, String nombreCompleto, List<String> roles) {
         return roles.contains("ANALISTA");
     }
 
+    public boolean esDesarrollador() {
+        return roles.contains("DESARROLLADOR");
+    }
+
     public boolean puedeSerResponsable() {
         return esAnalista() || roles.contains("LIDER");
     }

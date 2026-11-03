@@ -1,5 +1,6 @@
 package com.team.gestorproyectos.ticket.application;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ import com.team.gestorproyectos.ticket.domain.port.out.TicketEscrituraPort;
 import com.team.gestorproyectos.ticket.domain.port.out.TicketEscrituraPort.ProyectoDeTicket;
 import com.team.gestorproyectos.ticket.domain.port.out.TicketMantenimientoPort;
 import com.team.gestorproyectos.ticket.domain.port.out.TicketParchePort;
+import com.team.gestorproyectos.shared.domain.port.AvisosPort;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +34,7 @@ public class CrearEnMantenimientoService implements CrearEnMantenimientoUseCase 
     private final TicketMantenimientoPort mantenimiento;
     private final TicketParchePort parches;
     private final PermisosPort permisos;
+    private final AvisosPort avisos;
 
     @Override
     @Transaccional(soloLectura = true)
@@ -58,13 +61,17 @@ public class CrearEnMantenimientoService implements CrearEnMantenimientoUseCase 
                 .noneMatch(p -> p.id().equals(nuevo.responsableId()) && p.esDesarrollador())) {
             throw new ReglaNegocioException("Asígnalo a un Desarrollador del equipo del proyecto");
         }
-        return mantenimiento.crear(proyectoId, faseId, siguienteNumero(proyectoId, nuevo.tipo()), nuevo, usuarioId);
+        Long ticketId = mantenimiento.crear(proyectoId, faseId, siguienteNumero(proyectoId, nuevo.tipo()), nuevo, usuarioId);
+        if (nuevo.responsableId() != null) {
+            avisos.avisar(AvisosPort.Tipo.ASIGNACION, ticketId, usuarioId, List.of(nuevo.responsableId()));
+        }
+        return ticketId;
     }
 
     @Override
     @Transaccional
     public Long reportarFalla(Long proyectoId, Long usuarioId, boolean esAdmin, ReporteFalla reporte) {
-        proyecto(proyectoId, usuarioId, esAdmin);
+        ProyectoDeTicket proyecto = proyecto(proyectoId, usuarioId, esAdmin);
         if (!permisos.puede(usuarioId, PermisosPort.REPORTAR_BUGS)) {
             throw new AccesoDenegadoException("No tienes permiso para reportar fallas");
         }
@@ -75,8 +82,11 @@ public class CrearEnMantenimientoService implements CrearEnMantenimientoUseCase 
             throw new ReglaNegocioException("La historia de la que viene debe ser de este proyecto");
         }
         // Se guarda con qué versión en producción se vio la falla, para saber qué parche la corrige.
-        return mantenimiento.reportar(proyectoId, faseId, siguienteNumero(proyectoId, TipoTicket.BUGS), reporte,
+        Long bugId = mantenimiento.reportar(proyectoId, faseId, siguienteNumero(proyectoId, TipoTicket.BUGS), reporte,
                 parches.versionEnProduccion(proyectoId).orElse(null), usuarioId);
+        // Al Líder: él confirma la severidad y decide si va por hotfix.
+        avisos.avisar(AvisosPort.Tipo.BUG_REPORTADO, bugId, usuarioId, List.of(proyecto.liderId()));
+        return bugId;
     }
 
     private ProyectoDeTicket proyecto(Long proyectoId, Long usuarioId, boolean esAdmin) {

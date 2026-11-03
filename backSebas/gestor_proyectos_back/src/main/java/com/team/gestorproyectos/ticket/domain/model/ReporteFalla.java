@@ -10,6 +10,7 @@ import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
  * en Mantenimiento y el Líder confirma la severidad.
  *
  * @param severidad        provisional: CRITICA o ALTA va por hotfix desde main, MEDIA o BAJA con la siguiente fase
+ * @param descripcion      qué pasó y cómo reproducirlo; opcional, porque puede reportarse solo con una imagen
  * @param historiaOrigenId "Viene de", opcional
  */
 public record ReporteFalla(String titulo, Long moduloId, String severidad, String descripcion, Long historiaOrigenId) {
@@ -29,10 +30,8 @@ public record ReporteFalla(String titulo, Long moduloId, String severidad, Strin
         if (severidad == null || !SEVERIDADES.contains(severidad)) {
             throw new ReglaNegocioException("Elige la severidad: Crítica, Alta, Media o Baja");
         }
-        descripcion = descripcion == null ? "" : descripcion.trim();
-        if (descripcion.isEmpty()) {
-            throw new ReglaNegocioException("Cuenta qué pasó y cómo reproducirlo");
-        }
+        // Opcional: el reporte puede llevar solo la imagen (que se sube después de crear el bug).
+        descripcion = descripcion == null || descripcion.isBlank() ? null : descripcion.trim();
     }
 
     /** Igual que TicketParaMover.esHotfix: Crítica o Alta sale de main y se publica en un parche. */

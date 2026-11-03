@@ -1,3 +1,5 @@
+import { FormaTrabajo } from '../../../shared/utils/flujos';
+
 // JSON tal como lo manda el back en /equipo/proyectos/{id}/fases/{faseId} (GestionFaseDtos).
 
 export interface DetalleFaseDto {
@@ -24,6 +26,7 @@ export interface InfoFaseDto {
   proyectoId: number;
   proyectoNombre: string;
   proyectoCodigo: string;
+  formaTrabajo: FormaTrabajo;
   clienteNombre: string;
   numero: number;
   nombre: string;

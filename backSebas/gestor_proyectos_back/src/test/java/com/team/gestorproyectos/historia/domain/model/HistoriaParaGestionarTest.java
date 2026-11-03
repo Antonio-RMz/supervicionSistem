@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Test;
 import com.team.gestorproyectos.historia.domain.model.HistoriaParaGestionar.FaseDestino;
 import com.team.gestorproyectos.shared.domain.exception.AccesoDenegadoException;
 import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
-import com.team.gestorproyectos.shared.domain.model.AvanceHistoria;
 import com.team.gestorproyectos.shared.domain.model.AvanceHistoria.TicketEstado;
+import com.team.gestorproyectos.shared.domain.model.AvanceHistoria;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 import com.team.gestorproyectos.shared.domain.port.PermisosPort;
 
 class HistoriaParaGestionarTest {
@@ -37,8 +38,26 @@ class HistoriaParaGestionarTest {
 
     private static HistoriaParaGestionar historia(String estado, String faseEstado, boolean completa,
                                                   List<TicketDeHistoria> tickets) {
+        return historia(estado, faseEstado, completa, tickets, FormaTrabajo.GITFLOW);
+    }
+
+    private static HistoriaParaGestionar historia(String estado, String faseEstado, boolean completa,
+                                                  List<TicketDeHistoria> tickets, FormaTrabajo forma) {
         return new HistoriaParaGestionar(1016L, 1001L, 16, "Consultar mis pedidos", estado, ANA, JORGE, 1004L,
-                faseEstado, completa, completa ? 4 : 0, 2, tickets, List.of(new FaseDestino(1005L, "Fase 5 · Pagos")));
+                faseEstado, completa, completa ? 4 : 0, 2, tickets, List.of(new FaseDestino(1005L, "Fase 5 · Pagos")),
+                forma, false, List.of(), 0);
+    }
+
+    /** Historia nueva: le llega directo a PEDRO y a MARCO (sin Actividades). */
+    private static final Long MARCO = 4L;
+
+    private static HistoriaParaGestionar conDesarrolladores(String estado, String faseEstado, boolean pedroTermino,
+                                                           boolean requierePr, int trabajoPendiente) {
+        return new HistoriaParaGestionar(1016L, 1001L, 16, "Consultar mis pedidos", estado, ANA, JORGE, 1004L,
+                faseEstado, true, 4, 2, List.of(), List.of(), FormaTrabajo.NORMAL, requierePr,
+                List.of(new DesarrolladorDeHistoria(PEDRO, "Pedro", null, null, pedroTermino),
+                        new DesarrolladorDeHistoria(MARCO, "Marco", null, null, true)),
+                trabajoPendiente);
     }
 
     private static DatosAccionHistoria datos(String estado) {
@@ -89,9 +108,14 @@ class HistoriaParaGestionarTest {
         HistoriaParaGestionar incompleta = historia("EN_PLANEACION", "EN_CURSO", false, List.of());
         assertThat(incompleta.impedimentos(AccionHistoria.MARCAR_LISTA))
                 .contains("Falta completar Como / Quiero / Para", "Falta al menos un criterio de aceptación");
-        // Lista ya no pide Actividades: esas las crea el Líder después.
-        assertThat(historia("EN_PLANEACION", List.of()).ejecutar(ANALISTA, AccionHistoria.MARCAR_LISTA,
-                datos("EN_PLANEACION")).estadoNuevo()).isEqualTo("LISTA");
+        // Sin Desarrolladores (y sin Actividades de antes) no se puede marcar Lista.
+        assertThat(historia("EN_PLANEACION", List.of()).impedimentos(AccionHistoria.MARCAR_LISTA))
+                .containsExactly("Falta asignar al menos un Desarrollador");
+        // Con sus Desarrolladores, queda Lista para desarrollo: ellos la inician.
+        CambioHistoria lista = conDesarrolladores("EN_PLANEACION", "EN_CURSO", false, false, 0)
+                .ejecutar(ANALISTA, AccionHistoria.MARCAR_LISTA, datos("EN_PLANEACION"));
+        assertThat(lista.estadoNuevo()).isEqualTo("LISTA");
+        assertThat(lista.estadoFinal()).isEqualTo("LISTA_DESARROLLO");
     }
 
     @Test
@@ -149,6 +173,23 @@ class HistoriaParaGestionarTest {
         assertThatThrownBy(() -> lista.ejecutar(LIDER, AccionHistoria.MOVER_DE_FASE,
                 new DatosAccionHistoria("LISTA", null, null, false, 1010L)))
                 .hasMessageContaining("Elige una fase");
+    }
+
+    @Test
+    void deUnaFaseTerminadaOEnReleaseNoSeSacanHistorias() {
+        for (String faseEstado : List.of("LISTA_PARA_RELEASE", "EN_PUBLICACION", "PUBLICADA", "CANCELADA")) {
+            HistoriaParaGestionar enValidacion = historia("EN_VALIDACION", faseEstado, true, List.of());
+            assertThat(enValidacion.impedimentos(AccionHistoria.MOVER_DE_FASE)).containsExactly(
+                    "Su fase ya terminó o está en release: sus historias ya no se mueven");
+            assertThatThrownBy(() -> enValidacion.ejecutar(LIDER, AccionHistoria.MOVER_DE_FASE,
+                    new DatosAccionHistoria("EN_VALIDACION", null, null, false, 1005L)))
+                    .hasMessageContaining("ya no se mueven");
+        }
+        // Planeada, en curso o pausada: se mueve cuando sea.
+        for (String faseEstado : List.of("PLANEADA", "EN_CURSO", "PAUSADA")) {
+            assertThat(historia("BORRADOR", faseEstado, true, List.of()).impedimentos(AccionHistoria.MOVER_DE_FASE))
+                    .isEmpty();
+        }
     }
 
     @Test
@@ -232,29 +273,95 @@ class HistoriaParaGestionarTest {
     }
 
     @Test
-    void alMarcarlaListaConUnaActividadListaPasaSolaComoCuandoSeMarcaLaActividad() {
-        // Estaba Lista para desarrollo, se regresó a planeación y se vuelve a marcar Lista.
-        List<TicketDeHistoria> conActividadLista = List.of(ticket(41, "ACTV", "POR_HACER"));
-
-        CambioHistoria faseSinIniciar = historia("EN_PLANEACION", "PLANEADA", true, conActividadLista)
-                .ejecutar(ANALISTA, AccionHistoria.MARCAR_LISTA, datos("EN_PLANEACION"));
-        assertThat(faseSinIniciar.estadoNuevo()).isEqualTo("LISTA");
-        assertThat(faseSinIniciar.avanzaSolaA()).isEqualTo("LISTA_DESARROLLO");
-        assertThat(faseSinIniciar.estadoFinal()).isEqualTo("LISTA_DESARROLLO");
-
-        assertThat(historia("EN_PLANEACION", "EN_CURSO", true, conActividadLista)
-                .ejecutar(ANALISTA, AccionHistoria.MARCAR_LISTA, datos("EN_PLANEACION")).estadoFinal())
-                .isEqualTo("EN_DESARROLLO");
+    void enLaFormaNormalAceptarLaDejaIntegrada() {
+        var enValidacion = historia("EN_VALIDACION", "EN_CURSO", true, List.of(ticket(41, "ACTV", "APROBADA")),
+                FormaTrabajo.NORMAL);
+        CambioHistoria cambio = enValidacion.ejecutar(ANALISTA, AccionHistoria.ACEPTAR, datos("EN_VALIDACION"));
+        assertThat(cambio.estadoNuevo()).isEqualTo("ACEPTADA");
+        assertThat(cambio.estadoFinal()).isEqualTo("INTEGRADA");
     }
 
     @Test
-    void sinActividadListaSeQuedaEnLista() {
-        for (List<TicketDeHistoria> tickets : List.of(List.<TicketDeHistoria>of(),
-                List.of(ticket(41, "ACTV", "BORRADOR")), List.of(ticket(42, "ACTV", "CANCELADA")))) {
-            CambioHistoria cambio = historia("EN_PLANEACION", "PLANEADA", true, tickets)
-                    .ejecutar(ANALISTA, AccionHistoria.MARCAR_LISTA, datos("EN_PLANEACION"));
-            assertThat(cambio.avanzaSolaA()).isNull();
-            assertThat(cambio.estadoFinal()).isEqualTo("LISTA");
-        }
+    void enLaFormaNormalNoSeIntegraADevelop() {
+        var aceptada = historia("ACEPTADA", "EN_CURSO", true, List.of(), FormaTrabajo.NORMAL);
+        assertThat(aceptada.acciones(LIDER)).doesNotContain(AccionHistoria.INTEGRAR);
+        assertThatThrownBy(() -> aceptada.ejecutar(LIDER, AccionHistoria.INTEGRAR, datos("ACEPTADA")))
+                .isInstanceOf(ReglaNegocioException.class);
+        // En Gitflow sigue igual: el Líder integra.
+        assertThat(historia("ACEPTADA", List.of()).acciones(LIDER)).contains(AccionHistoria.INTEGRAR);
+        assertThat(historia("EN_VALIDACION", List.of(ticket(41, "ACTV", "APROBADA")))
+                .ejecutar(ANALISTA, AccionHistoria.ACEPTAR, datos("EN_VALIDACION")).estadoFinal()).isEqualTo("ACEPTADA");
+    }
+
+    // ─── Historia con Desarrolladores (sin Actividades) ───
+
+    @Test
+    void susDesarrolladoresLaInicianCuandoSuFaseCorre() {
+        var lista = conDesarrolladores("LISTA_DESARROLLO", "EN_CURSO", false, false, 0);
+        assertThat(lista.actor()).isEqualTo("Desarrollador");
+        assertThat(lista.acciones(DESARROLLADOR)).contains(AccionHistoria.INICIAR_DESARROLLO);
+        assertThat(lista.acciones(ANALISTA)).doesNotContain(AccionHistoria.INICIAR_DESARROLLO);
+        assertThat(lista.ejecutar(DESARROLLADOR, AccionHistoria.INICIAR_DESARROLLO, datos("LISTA_DESARROLLO"))
+                .estadoNuevo()).isEqualTo("EN_DESARROLLO");
+        // Con la fase sin iniciar, espera.
+        assertThat(conDesarrolladores("LISTA_DESARROLLO", "PLANEADA", false, false, 0)
+                .impedimentos(AccionHistoria.INICIAR_DESARROLLO)).containsExactly("Su fase aún no está en curso");
+    }
+
+    @Test
+    void terminarPideQueTodosTerminenSuParteYLoQueHiceMarcado() {
+        var falta = conDesarrolladores("EN_DESARROLLO", "EN_CURSO", false, false, 2);
+        assertThat(falta.impedimentos(AccionHistoria.TERMINAR_DESARROLLO)).containsExactly(
+                "Falta que Pedro marque su parte como terminada", "Hay 2 puntos de \"Lo que hice\" sin marcar");
+        assertThatThrownBy(() -> falta.ejecutar(DESARROLLADOR, AccionHistoria.TERMINAR_DESARROLLO,
+                datos("EN_DESARROLLO"))).isInstanceOf(ReglaNegocioException.class);
+
+        // Normal sin PR: directo a validación con su Analista.
+        assertThat(conDesarrolladores("EN_DESARROLLO", "EN_CURSO", true, false, 0)
+                .ejecutar(DESARROLLADOR, AccionHistoria.TERMINAR_DESARROLLO, datos("EN_DESARROLLO")).estadoNuevo())
+                .isEqualTo("EN_VALIDACION");
+        // Con PR: primero la revisa el Líder.
+        assertThat(conDesarrolladores("EN_DESARROLLO", "EN_CURSO", true, true, 0)
+                .ejecutar(DESARROLLADOR, AccionHistoria.TERMINAR_DESARROLLO, datos("EN_DESARROLLO")).estadoNuevo())
+                .isEqualTo("EN_REVISION");
+    }
+
+    @Test
+    void elLiderApruebaLaRevisionOPideCambios() {
+        var enRevision = conDesarrolladores("EN_REVISION", "EN_CURSO", true, true, 0);
+        assertThat(enRevision.actor()).isEqualTo("Líder");
+        assertThat(enRevision.acciones(LIDER)).contains(AccionHistoria.APROBAR_REVISION, AccionHistoria.PEDIR_CAMBIOS);
+        assertThat(enRevision.acciones(DESARROLLADOR)).isEmpty();
+        assertThat(enRevision.ejecutar(LIDER, AccionHistoria.APROBAR_REVISION, datos("EN_REVISION")).estadoNuevo())
+                .isEqualTo("EN_VALIDACION");
+        assertThatThrownBy(() -> enRevision.ejecutar(LIDER, AccionHistoria.PEDIR_CAMBIOS, datos("EN_REVISION")))
+                .hasMessage("Escribe el motivo");
+    }
+
+    @Test
+    void devolverlaNoPideTicketNiBug() {
+        var enValidacion = conDesarrolladores("EN_VALIDACION", "EN_CURSO", true, false, 0);
+        CambioHistoria cambio = enValidacion.ejecutar(ANALISTA, AccionHistoria.DEVOLVER,
+                new DatosAccionHistoria("EN_VALIDACION", "El login no valida el CCT", null, false, null));
+        assertThat(cambio.estadoNuevo()).isEqualTo("EN_DESARROLLO");
+        assertThat(cambio.ticketAReabrir()).isNull();
+        assertThat(cambio.bug()).isNull();
+    }
+
+    @Test
+    void lasAccionesDeDesarrolladoresNoExistenEnHistoriasConActividades() {
+        var conActividades = historia("EN_DESARROLLO", List.of(ticket(41, "ACTV", "EN_PROGRESO")));
+        assertThat(conActividades.acciones(DESARROLLADOR)).isEmpty();
+        assertThat(conActividades.trabajoDirecto()).isFalse();
+    }
+
+    @Test
+    void soloSusDesarrolladoresMarcanSuParte() {
+        var enDesarrollo = conDesarrolladores("EN_DESARROLLO", "EN_CURSO", false, false, 0);
+        enDesarrollo.verificarMiParte(DESARROLLADOR);
+        assertThatThrownBy(() -> enDesarrollo.verificarMiParte(ANALISTA)).isInstanceOf(AccesoDenegadoException.class);
+        assertThat(enDesarrollo.puedeMarcarTrabajo(DESARROLLADOR)).isTrue();
+        assertThat(enDesarrollo.puedeMarcarTrabajo(ANALISTA)).isFalse();
+        assertThat(enDesarrollo.puedeAnotarTrabajo(ANALISTA)).isTrue();
     }
 }

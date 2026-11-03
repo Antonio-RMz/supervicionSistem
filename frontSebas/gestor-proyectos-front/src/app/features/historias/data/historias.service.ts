@@ -85,6 +85,7 @@ function aEdicion(dto: EdicionDto): EdicionHistoria {
         prioridad: h.prioridad,
         puntos: h.puntos,
         moduloIds: h.moduloIds,
+        desarrolladores: h.desarrolladores ?? [],
       },
     },
   };
@@ -107,6 +108,7 @@ function aPreparacion(dto: PreparacionDto): PreparacionHistoria {
       esAnalista: a.roles.includes('ANALISTA'),
     })),
     usuariosDelSistema: dto.usuariosDelSistema,
+    desarrolladores: (dto.desarrolladores ?? []).map((d) => ({ id: d.id, nombreCompleto: d.nombreCompleto })),
   };
 }
 
@@ -126,5 +128,10 @@ function aDto(nueva: NuevaHistoria): NuevaHistoriaDto {
     prioridad: nueva.prioridad,
     puntos: nueva.puntos,
     moduloIds: nueva.moduloIds,
+    // Un repositorio que ya no es de la historia se toma como "todos".
+    desarrolladores: nueva.desarrolladores.map((d) => ({
+      usuarioId: d.usuarioId,
+      moduloId: d.moduloId !== null && nueva.moduloIds.includes(d.moduloId) ? d.moduloId : null,
+    })),
   };
 }

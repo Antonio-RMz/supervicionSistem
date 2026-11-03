@@ -40,7 +40,8 @@ public class TicketMantenimientoAdapter implements TicketMantenimientoPort {
     public List<TicketDeMantenimiento> tickets(Long faseId) {
         return repository.tickets(faseId).stream()
                 .map(t -> new TicketDeMantenimiento(t.getId(), t.getTipo(), t.getNumero(), t.getTitulo(), t.getEstado(),
-                        t.getSeveridad(), t.getRama(), t.getResponsableId(), t.getResponsableNombre()))
+                        t.getSeveridad(), t.getRama(), t.getResponsableId(), t.getResponsableNombre(),
+                        t.getDescripcion(), t.getImagenId(), t.getImagenes() == null ? 0 : t.getImagenes().intValue()))
                 .toList();
     }
 

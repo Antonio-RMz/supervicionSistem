@@ -16,11 +16,19 @@ const TRABAJANDO = ['EN_PROGRESO', 'EN_CORRECCION', 'BLOQUEADA'];
 
 /**
  * Los dos comandos de git del Desarrollador: crear su rama y crear el PR, con el paso en que va.
+ * En un proyecto Normal sin PR no hay comandos: solo el aviso de subir los cambios a develop.
  * La app solo guarda el nombre de la rama: los comandos se corren en la copia del repositorio.
  */
 @Component({
   selector: 'app-comandos-git',
   template: `
+    @if (sinComandos()) {
+      <!-- Forma Normal sin PR: nada de git en pantalla, solo dónde van los cambios -->
+      <p class="mensaje">
+        <i class="bi bi-cloud-arrow-up"></i>
+        <span>Sube tus cambios directo a <strong>{{ base() }}</strong>. Cuando termines, presiona <strong>Terminar</strong> en Acciones.</span>
+      </p>
+    } @else {
     <ol class="pasos">
       @for (p of pasos(); track p.titulo; let i = $index) {
         <li [class.hecho]="i < actual()" [class.actual]="i === actual()">
@@ -44,6 +52,7 @@ const TRABAJANDO = ['EN_PROGRESO', 'EN_CORRECCION', 'BLOQUEADA'];
         </li>
       }
     </ol>
+    }
   `,
   styles: `
     .pasos {
@@ -100,6 +109,18 @@ const TRABAJANDO = ['EN_PROGRESO', 'EN_CORRECCION', 'BLOQUEADA'];
     }
     button { border: 0; background: none; color: inherit; cursor: pointer; }
     small { color: var(--texto-suave); font-size: 0.82rem; }
+    .mensaje {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      margin: 0.9rem 0 0;
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      background: var(--morado-suave);
+      color: var(--texto);
+      i { color: var(--morado); font-size: 1.1rem; }
+      strong { color: var(--tinta); }
+    }
   `,
 })
 export class ComandosGit {
@@ -108,19 +129,28 @@ export class ComandosGit {
   protected readonly tonoRol = TONO_ROL;
   protected readonly copiado = signal<number | null>(null);
 
+  /** Forma Normal sin PR: la Actividad se sube directo a develop y no se muestran comandos. */
+  protected readonly sinComandos = computed(() => this.ticket().tipo === 'ACTV' && !this.ticket().requierePr);
+
+  /** El hotfix sale de main y regresa a main; lo demás, de la rama base del repositorio. */
+  protected readonly base = computed(() => {
+    const t = this.ticket();
+    return t.hotfix ? 'main' : (t.modulo?.ramaBase ?? 'develop');
+  });
+
   protected readonly pasos = computed<PasoGit[]>(() => {
     const t = this.ticket();
     const rama = t.rama ?? ramaSugerida(t.tipo, t.numero, t.titulo, t.hotfix);
-    // El hotfix sale de main y regresa a main; lo demás, de la rama base del repositorio.
-    const base = t.hotfix ? 'main' : (t.modulo?.ramaBase ?? 'develop');
+    const base = this.base();
     const titulo = `${t.codigo}: ${t.titulo}`.replace(/"/g, "'");
+    const crearRama: PasoGit = {
+      titulo: 'Crear tu rama',
+      rol: 'Desarrollador',
+      nota: '',
+      comandos: [`git checkout ${base}`, `git pull origin ${base}`, `git checkout -b ${rama}`, `git push -u origin ${rama}`].join('\n'),
+    };
     return [
-      {
-        titulo: 'Crear tu rama',
-        rol: 'Desarrollador',
-        nota: '',
-        comandos: [`git checkout ${base}`, `git pull origin ${base}`, `git checkout -b ${rama}`, `git push -u origin ${rama}`].join('\n'),
-      },
+      crearRama,
       {
         titulo: 'Crear el PR',
         rol: 'Desarrollador',

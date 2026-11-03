@@ -60,7 +60,8 @@ public class TicketEscrituraAdapter implements TicketEscrituraPort {
                 .collect(Collectors.groupingBy(HistoriaFila::getFaseId, Collectors.mapping(
                         h -> new HistoriaDeTicket(h.getId(), h.getNumero(), h.getTitulo(), h.getEstado(), h.getComo(),
                                 h.getQuiero(), h.getPara(), h.getAnalistaNombre(), ids(h.getModulos()), h.getTickets(),
-                                criterios.getOrDefault(h.getId(), List.of())),
+                                criterios.getOrDefault(h.getId(), List.of()),
+                                h.getDesarrolladores() != null && h.getDesarrolladores() > 0),
                         Collectors.toList())));
         return repository.fases(proyectoId).stream()
                 .map(f -> new FaseDeTicket(f.getId(), f.getNumero(), f.getNombre(),

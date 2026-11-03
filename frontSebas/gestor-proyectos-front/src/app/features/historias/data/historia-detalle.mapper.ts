@@ -6,9 +6,10 @@ import {
   AccionDeListaHistoria,
   AccionHistoria,
   DatosAccionHistoria,
+  DesarrolloHistoria,
   DetalleHistoria,
 } from '../models/historia-detalle.models';
-import { AccionDeListaHistoriaDto, AccionHistoriaRequestDto, DetalleHistoriaDto } from './historia-detalle.dto';
+import { AccionDeListaHistoriaDto, AccionHistoriaRequestDto, DesarrolloDto, DetalleHistoriaDto } from './historia-detalle.dto';
 
 const TERMINADOS = ['APROBADA', 'APROBADO', 'APROBADA_QA', 'HECHA', 'INTEGRADA', 'INTEGRADO', 'PUBLICADA',
   'PUBLICADO', 'CERRADA', 'CERRADO', 'REVISADA'];
@@ -25,7 +26,10 @@ export function aDetalle(dto: DetalleHistoriaDto, hoy = new Date()): DetalleHist
     id: i.id,
     proyectoId: i.proyectoId,
     proyectoNombre: i.proyectoNombre,
+    formaTrabajo: i.formaTrabajo,
     faseId: i.faseId,
+    faseNumero: i.faseNumero,
+    faseNombre: i.faseNombre,
     faseTitulo: `Fase ${i.faseNumero} · ${i.faseNombre}`,
     faseEtiqueta: etiquetaFase(i.faseEstado),
     faseFechas: i.faseInicio || i.faseFin
@@ -89,6 +93,31 @@ export function aDetalle(dto: DetalleHistoriaDto, hoy = new Date()): DetalleHist
     ticketsReabribles: dto.ticketsReabribles,
     fasesDestino: dto.fasesDestino,
     puedeEliminar: dto.puedeEliminar,
+    desarrollo: dto.desarrollo ? aDesarrollo(dto.desarrollo) : null,
+  };
+}
+
+function aDesarrollo(d: DesarrolloDto): DesarrolloHistoria {
+  return {
+    desarrolladores: d.desarrolladores.map((x) => ({
+      usuarioId: x.usuarioId,
+      nombre: x.nombre,
+      iniciales: iniciales(x.nombre),
+      repositorio: x.moduloNombre,
+      terminado: x.terminado,
+    })),
+    trabajo: d.trabajo.map((t) => ({
+      id: t.id,
+      descripcion: t.descripcion,
+      repositorio: t.moduloNombre,
+      hecho: t.hecho,
+      detalle: `${t.creadoPor.split(' ')[0]} · ${diaYMes(aFecha(t.creadoEn.slice(0, 10)))}`,
+    })),
+    repositorios: d.repositorios.map((r) => ({ ...r, enlace: r.url ? r.url.replace(/\.git$/, '') : null })),
+    miParteTerminada: d.miParteTerminada,
+    puedeAnotar: d.puedeAnotar,
+    puedeMarcar: d.puedeMarcar,
+    requierePr: d.requierePr,
   };
 }
 

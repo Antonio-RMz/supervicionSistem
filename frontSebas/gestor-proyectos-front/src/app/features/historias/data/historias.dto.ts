@@ -19,6 +19,7 @@ export interface PreparacionDto {
   }[];
   analistas: { id: number; nombreCompleto: string; roles: string[] }[];
   usuariosDelSistema: { nombre: string; descripcion: string | null }[];
+  desarrolladores: { id: number; nombreCompleto: string; roles: string[] }[];
 }
 
 export interface NuevaHistoriaDto {
@@ -35,6 +36,7 @@ export interface NuevaHistoriaDto {
   prioridad: string;
   puntos: number | null;
   moduloIds: number[];
+  desarrolladores: { usuarioId: number; moduloId: number | null }[];
 }
 
 export interface EdicionDto {
@@ -55,6 +57,7 @@ export interface EdicionDto {
     prioridad: string;
     puntos: number | null;
     moduloIds: number[];
+    desarrolladores: { usuarioId: number; moduloId: number | null }[];
   };
 }
 

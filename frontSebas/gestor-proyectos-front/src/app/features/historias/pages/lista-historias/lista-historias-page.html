@@ -41,8 +41,51 @@
       <button type="button" class="limpiar" (click)="limpiar()"><i class="bi bi-x-lg"></i> Limpiar</button>
     }
     <span class="cuenta">{{ filtradas().length }} de {{ l.historias.length }}</span>
+    <div class="vistas" role="group" aria-label="Vista">
+      <button type="button" [class.activa]="vista() === 'tarjetas'" [attr.aria-pressed]="vista() === 'tarjetas'"
+              (click)="cambiarVista('tarjetas')" title="Tarjetas">
+        <i class="bi bi-grid-3x2-gap"></i><span class="solo-lectores">Tarjetas</span>
+      </button>
+      <button type="button" [class.activa]="vista() === 'tabla'" [attr.aria-pressed]="vista() === 'tabla'"
+              (click)="cambiarVista('tabla')" title="Tabla">
+        <i class="bi bi-list-ul"></i><span class="solo-lectores">Tabla</span>
+      </button>
+    </div>
   </div>
 
+  @if (vista() === 'tarjetas') {
+  <!-- ─── Tarjetas: clic abre la historia ─── -->
+  <ul class="tarjetas-historias">
+    @for (h of filtradas(); track h.id) {
+      <li>
+        <a class="tarjeta tarjeta-historia" [routerLink]="['/proyectos', l.proyectoId, 'historias', h.id]">
+          <span class="tarjeta-arriba">
+            <app-tipo-ticket tipo="HIST" />
+            <span class="codigo">{{ h.codigo }}</span>
+            <app-etiqueta-estado class="derecha" [etiqueta]="h.etiqueta" />
+          </span>
+          <strong class="tarjeta-titulo">{{ h.titulo }}</strong>
+          <small class="suave"><i class="bi bi-flag"></i> {{ h.fase }}</small>
+          <small class="suave">
+            Prioridad {{ h.prioridad.texto.toLowerCase() }}{{ h.puntos ? ' · ' + h.puntos + ' puntos' : '' }}
+          </small>
+          <span class="avance">
+            <span>{{ h.ticketsTerminados }} de {{ h.ticketsTotal }} tickets</span>
+            <app-barra-avance [valor]="h.avance" />
+          </span>
+          <span class="tarjeta-abajo">
+            <span><i class="bi bi-person"></i> {{ h.analista }}</span>
+            <span>{{ h.actualizada }}</span>
+          </span>
+        </a>
+      </li>
+    } @empty {
+      <li class="tarjeta vacio">
+        {{ l.historias.length ? 'Ninguna historia coincide con los filtros.' : 'El proyecto aún no tiene historias.' }}
+      </li>
+    }
+  </ul>
+  } @else {
   <div class="tarjeta tabla">
     <table>
       <thead>
@@ -92,4 +135,5 @@
       </tbody>
     </table>
   </div>
+  }
 }

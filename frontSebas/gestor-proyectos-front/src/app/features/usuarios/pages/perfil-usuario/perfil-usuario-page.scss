@@ -55,6 +55,59 @@ h2 { font-size: 1.15rem; }
 
 .punto { color: var(--borde-fuerte); }
 
+// ─── Usuario de git ──────────────────────────────────────────────────────────
+.git {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  color: var(--texto-suave);
+}
+
+.git-usuario {
+  color: var(--tinta);
+  font-family: var(--fuente-mono);
+  font-size: 0.9rem;
+}
+
+.git-vacio { font-style: italic; }
+
+.git-entrada {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--blanco);
+  color: var(--tinta);
+  font-family: var(--fuente-mono);
+  font-size: 0.9rem;
+  outline: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  // Igual que los demás campos de la app (styles/_formulario.scss)
+  &:focus {
+    border-color: var(--morado);
+    box-shadow: 0 0 0 3px var(--morado-suave);
+  }
+}
+
+.git-editar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--morado);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+}
+
+.mensaje-campo { color: var(--rojo-texto, var(--rojo)); }
+
 .acciones {
   display: flex;
   flex-wrap: wrap;

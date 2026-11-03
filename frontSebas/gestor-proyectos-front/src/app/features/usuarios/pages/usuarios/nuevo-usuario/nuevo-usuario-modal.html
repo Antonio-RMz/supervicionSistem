@@ -28,6 +28,17 @@
       }
     </label>
 
+    <label class="campo">
+      <span>Usuario de git <small class="pista">· opcional</small></span>
+      <input formControlName="usuarioGit" placeholder="jorge-sebastian" autocomplete="off" spellcheck="false"
+             [class.con-error]="invalido('usuarioGit')" />
+      @if (invalido('usuarioGit')) {
+        <small class="mensaje-campo">Sin espacios y de máximo 100 caracteres.</small>
+      } @else {
+        <small class="pista">Su usuario en GitHub, GitLab o Bitbucket. Se puede agregar después desde su perfil.</small>
+      }
+    </label>
+
     <div class="fila">
       <label class="campo">
         <span>Contraseña temporal <b>*</b></span>

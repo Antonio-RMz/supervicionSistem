@@ -201,6 +201,44 @@
         </div>
       </section>
 
+      <!-- ─── Forma de trabajo ─── -->
+      <section class="tarjeta seccion formulario" formGroupName="reglas">
+        <div>
+          <h2>Forma de trabajo</h2>
+          <p class="ayuda">
+            @if (editando()) {
+              Se eligió al crear el proyecto y ya no se puede cambiar.
+            } @else {
+              Elígela con cuidado: una vez creado el proyecto ya no se puede cambiar.
+            }
+          </p>
+        </div>
+        <div class="formas" role="radiogroup" aria-label="Forma de trabajo">
+          <label class="forma">
+            <input type="radio" formControlName="formaTrabajo" value="GITFLOW" />
+            <span>
+              <strong>Gitflow</strong>
+              <small>Ramas <code>develop</code> y <code>main</code>. El Líder integra cada historia aceptada a develop y la fase sube a main al publicarse. Para releases con fecha y main siempre estable.</small>
+            </span>
+          </label>
+          <label class="forma">
+            <input type="radio" formControlName="formaTrabajo" value="NORMAL" />
+            <span>
+              <strong>Normal</strong>
+              <small>También <code>develop</code> y <code>main</code>, pero más simple: todo sube directo a develop, el Analista valida la historia y al aceptarla queda integrada, sin que el Líder la integre. La fase sube a main al terminar. Para equipos chicos o proyectos internos.</small>
+            </span>
+          </label>
+        </div>
+        @if (normal()) {
+          <label class="interruptor">
+            <input type="checkbox" formControlName="requierePr" />
+            <span class="riel" aria-hidden="true"></span>
+            <span><strong>La Actividad requiere PR</strong><small>Con PR, el Líder lo revisa y al aprobarlo se mezcla a develop. Sin PR, el Desarrollador presiona Terminar y su validación es la de la historia.</small></span>
+          </label>
+          <p class="nota-forma"><i class="bi bi-exclamation-triangle"></i> En develop conviven historias a medias: la fase solo sube a main cuando todas estén aceptadas.</p>
+        }
+      </section>
+
       <!-- ─── Reglas del flujo ─── -->
       <section class="tarjeta seccion formulario" formGroupName="reglas">
         <div>
@@ -243,13 +281,22 @@
     <!-- ─── Resumen ─── -->
     <aside class="tarjeta resumen">
       <h2>Resumen</h2>
+      @if (proyectoIdNumero(); as pid) {
+        <!-- Al editar se puede subir el ícono; sin ícono se quedan las iniciales -->
+        <app-editor-icono [proyectoId]="pid" [codigo]="resumen().iniciales" />
+      }
       <div class="resumen-nombre">
-        <app-avatar [iniciales]="resumen().iniciales" tono="morado" [cuadro]="true" />
+        @if (!proyectoIdNumero()) {
+          <app-avatar [iniciales]="resumen().iniciales" tono="morado" [cuadro]="true" />
+        }
         <div>
           <strong>{{ resumen().nombre }}</strong>
           <app-etiqueta-estado [etiqueta]="resumen().etiqueta" />
         </div>
       </div>
+      @if (!proyectoIdNumero()) {
+        <small class="pista-icono">El ícono del proyecto se sube después de crearlo, en Editar proyecto.</small>
+      }
       <dl>
         <div><dt>Cliente</dt><dd>{{ resumen().cliente }}</dd></div>
         <div><dt>Prioridad</dt><dd>{{ resumen().prioridad }}</dd></div>
@@ -257,6 +304,7 @@
         <div><dt>Líder</dt><dd>{{ resumen().lider }}</dd></div>
         <div><dt>Equipo</dt><dd>{{ resumen().equipo }}</dd></div>
         <div><dt>Repositorios</dt><dd>{{ resumen().modulos }}</dd></div>
+        <div><dt>Forma de trabajo</dt><dd>{{ resumen().formaTrabajo }}</dd></div>
         <div><dt>Autovalidación</dt><dd>{{ resumen().autovalidacion }}</dd></div>
       </dl>
       @if (!editando()) {

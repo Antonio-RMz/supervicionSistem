@@ -33,6 +33,10 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
     @Query("update UsuarioEntity u set u.activo = :activo where u.id = :id")
     void actualizarActivo(@Param("id") Long id, @Param("activo") boolean activo);
 
+    @Modifying(clearAutomatically = true)
+    @Query("update UsuarioEntity u set u.usuarioGit = :usuarioGit where u.id = :id")
+    void actualizarUsuarioGit(@Param("id") Long id, @Param("usuarioGit") String usuarioGit);
+
     @Modifying
     @Query(value = "INSERT INTO proyecto_miembro (proyecto_id, usuario_id) VALUES (:proyectoId, :usuarioId)",
             nativeQuery = true)

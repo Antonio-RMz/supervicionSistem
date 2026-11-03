@@ -58,23 +58,44 @@
       }
     </div>
 
+    <!-- Descripción, imágenes o las dos: al menos una -->
     <label class="campo">
-      <span>Qué pasó y cómo reproducirlo <b>*</b></span>
-      <textarea formControlName="descripcion" [class.con-error]="invalido('descripcion')"
+      <span>Qué pasó y cómo reproducirlo <small class="pista">· o sube una imagen, o las dos</small></span>
+      <textarea formControlName="descripcion" [class.con-error]="sinEvidencia()"
                 placeholder="1. En la app, abrir Facturas  2. Tocar Descargar PDF  3. Sale “Algo salió mal”; en el log: 500 en GET /api/facturas/{id}/pdf"></textarea>
-      @if (invalido('descripcion')) {
-        <small class="mensaje-campo">Cuenta qué pasó y cómo reproducirlo.</small>
-      }
     </label>
 
+    <div class="campo">
+      <span>Imágenes <small class="pista">· capturas de la falla, hasta {{ maximoImagenes }}</small></span>
+      @if (imagenes().length) {
+        <ul class="vista-previa">
+          @for (i of imagenes(); track i.url) {
+            <li>
+              <img [src]="i.url" [alt]="i.archivo.name" />
+              <button type="button" class="quitar-imagen" (click)="quitarImagen(i)" [title]="'Quitar ' + i.archivo.name">
+                <i class="bi bi-x-lg"></i><span class="solo-lectores">Quitar {{ i.archivo.name }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+      @if (imagenes().length < maximoImagenes) {
+        <label class="subir" [class.con-error]="sinEvidencia()">
+          <i class="bi bi-image"></i> {{ imagenes().length ? 'Agregar otra imagen' : 'Subir imagen' }}
+          <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple
+                 (change)="elegirImagenes($any($event.target))" />
+        </label>
+      }
+      <small class="pista">PNG, JPG, GIF o WebP de hasta 5 MB.</small>
+      @if (errorImagen()) {
+        <small class="mensaje-campo">{{ errorImagen() }}</small>
+      }
+      @if (sinEvidencia()) {
+        <small class="mensaje-campo">Escribe qué pasó o sube una imagen (o las dos).</small>
+      }
+    </div>
+
     <div class="fila">
-      <div class="campo">
-        <span>Evidencia</span>
-        <!-- Aún no hay dónde guardar archivos: pega el log o la liga a la captura en la descripción. -->
-        <button type="button" class="subir" disabled title="Pronto: por ahora pega el log o la liga en la descripción">
-          <i class="bi bi-upload"></i> Captura o log
-        </button>
-      </div>
       <label class="campo">
         <span>Viene de <small class="pista">· opcional</small></span>
         <select formControlName="historiaOrigenId">

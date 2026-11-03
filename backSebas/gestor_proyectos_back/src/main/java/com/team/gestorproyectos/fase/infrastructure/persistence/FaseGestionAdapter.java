@@ -15,29 +15,30 @@ import com.team.gestorproyectos.fase.domain.model.AccionFase;
 import com.team.gestorproyectos.fase.domain.model.BloqueosEliminarFase;
 import com.team.gestorproyectos.fase.domain.model.CambioFase;
 import com.team.gestorproyectos.fase.domain.model.CriterioCierre;
-import com.team.gestorproyectos.fase.domain.model.FaseParaGestionar;
 import com.team.gestorproyectos.fase.domain.model.FaseParaGestionar.BugReversion;
-import com.team.gestorproyectos.fase.domain.model.InfoFase;
+import com.team.gestorproyectos.fase.domain.model.FaseParaGestionar;
 import com.team.gestorproyectos.fase.domain.model.InfoFase.HistoriaDeFase;
 import com.team.gestorproyectos.fase.domain.model.InfoFase.Impacto;
 import com.team.gestorproyectos.fase.domain.model.InfoFase.PersonaDeFase;
 import com.team.gestorproyectos.fase.domain.model.InfoFase.TicketsEnEstado;
+import com.team.gestorproyectos.fase.domain.model.InfoFase;
 import com.team.gestorproyectos.fase.domain.model.InfoRelease;
 import com.team.gestorproyectos.fase.domain.model.NotasRelease;
 import com.team.gestorproyectos.fase.domain.port.out.FaseGestionPort;
 import com.team.gestorproyectos.fase.infrastructure.persistence.mapper.FasePersistenceMapper;
 import com.team.gestorproyectos.fase.infrastructure.persistence.repository.FaseEscrituraJpaRepository;
-import com.team.gestorproyectos.fase.infrastructure.persistence.repository.FaseGestionJpaRepository;
 import com.team.gestorproyectos.fase.infrastructure.persistence.repository.FaseGestionJpaRepository.BloqueosFila;
 import com.team.gestorproyectos.fase.infrastructure.persistence.repository.FaseGestionJpaRepository.ConteosFila;
 import com.team.gestorproyectos.fase.infrastructure.persistence.repository.FaseGestionJpaRepository.FaseFila;
 import com.team.gestorproyectos.fase.infrastructure.persistence.repository.FaseGestionJpaRepository.ReleaseFila;
 import com.team.gestorproyectos.fase.infrastructure.persistence.repository.FaseGestionJpaRepository.TicketsFila;
+import com.team.gestorproyectos.fase.infrastructure.persistence.repository.FaseGestionJpaRepository;
 import com.team.gestorproyectos.proyecto.infrastructure.persistence.entity.TicketEntity;
 import com.team.gestorproyectos.proyecto.infrastructure.persistence.repository.TicketJpaRepository;
 import com.team.gestorproyectos.shared.domain.exception.ReglaNegocioException;
 import com.team.gestorproyectos.shared.domain.model.CodigoItem;
 import com.team.gestorproyectos.shared.domain.model.ConteoTickets;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 import com.team.gestorproyectos.shared.domain.model.Progreso;
 import lombok.RequiredArgsConstructor;
 
@@ -95,7 +96,7 @@ public class FaseGestionAdapter implements FaseGestionPort {
                     f.getVersionRelease(), anterior, ultimaPublicada,
                     repository.otraFaseActiva(proyectoId, faseId).orElse(null), c.getHistorias(),
                     c.getHistoriasListas(), c.getTickets(), criterios,
-                    bug, equipo);
+                    bug, equipo, FormaTrabajo.valueOf(f.getFormaTrabajo()));
         });
     }
 
@@ -129,6 +130,7 @@ public class FaseGestionAdapter implements FaseGestionPort {
                 .toList();
 
         return new InfoFase(f.getId(), f.getProyectoId(), f.getProyectoNombre(), f.getProyectoCodigo(),
+                FormaTrabajo.valueOf(f.getFormaTrabajo()),
                 f.getClienteNombre(), f.getNumero(), f.getNombre(), f.getObjetivo(), f.getEstado(), f.getPrioridad(),
                 f.getFechaInicio(), f.getFechaFin(), f.getResponsableNombre(), f.getVersionRelease(),
                 Boolean.TRUE.equals(f.getMantenimiento()), f.getFigmaUrl(), !Boolean.FALSE.equals(f.getFigmaParaTodas()),
@@ -161,6 +163,8 @@ public class FaseGestionAdapter implements FaseGestionPort {
                 // y arrancan solas al terminar sus Actividades.
                 repository.registrarHistoriasListas(c.faseId(), usuarioId, ahora);
                 repository.iniciarHistoriasListas(c.faseId());
+                // Con una fase en desarrollo el proyecto ya no está en Planeación.
+                repository.iniciarProyecto(c.proyectoId(), ahora.toLocalDate());
             }
             case CANCELAR -> {
                 String motivo = "Se canceló la fase: " + c.motivo();

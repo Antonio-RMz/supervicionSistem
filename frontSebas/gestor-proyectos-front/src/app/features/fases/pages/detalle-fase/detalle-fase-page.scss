@@ -91,7 +91,32 @@
   background: var(--ambar);
 }
 
-.historia .nombre { font-weight: 600; }
+// La lista se acomoda al ancho de su tarjeta (no al de la ventana): si es angosta,
+// el título se queda con la línea y estado, tickets, analista y eliminar bajan a otra.
+.lista-historias { container-type: inline-size; }
+
+.historia .nombre {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.historia .meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+@container (max-width: 600px) {
+  .historia { flex-wrap: wrap; row-gap: 0.5rem; }
+
+  .historia .meta {
+    flex-basis: 100%;
+
+    .quitar { margin-left: auto; }
+  }
+}
 
 // Eliminar desde la lista (Líder o Admin, si aún no se inicia).
 .quitar {
@@ -189,14 +214,6 @@
   }
 
   small { color: var(--texto-suave); }
-}
-
-@media (max-width: 640px) {
-  .historia {
-    flex-wrap: wrap;
-
-    .nombre { flex-basis: 100%; order: 3; }
-  }
 }
 
 .botones-encabezado {

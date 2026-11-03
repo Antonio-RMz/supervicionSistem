@@ -22,11 +22,16 @@ class ReporteFallaTest {
     }
 
     @Test
-    void pideSeveridadYComoReproducirlo() {
+    void pideSeveridad() {
         assertThatThrownBy(() -> reporte(null, "Sale 500")).isInstanceOf(ReglaNegocioException.class);
         assertThatThrownBy(() -> reporte("URGENTE", "Sale 500")).isInstanceOf(ReglaNegocioException.class);
-        assertThatThrownBy(() -> reporte("ALTA", "  "))
-                .isInstanceOf(ReglaNegocioException.class).hasMessageContaining("reproducirlo");
         assertThat(reporte("ALTA", " Sale 500 ").titulo()).isEqualTo("Error 500 al descargar facturas");
+        assertThat(reporte("ALTA", " Sale 500 ").descripcion()).isEqualTo("Sale 500");
+    }
+
+    @Test
+    void laDescripcionEsOpcionalPorqueBastaLaImagen() {
+        assertThat(reporte("ALTA", "  ").descripcion()).isNull();
+        assertThat(reporte("ALTA", null).descripcion()).isNull();
     }
 }

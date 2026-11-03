@@ -52,11 +52,14 @@ export const GESTOR_ROUTES: Routes = [
         title: 'Editar proyecto · Gestor de Proyectos',
       },
       {
-        path: 'proyectos/:id/mantenimiento',
+        // Bugs: la fase permanente de Mantenimiento como lista de tarjetas, con los parches abajo.
+        path: 'proyectos/:id/bugs',
         loadComponent: () =>
           import('../mantenimiento/pages/mantenimiento/mantenimiento-page').then((m) => m.MantenimientoPage),
-        title: 'Mantenimiento · Gestor de Proyectos',
+        title: 'Bugs · Gestor de Proyectos',
       },
+      // La dirección de antes sigue funcionando.
+      { path: 'proyectos/:id/mantenimiento', redirectTo: 'proyectos/:id/bugs' },
       {
         path: 'proyectos/:id/fases/nueva',
         loadComponent: () => import('../fases/pages/nueva-fase/nueva-fase-page').then((m) => m.NuevaFasePage),
@@ -95,12 +98,6 @@ export const GESTOR_ROUTES: Routes = [
         loadComponent: () =>
           import('../historias/pages/nueva-historia/nueva-historia-page').then((m) => m.NuevaHistoriaPage),
         title: 'Editar historia · Gestor de Proyectos',
-      },
-      {
-        path: 'proyectos/:id/historias/:historiaId/importar-tickets',
-        loadComponent: () =>
-          import('../tickets/pages/importar-tickets/importar-tickets-page').then((m) => m.ImportarTicketsPage),
-        title: 'Importar tickets · Gestor de Proyectos',
       },
       {
         path: 'proyectos/:id/historias/:historiaId/integrar',

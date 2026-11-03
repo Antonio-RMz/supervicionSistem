@@ -98,6 +98,92 @@
 }
 
 // ─── Tabla ───────────────────────────────────────────────────────────────────
+// ─── Cambio de vista: Tarjetas | Tabla (igual que en Fases y Mis tickets) ─────
+.vistas {
+  display: flex;
+  padding: 0.2rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+
+  button {
+    padding: 0.4rem 0.7rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--texto-suave);
+    font-size: 1.05rem;
+    cursor: pointer;
+
+    &.activa {
+      background: var(--morado-suave);
+      color: var(--morado);
+    }
+  }
+}
+
+// ─── Tarjetas ────────────────────────────────────────────────────────────────
+.tarjetas-historias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjetas-historias > .vacio { grid-column: 1 / -1; }
+
+.tarjeta-historia {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 1rem 1.1rem;
+  color: var(--tinta);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+
+  &:hover {
+    border-color: var(--morado-borde);
+    transform: translateY(-2px);
+  }
+
+  // En la tabla no se parte; en la tarjeta, una fase con nombre largo sí.
+  .suave { white-space: normal; }
+}
+
+.tarjeta-arriba {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .derecha { margin-left: auto; }
+}
+
+.codigo {
+  color: var(--morado);
+  font-family: var(--fuente-mono);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.tarjeta-titulo {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tarjeta-abajo {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
 .tabla { overflow-x: auto; }
 
 table {

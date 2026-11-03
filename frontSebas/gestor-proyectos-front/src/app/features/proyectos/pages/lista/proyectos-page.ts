@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Avatar } from '../../../../shared/components/avatar/avatar';
+import { IconoProyecto } from '../../components/icono-proyecto/icono-proyecto';
 import { BarraAvance } from '../../../../shared/components/barra-avance/barra-avance';
 import { ChipModulo } from '../../../../shared/components/chip-modulo/chip-modulo';
 import { EtiquetaEstado } from '../../../../shared/components/etiqueta-estado/etiqueta-estado';
@@ -16,7 +17,7 @@ const ACTIVOS = ['EN_CURSO', 'PLANEACION'];
 /** Proyectos (PDF pág. 13). Solo los proyectos donde soy miembro (todos si soy Admin). */
 @Component({
   selector: 'app-proyectos-page',
-  imports: [RouterLink, Avatar, BarraAvance, ChipModulo, EtiquetaEstado],
+  imports: [RouterLink, Avatar, IconoProyecto, BarraAvance, ChipModulo, EtiquetaEstado],
   templateUrl: './proyectos-page.html',
   styleUrl: './proyectos-page.scss',
 })

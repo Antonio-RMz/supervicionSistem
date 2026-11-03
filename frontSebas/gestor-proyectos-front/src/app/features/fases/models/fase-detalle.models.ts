@@ -1,4 +1,5 @@
 import { Etiqueta, Tono } from '../../../shared/models/etiqueta.model';
+import { FormaTrabajo } from '../../../shared/utils/flujos';
 import { InfoModulo } from '../../../shared/utils/proyectos';
 
 /** Lo que el Líder puede hacerle a una fase (PDF pág. 20). Las mismas del back (AccionFase). */
@@ -41,6 +42,8 @@ export interface DetalleFase {
   proyectoId: number;
   proyectoNombre: string;
   proyectoCodigo: string;
+  /** Gitflow o Normal; las dos suben develop a main al terminar la fase */
+  formaTrabajo: FormaTrabajo;
   clienteNombre: string;
   numero: number;
   /** "Fase 4 · Portal móvil" */

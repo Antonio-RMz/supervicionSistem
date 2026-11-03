@@ -1,12 +1,12 @@
 
-  ${AnsiColor.BRIGHT_CYAN}████████╗ ███████╗  █████╗  ███╗   ███╗   ${AnsiColor.BRIGHT_CYAN}██████╗  ███████╗ ██╗   ██╗
-  ${AnsiColor.BRIGHT_CYAN}╚══██╔══╝ ██╔════╝ ██╔══██╗ ████╗ ████║   ${AnsiColor.BRIGHT_CYAN}██╔══██╗ ██╔════╝ ██║   ██║
-  ${AnsiColor.BRIGHT_CYAN}   ██║    █████╗   ███████║ ██╔████╔██║   ${AnsiColor.BRIGHT_CYAN}██║  ██║ █████╗   ██║   ██║
-  ${AnsiColor.BRIGHT_CYAN}   ██║    ██╔══╝   ██╔══██║ ██║╚██╔╝██║   ${AnsiColor.BRIGHT_CYAN}██║  ██║ ██╔══╝   ╚██╗ ██╔╝
-  ${AnsiColor.BRIGHT_CYAN}   ██║    ███████╗ ██║  ██║ ██║ ╚═╝ ██║   ${AnsiColor.BRIGHT_CYAN}██████╔╝ ███████╗  ╚████╔╝ 
-  ${AnsiColor.BRIGHT_CYAN}   ╚═╝    ╚══════╝ ╚═╝  ╚═╝ ╚═╝     ╚═╝   ${AnsiColor.BRIGHT_CYAN}╚═════╝  ╚══════╝   ╚═══╝  
+  ${AnsiColor.BRIGHT_WHITE}█████ ${AnsiColor.BRIGHT_CYAN}█████   ${AnsiColor.BRIGHT_WHITE}██╗ ███╗   ██╗  ██████╗  ██╗   ██╗  █████╗   ${AnsiColor.BRIGHT_CYAN}██████╗  ██╗   ██╗ ████████╗ ███████╗
+  ${AnsiColor.BRIGHT_WHITE}█████ ${AnsiColor.BRIGHT_CYAN}█████   ${AnsiColor.BRIGHT_WHITE}██║ ████╗  ██║ ██╔═══██╗ ██║   ██║ ██╔══██╗  ${AnsiColor.BRIGHT_CYAN}██╔══██╗ ╚██╗ ██╔╝ ╚══██╔══╝ ██╔════╝
+                ${AnsiColor.BRIGHT_WHITE}██║ ██╔██╗ ██║ ██║   ██║ ██║   ██║ ███████║  ${AnsiColor.BRIGHT_CYAN}██████╔╝  ╚████╔╝     ██║    █████╗  
+  ${AnsiColor.BRIGHT_WHITE}█████ ${AnsiColor.BRIGHT_WHITE}█████   ${AnsiColor.BRIGHT_WHITE}██║ ██║╚██╗██║ ██║   ██║ ╚██╗ ██╔╝ ██╔══██║  ${AnsiColor.BRIGHT_CYAN}██╔══██╗   ╚██╔╝      ██║    ██╔══╝  
+  ${AnsiColor.BRIGHT_WHITE}█████ ${AnsiColor.BRIGHT_WHITE}█████   ${AnsiColor.BRIGHT_WHITE}██║ ██║ ╚████║ ╚██████╔╝  ╚████╔╝  ██║  ██║  ${AnsiColor.BRIGHT_CYAN}██████╔╝    ██║       ██║    ███████╗
+                ${AnsiColor.BRIGHT_WHITE}╚═╝ ╚═╝  ╚═══╝  ╚═════╝    ╚═══╝   ╚═╝  ╚═╝  ${AnsiColor.BRIGHT_CYAN}╚═════╝     ╚═╝       ╚═╝    ╚══════╝
 ${AnsiColor.DEFAULT}
-  ${AnsiColor.BRIGHT_WHITE}${AnsiStyle.BOLD}Gestor de Proyectos${AnsiStyle.NORMAL}${AnsiColor.BRIGHT_BLACK}  ·  del requerimiento al deploy, sin perder el hilo${AnsiColor.DEFAULT}
+  ${AnsiColor.BRIGHT_WHITE}${AnsiStyle.BOLD}Gestor de Proyectos${AnsiStyle.NORMAL}${AnsiColor.BRIGHT_BLACK}  ·  I N O V A   B Y T E   S Y S T E M S${AnsiColor.DEFAULT}
 
   ${AnsiColor.BRIGHT_BLACK}─────────────────────────────────────────────────────────────────${AnsiColor.DEFAULT}
   ${AnsiColor.BRIGHT_CYAN}▸ API      ${AnsiColor.DEFAULT}http://localhost:${server.port:8080}/api

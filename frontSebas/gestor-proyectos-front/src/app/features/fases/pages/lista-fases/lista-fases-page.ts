@@ -8,6 +8,12 @@ import { ProyectoActualStore } from '../../../gestor/data/proyecto-actual.store'
 import { ProyectosDetalleService } from '../../../proyectos/data/proyectos-detalle.service';
 import { FaseResumen } from '../../../proyectos/models/proyectos.models';
 
+/** Tarjetas (por defecto) o tabla. */
+type Vista = 'tarjetas' | 'tabla';
+
+/** La vista elegida se recuerda en este navegador. */
+const CLAVE_VISTA = 'gestor.lista-fases.vista';
+
 /**
  * Menú Fases: las fases del plan del proyecto elegido arriba, para buscarlas y abrir cada una.
  * Mantenimiento no aparece: tiene su propia pantalla.
@@ -28,6 +34,7 @@ export class ListaFasesPage {
 
   protected readonly texto = signal('');
   protected readonly estado = signal('');
+  protected readonly vista = signal<Vista>(leerVista());
 
   /** Los estados que hay, para el filtro. */
   protected readonly estados = computed(() => [...new Map(this.fases().map((f) => [f.estado, f.etiqueta.texto])).entries()]);
@@ -55,6 +62,15 @@ export class ListaFasesPage {
     this.estado.set('');
   }
 
+  protected cambiarVista(vista: Vista): void {
+    this.vista.set(vista);
+    try {
+      localStorage.setItem(CLAVE_VISTA, vista);
+    } catch {
+      // Sin almacenamiento (modo privado): solo se pierde la preferencia.
+    }
+  }
+
   private cargar(id: number): void {
     this.cargando.set(true);
     this.error.set(null);
@@ -70,5 +86,13 @@ export class ListaFasesPage {
         this.cargando.set(false);
       },
     });
+  }
+}
+
+function leerVista(): Vista {
+  try {
+    return localStorage.getItem(CLAVE_VISTA) === 'tabla' ? 'tabla' : 'tarjetas';
+  } catch {
+    return 'tarjetas';
   }
 }

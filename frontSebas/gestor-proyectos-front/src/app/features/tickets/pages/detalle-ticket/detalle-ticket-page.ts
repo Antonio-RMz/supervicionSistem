@@ -10,7 +10,6 @@ import { mensajeDeError } from '../../../../shared/utils/errores';
 import { ramaSugerida } from '../../../../shared/utils/flujos';
 import { etiquetaEstadoTicket, ticketSinEmpezar } from '../../../../shared/utils/tickets';
 import { ConfirmacionTicketModal, DatosConfirmacion } from '../../components/confirmacion-ticket/confirmacion-ticket-modal';
-import { PromptIa } from '../../components/prompt-ia/prompt-ia';
 import { avisoDeMovimiento, MovimientosService } from '../../data/movimientos.service';
 import { TicketDetalleService } from '../../data/ticket-detalle.service';
 import { TipoMovimiento } from '../../models/movimientos.models';
@@ -18,6 +17,7 @@ import { Confirmacion, DetalleTicket, OpcionTicket } from '../../models/ticket-d
 import { ArbolFase } from '../../../fases/components/arbol-fase/arbol-fase';
 import { CambioVista } from '../../../../shared/components/cambio-vista/cambio-vista';
 import { ComandosGit } from '../../components/comandos-git/comandos-git';
+import { ImagenesTicket } from '../../components/imagenes-ticket/imagenes-ticket';
 
 /** Estados en que alguien lo revisa (el Líder su PR o, en un hotfix, un Analista): al avanzar se pide qué incluye. */
 const REVISION = ['EN_QA', 'EN_REVISION'];
@@ -60,7 +60,7 @@ const FUERA_DEL_FLUJO = ['BLOQUEADA', 'CANCELADA', 'RECHAZADA', 'NO_REPRODUCIBLE
 
 @Component({
   selector: 'app-detalle-ticket-page',
-  imports: [RouterLink, ArbolFase, CambioVista, Avatar, ChipModulo, ComandosGit, ConfirmacionTicketModal, EtiquetaEstado, Flujo, PromptIa, TipoTicket],
+  imports: [RouterLink, ArbolFase, ImagenesTicket, CambioVista, Avatar, ChipModulo, ComandosGit, ConfirmacionTicketModal, EtiquetaEstado, Flujo, TipoTicket],
   templateUrl: './detalle-ticket-page.html',
   styleUrl: './detalle-ticket-page.scss',
 })

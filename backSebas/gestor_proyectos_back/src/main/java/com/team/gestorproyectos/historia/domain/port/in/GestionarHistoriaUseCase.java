@@ -29,6 +29,20 @@ public interface GestionarHistoriaUseCase {
 
     void comentar(Long proyectoId, Long historiaId, String texto, Long usuarioId, boolean esAdmin);
 
+    // ─── Historia con Desarrolladores ───
+
+    /** El Desarrollador marca (o desmarca) que terminó su parte. */
+    void marcarMiParte(Long proyectoId, Long historiaId, boolean terminado, Long usuarioId, boolean esAdmin);
+
+    /** Agrega un punto a "Lo que hice"; moduloId opcional (uno de los repositorios de la historia). */
+    void agregarTrabajo(Long proyectoId, Long historiaId, String descripcion, Long moduloId, Long usuarioId,
+                        boolean esAdmin);
+
+    void marcarTrabajo(Long proyectoId, Long historiaId, Long trabajoId, boolean hecho, Long usuarioId,
+                       boolean esAdmin);
+
+    void quitarTrabajo(Long proyectoId, Long historiaId, Long trabajoId, Long usuarioId, boolean esAdmin);
+
     /** La borra del todo con sus criterios, imágenes, comentarios e historial. Líder o Admin, si aún no se inicia. */
     void eliminar(Long proyectoId, Long historiaId, Long usuarioId, boolean esAdmin);
 }

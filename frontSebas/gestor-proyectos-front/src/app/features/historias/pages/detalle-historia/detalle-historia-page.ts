@@ -8,7 +8,13 @@ import { Modal } from '../../../../shared/components/modal/modal';
 import { TipoTicket } from '../../../../shared/components/tipo-ticket/tipo-ticket';
 import { Flujo } from '../../../../shared/components/flujo/flujo';
 import { mensajeDeError } from '../../../../shared/utils/errores';
-import { FLUJO_HISTORIA, pasosDe } from '../../../../shared/utils/flujos';
+import { FLUJO_HISTORIA, FLUJO_HISTORIA_NORMAL, flujoHistoriaConDesarrolladores, pasosDe } from '../../../../shared/utils/flujos';
+import { puedePromptDesarrollo, puedePromptDiseno } from '../../../../shared/utils/roles';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { DesarrolloHistoria } from '../../components/desarrollo-historia/desarrollo-historia';
+import { GitHistoria } from '../../components/git-historia/git-historia';
+import { PromptDisenoHistoria } from '../../components/prompt-diseno-historia/prompt-diseno-historia';
+import { PromptHistoria } from '../../components/prompt-historia/prompt-historia';
 import { etiquetaHistoria } from '../../../../shared/utils/tickets';
 import { ConfirmacionHistoriaModal } from '../../components/confirmacion-historia/confirmacion-historia-modal';
 import { ImagenesHistoria } from '../../components/imagenes-historia/imagenes-historia';
@@ -35,11 +41,20 @@ const BOTONES: Record<AccionHistoria, { icono: string; clase: string }> = {
   DEVOLVER: { icono: 'bi-arrow-counterclockwise', clase: 'boton-peligro-suave' },
   INTEGRAR: { icono: 'bi-sign-merge-right', clase: 'boton-primario' },
   REABRIR: { icono: 'bi-arrow-repeat', clase: 'boton-secundario' },
+  INICIAR_DESARROLLO: { icono: 'bi-play-fill', clase: 'boton-primario' },
+  TERMINAR_DESARROLLO: { icono: 'bi-check-lg', clase: 'boton-primario' },
+  APROBAR_REVISION: { icono: 'bi-check2-all', clase: 'boton-primario' },
+  PEDIR_CAMBIOS: { icono: 'bi-arrow-counterclockwise', clase: 'boton-peligro-suave' },
 };
 
 /** La decisión principal primero, como en el PDF. */
-const ORDEN: AccionHistoria[] = ['INICIAR_PLANEACION', 'MARCAR_LISTA', 'ACEPTAR', 'INTEGRAR', 'REABRIR',
-  'MOVER_DE_FASE', 'REGRESAR_A_PLANEACION', 'DEVOLVER', 'DESCARTAR'];
+const ORDEN: AccionHistoria[] = ['INICIAR_PLANEACION', 'MARCAR_LISTA', 'INICIAR_DESARROLLO', 'TERMINAR_DESARROLLO',
+  'APROBAR_REVISION', 'ACEPTAR', 'INTEGRAR', 'REABRIR', 'MOVER_DE_FASE', 'REGRESAR_A_PLANEACION', 'PEDIR_CAMBIOS',
+  'DEVOLVER', 'DESCARTAR'];
+
+/** Pestañas de una historia con Desarrolladores. */
+type Pestana = 'historia' | 'desarrollo' | 'git' | 'prompt' | 'detalles';
+type Prompt = 'desarrollo' | 'diseno';
 
 /** Los estados que avanzan solos: el panel lo dice en lugar de mostrar botones. */
 const AVANZA_SOLA = ['EN_DESARROLLO', 'INTEGRADA', 'CERRADA'];
@@ -55,7 +70,7 @@ interface Revision {
  */
 @Component({
   selector: 'app-detalle-historia-page',
-  imports: [RouterLink, ArbolFase, CambioVista, Avatar, ChipModulo, ConfirmacionHistoriaModal, EtiquetaEstado, Flujo, ImagenesHistoria, Modal, TipoTicket],
+  imports: [RouterLink, ArbolFase, CambioVista, Avatar, ChipModulo, ConfirmacionHistoriaModal, DesarrolloHistoria, EtiquetaEstado, Flujo, GitHistoria, ImagenesHistoria, Modal, PromptDisenoHistoria, PromptHistoria, TipoTicket],
   templateUrl: './detalle-historia-page.html',
   styleUrl: './detalle-historia-page.scss',
 })
@@ -63,6 +78,7 @@ export class DetalleHistoriaPage implements OnInit {
   private readonly service = inject(HistoriaDetalleService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly usuario = inject(AuthService).usuario;
 
   /** :id del proyecto */
   readonly id = input.required<string>();
@@ -82,7 +98,35 @@ export class DetalleHistoriaPage implements OnInit {
   protected readonly eliminando = signal(false);
   protected readonly comentario = signal('');
 
-  protected readonly avanzaSola = computed(() => AVANZA_SOLA.includes(this.historia()?.estado ?? ''));
+  // Con Desarrolladores no avanza sola: la terminan ellos.
+  protected readonly avanzaSola = computed(
+    () => !this.historia()?.desarrollo && AVANZA_SOLA.includes(this.historia()?.estado ?? ''),
+  );
+
+  /** A sus Desarrolladores les abre en Desarrollo; a los demás, en la historia. */
+  protected readonly pestanaElegida = signal<Pestana | null>(null);
+  protected readonly pestana = computed<Pestana>(() => {
+    const elegida = this.pestanaElegida();
+    if (elegida) return elegida;
+    const d = this.historia()?.desarrollo;
+    return d && d.miParteTerminada !== null ? 'desarrollo' : 'historia';
+  });
+  /** Prompt de desarrollo: el Líder y sus Desarrolladores (si ya tiene). */
+  protected readonly puedePromptDesarrollo = computed(
+    () => !!this.historia()?.desarrollo
+      && (puedePromptDesarrollo(this.usuario()?.roles ?? []) || this.historia()?.desarrollo?.miParteTerminada != null),
+  );
+  /** Prompt de diseño (Figma): el Líder y la Analista. */
+  protected readonly puedePromptDiseno = computed(() => puedePromptDiseno(this.usuario()?.roles ?? []));
+  protected readonly puedePrompt = computed(() => this.puedePromptDesarrollo() || this.puedePromptDiseno());
+  /** Cuál de los dos prompts se ve. */
+  protected readonly promptElegido = signal<Prompt | null>(null);
+  protected readonly prompt = computed<Prompt>(() => {
+    const elegido = this.promptElegido();
+    if (elegido === 'desarrollo' && this.puedePromptDesarrollo()) return 'desarrollo';
+    if (elegido === 'diseno' && this.puedePromptDiseno()) return 'diseno';
+    return this.puedePromptDesarrollo() ? 'desarrollo' : 'diseno';
+  });
 
   protected readonly botones = computed(() =>
     [...(this.historia()?.acciones ?? [])]
@@ -91,7 +135,13 @@ export class DetalleHistoriaPage implements OnInit {
   );
 
   protected readonly panel = computed(() => (this.historia() ? panelDe(this.historia()!) : null));
-  protected readonly pasos = computed(() => pasosDe(FLUJO_HISTORIA, this.historia()?.estado ?? ''));
+  protected readonly pasos = computed(() => {
+    const h = this.historia();
+    if (h?.desarrollo) {
+      return pasosDe(flujoHistoriaConDesarrolladores(h.formaTrabajo, h.desarrollo.requierePr), h.estado);
+    }
+    return pasosDe(h?.formaTrabajo === 'NORMAL' ? FLUJO_HISTORIA_NORMAL : FLUJO_HISTORIA, h?.estado ?? '');
+  });
   protected readonly fuera = computed(() =>
     this.historia()?.estado === 'DESCARTADA' ? etiquetaHistoria('DESCARTADA') : null,
   );
@@ -195,9 +245,18 @@ export class DetalleHistoriaPage implements OnInit {
     });
   }
 
-  /** Se subió o quitó una imagen. */
+  /** Se subió o quitó una imagen, o cambió algo en Desarrollo. */
   protected recargar(): void {
     this.cargar(false);
+  }
+
+  /** "Jorge, Marco" */
+  protected nombresDesarrolladores(d: DetalleHistoria['desarrollo'] & object): string {
+    return d.desarrolladores.map((x) => x.nombre.split(' ')[0]).join(', ');
+  }
+
+  protected mostrarError(texto: string): void {
+    this.aviso.set({ texto, error: true });
   }
 
   private cargar(primeraVez: boolean): void {
@@ -205,13 +264,24 @@ export class DetalleHistoriaPage implements OnInit {
       next: (historia) => {
         this.historia.set(historia);
         this.cargando.set(false);
-        if (primeraVez) this.abrirAccionPedida(historia);
+        if (primeraVez) {
+          this.abrirPromptPedido();
+          this.abrirAccionPedida(historia);
+        }
       },
       error: (e) => {
         this.errorCarga.set(mensajeDeError(e, 'No pudimos cargar la historia.'));
         this.cargando.set(false);
       },
     });
+  }
+
+  /** Desde el árbol llega ?prompt=desarrollo o ?prompt=diseno: abre la pestaña Prompts en ese. */
+  private abrirPromptPedido(): void {
+    const pedido = this.route.snapshot.queryParamMap.get('prompt');
+    if (pedido !== 'desarrollo' && pedido !== 'diseno') return;
+    this.pestanaElegida.set('prompt');
+    this.promptElegido.set(pedido);
   }
 
   /** Desde las listas, el botón llega con ?accion=INICIAR para confirmarse aquí. */
@@ -229,6 +299,10 @@ function panelDe(h: DetalleHistoria): { descripcion: string; revisiones: Revisio
   const impedimentos = (accion: AccionHistoria): Revision[] =>
     (h.acciones.find((a) => a.accion === accion)?.impedimentos ?? []).map((texto) => ({ estado: 'falta', texto }));
   const criterios = h.criterios.length;
+  if (h.desarrollo) {
+    const panel = panelConDesarrolladores(h, impedimentos, criterios);
+    if (panel) return panel;
+  }
 
   switch (h.estado) {
     case 'BORRADOR':
@@ -251,26 +325,12 @@ function panelDe(h: DetalleHistoria): { descripcion: string; revisiones: Revisio
             : { estado: 'falta', texto: 'Sin repositorios elegidos' },
         ],
       };
-    case 'LISTA': {
-      // El Líder crea sus Actividades (nacen en Borrador) y las marca Listas; con la primera Lista,
-      // la historia pasa sola a Lista para desarrollo.
-      const actividades = h.tickets.filter((t) => t.tipo === 'ACTV');
-      const enBorrador = actividades.filter((t) => t.estadoCodigo === 'BORRADOR').length;
+    case 'LISTA':
+      // Con sus Desarrolladores pasa sola a Lista para desarrollo; aquí solo se queda si no los tiene.
       return {
-        descripcion: h.puedeCrearTicket
-          ? 'Ya está definida. Te toca crear sus Actividades y marcarlas Listas: con la primera Lista queda lista para desarrollo.'
-          : 'Ya está definida. El Líder crea sus Actividades y las marca Listas.',
-        revisiones: [
-          actividades.length
-            ? { estado: 'ok', texto: `${actividades.length} ${actividades.length === 1 ? 'Actividad creada' : 'Actividades creadas'}` }
-            : { estado: 'falta', texto: h.puedeCrearTicket ? 'Falta crear sus Actividades: te toca a ti' : 'Falta crear sus Actividades' },
-          ...(enBorrador
-            ? [{ estado: 'falta' as const, texto: `${enBorrador} en Borrador: márcalas Listas desde cada Actividad` }]
-            : []),
-          { estado: 'info', texto: 'Se puede regresar a planeación desde aquí' },
-        ],
+        descripcion: 'Ya está definida. Falta asignarle sus Desarrolladores para que les llegue.',
+        revisiones: [{ estado: 'info', texto: 'Se puede regresar a planeación desde aquí' }],
       };
-    }
     case 'LISTA_DESARROLLO':
       return {
         descripcion: 'Lista para desarrollo. Arranca sola cuando el Líder inicie la fase.',
@@ -332,5 +392,64 @@ function panelDe(h: DetalleHistoria): { descripcion: string; revisiones: Revisio
       };
     default:
       return { descripcion: '', revisiones: [] };
+  }
+}
+
+/** Lo que cambia en una historia con Desarrolladores (sin Actividades como ticket). */
+function panelConDesarrolladores(
+  h: DetalleHistoria,
+  impedimentos: (accion: AccionHistoria) => Revision[],
+  criterios: number,
+): { descripcion: string; revisiones: Revision[] } | null {
+  const d = h.desarrollo!;
+  const terminaron = d.desarrolladores.filter((x) => x.terminado).length;
+  const hechos = d.trabajo.filter((t) => t.hecho).length;
+  switch (h.estado) {
+    case 'LISTA_DESARROLLO':
+      return {
+        descripcion: h.faseEtiqueta.texto === 'En curso'
+          ? 'Lista para sus Desarrolladores: cualquiera de ellos la inicia.'
+          : `Lista para sus Desarrolladores. La inician cuando la ${h.faseTitulo.split(' · ')[0]} esté en curso.`,
+        revisiones: [
+          { estado: 'ok', texto: `${d.desarrolladores.length} ${d.desarrolladores.length === 1 ? 'Desarrollador' : 'Desarrolladores'}` },
+          ...impedimentos('INICIAR_DESARROLLO'),
+        ],
+      };
+    case 'EN_DESARROLLO':
+      return {
+        descripcion: 'Sus Desarrolladores anotan lo que hacen y cada uno marca su parte. Cuando todos terminen, la terminan'
+          + (d.requierePr ? ' y pasa a revisión del Líder.' : ' y pasa a validación.'),
+        revisiones: [
+          { estado: terminaron === d.desarrolladores.length ? 'ok' : 'info',
+            texto: `Terminaron su parte: ${terminaron} de ${d.desarrolladores.length}` },
+          { estado: hechos === d.trabajo.length ? 'ok' : 'info', texto: `Lo que hice: ${hechos} de ${d.trabajo.length}` },
+          ...impedimentos('TERMINAR_DESARROLLO').filter((r) => !r.texto.startsWith('Falta que')),
+        ],
+      };
+    case 'EN_REVISION':
+      return {
+        descripcion: h.meToca
+          ? 'Sus Desarrolladores terminaron. Revisa sus PR y apruébala o pide cambios.'
+          : 'Sus Desarrolladores terminaron. El Líder revisa el código antes de que la valide su Analista.',
+        revisiones: [{ estado: 'info', texto: 'Pedir cambios la regresa a desarrollo con el motivo' }],
+      };
+    case 'EN_VALIDACION':
+      return {
+        descripcion: h.meToca
+          ? 'Sus Desarrolladores terminaron. Pruébala completa en staging, revisa sus criterios y acéptala o devuélvela.'
+          : 'Sus Desarrolladores terminaron. Su Analista la prueba completa contra lo que pidió el cliente.',
+        revisiones: [
+          { estado: h.criteriosVerificados === criterios ? 'ok' : 'info',
+            texto: `Criterios verificados: ${h.criteriosVerificados} de ${criterios}` },
+          { estado: 'info', texto: 'Devolver pide el motivo y la regresa a sus Desarrolladores' },
+        ],
+      };
+    case 'ACEPTADA':
+      return {
+        descripcion: 'Cumple lo que pidió el cliente. Falta meter su código a develop.',
+        revisiones: [{ estado: 'info', texto: 'El Líder la integra' }],
+      };
+    default:
+      return null;
   }
 }

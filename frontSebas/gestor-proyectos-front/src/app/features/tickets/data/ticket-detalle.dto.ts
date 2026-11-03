@@ -4,6 +4,8 @@ export interface DetalleTicketDto {
   info: InfoTicketDto;
   severidad: string | null;
   hotfix: boolean;
+  /** La Actividad termina con PR; false en un proyecto Normal sin PR */
+  requierePr: boolean;
   parche: { version: string; bugs: { id: number; codigo: string; titulo: string }[] } | null;
   actor: string;
   meToca: boolean;

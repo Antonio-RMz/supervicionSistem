@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.team.gestorproyectos.proyecto.domain.model.EstadoProyecto;
 import com.team.gestorproyectos.proyecto.domain.model.TipoModulo;
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -103,8 +104,9 @@ public final class ProyectosDtos {
 
     // ─── Formulario (PDF pág. 16) ────────────────────────────────────────────
 
+    /** @param formaTrabajo GITFLOW si no se dice; al editar se ignora (ya no cambia) */
     public record ReglasDto(boolean permitirAutovalidacion, boolean comentarioAlRechazar, boolean ramaAlIniciar,
-                            boolean notificarClienteFase) {
+                            boolean notificarClienteFase, FormaTrabajo formaTrabajo, boolean requierePr) {
     }
 
     public record ModuloDto(

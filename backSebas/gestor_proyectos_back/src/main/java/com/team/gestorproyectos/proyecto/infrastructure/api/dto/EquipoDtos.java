@@ -3,6 +3,8 @@ package com.team.gestorproyectos.proyecto.infrastructure.api.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.team.gestorproyectos.shared.domain.model.FormaTrabajo;
+
 import jakarta.validation.constraints.NotNull;
 
 /** JSON de la pestaña Equipo del proyecto (PDF pág. 34). */
@@ -30,7 +32,7 @@ public final class EquipoDtos {
     }
 
     public record ReglasResponse(boolean permitirAutovalidacion, boolean comentarioAlRechazar, boolean ramaAlIniciar,
-                                 boolean notificarClienteFase) {
+                                 boolean notificarClienteFase, FormaTrabajo formaTrabajo, boolean requierePr) {
     }
 
     public record CandidatoResponse(Long id, String nombreCompleto, List<String> roles) {

@@ -29,6 +29,103 @@ h2 {
   white-space: nowrap;
 }
 
+// ─── Cambio de vista: Lista | Tarjetas (igual que en Mis tickets) ────────────
+.vistas {
+  display: flex;
+  padding: 0.2rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--blanco);
+
+  button {
+    padding: 0.4rem 0.7rem;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--texto-suave);
+    font-size: 1.05rem;
+    cursor: pointer;
+
+    &.activa {
+      background: var(--morado-suave);
+      color: var(--morado);
+    }
+  }
+}
+
+// ─── Tarjetas: solo las fases ────────────────────────────────────────────────
+.tarjetas-fases {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tarjetas-fases > .vacio { grid-column: 1 / -1; }
+
+.tarjeta-fase {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  height: 100%;
+  padding: 1rem 1.1rem;
+  color: var(--tinta);
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s;
+
+  &:hover {
+    border-color: var(--morado-borde);
+    transform: translateY(-2px);
+  }
+}
+
+.tarjeta-arriba {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .derecha { margin-left: auto; }
+}
+
+.numero-fase {
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.tarjeta-nombre {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.tarjeta-fechas {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.tarjeta-abajo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+
+  .modulos {
+    display: flex;
+    gap: 0.3rem;
+    margin-left: auto;
+  }
+}
+
 // ─── Lista de fases ──────────────────────────────────────────────────────────
 .fases {
   display: flex;
@@ -197,7 +294,7 @@ app-avatar.chico ::ng-deep .avatar {
 
 @media (max-width: 900px) {
   .fase-fila { grid-template-columns: minmax(0, 1fr) auto; }
-  .conteo, .avance-fase, .ir { display: none; }
+  .fase-fila .conteo, .fase-fila .avance-fase, .fase-fila .ir { display: none; }
   .historias { padding-left: 1rem; }
   .historia { grid-template-columns: auto minmax(0, 1fr) auto auto auto; }
   .historia app-avatar { display: none; }

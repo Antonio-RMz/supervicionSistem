@@ -1,0 +1,298 @@
+// Diseño único para los dos logins (equipo y clientes): tarjeta centrada, poco texto.
+// En teléfonos la tarjeta ocupa toda la pantalla.
+:host { display: block; }
+
+// Fondo carbón con líneas de circuito verdes (igual en tema claro y oscuro)
+.pantalla {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); // la tarjeta nunca más ancha que la pantalla
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 1.5rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(31, 181, 122, 0.16) 0, transparent 45%),
+    radial-gradient(circle at 85% 90%, rgba(31, 181, 122, 0.1) 0, transparent 40%),
+    linear-gradient(135deg, #23282d 0%, #0e1013 100%);
+}
+
+.tarjeta {
+  --fondo-tarjeta: var(--blanco);
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  padding: 3.25rem 3rem 2.5rem;
+  border: 1px solid var(--borde);
+  border-radius: 24px;
+  background: var(--fondo-tarjeta);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+// Logo grande a la izquierda: solo en pantallas horizontales (ver abajo)
+.presentacion { display: none; }
+
+// En tema oscuro la tarjeta va en carbón, a juego con el fondo
+:host-context([data-tema='oscuro']) .tarjeta {
+  --fondo-tarjeta: #181b1f;
+  border-color: #2c3238;
+}
+
+h1 {
+  margin: 0;
+  color: var(--tinta);
+  font-family: var(--fuente-titulos);
+  font-size: 2.1rem;
+  text-align: center;
+}
+
+.bajada {
+  margin: 0.5rem 0 2.25rem;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  > span {
+    color: var(--tinta);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+.entrada {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 1.1rem;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: var(--fondo-tarjeta);
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus-within {
+    border-color: var(--morado);
+    box-shadow: 0 0 0 3px var(--morado-suave);
+  }
+
+  &.con-error { border-color: var(--rojo); }
+
+  i { color: var(--texto-suave); font-size: 1.15rem; }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    min-height: 56px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--tinta);
+    font: inherit;
+    font-size: 17px; // 16px o más evita el zoom automático de iOS al enfocar
+
+    // Chrome pinta los campos autocompletados con su propio fondo: lo igualamos al de la tarjeta
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 100px var(--fondo-tarjeta) inset;
+      -webkit-text-fill-color: var(--tinta);
+      caret-color: var(--tinta);
+      transition: background-color 9999s;
+    }
+  }
+}
+
+.mostrar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-right: -0.5rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+  cursor: pointer;
+
+  &:hover { color: var(--tinta); }
+}
+
+.mensaje-campo {
+  color: var(--rojo);
+  font-size: 0.82rem;
+}
+
+.opciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  flex-wrap: wrap;
+  font-size: 1rem;
+}
+
+.recordarme {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--tinta);
+  cursor: pointer;
+
+  input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--morado);
+  }
+}
+
+.enlace {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--azul-texto);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.aviso,
+.error {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
+.aviso {
+  background: var(--fondo);
+  color: var(--texto-suave);
+}
+
+.error {
+  background: var(--rojo-suave);
+  color: var(--rojo-texto);
+}
+
+.entrar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 58px;
+  margin-top: 0.5rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--morado);
+  color: var(--sobre-color);
+  font-size: 1.15rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) { background: var(--morado-hover); }
+  &:disabled { opacity: 0.7; cursor: wait; }
+}
+
+.cambiar-acceso {
+  margin: 2.25rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-size: 1rem;
+  text-align: center;
+
+  a {
+    color: var(--azul-texto);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+  }
+}
+
+// ─── Teléfonos: la tarjeta ocupa casi todo el ancho, el circuito sigue de fondo ─
+@media (max-width: 480px) {
+  .pantalla {
+    place-items: start stretch;
+    padding: 2.5rem 1rem 1.5rem;
+  }
+
+  .tarjeta {
+    max-width: none;
+    padding: 2.25rem 1.25rem 1.75rem;
+    border-radius: 20px;
+  }
+
+  .logo { margin-bottom: 2rem; }
+  h1 { font-size: 1.8rem; }
+  .opciones { font-size: 0.95rem; }
+}
+
+// ─── Pantallas horizontales (laptop, monitor normal) ─────────────────────────
+// Logo grande a la izquierda y la tarjeta, más compacta, a la derecha.
+@media (min-width: 1024px) and (orientation: landscape) {
+  .pantalla {
+    grid-template-columns: 1fr minmax(380px, 440px);
+    gap: clamp(2rem, 6vw, 6rem);
+    padding: 2rem clamp(2rem, 8vw, 9rem);
+  }
+
+  .presentacion {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+
+    p {
+      margin: 0;
+      color: #aeb6bf;
+      font-family: var(--fuente-mono);
+      font-size: 0.95rem;
+      letter-spacing: 0.12em;
+    }
+  }
+
+  .tarjeta {
+    max-width: none;
+    padding: 2.5rem 2.5rem 2rem;
+    border-radius: 20px;
+  }
+
+  .tarjeta .logo { display: none; }
+  h1 { font-size: 1.8rem; }
+  .bajada { margin-bottom: 1.75rem; font-size: 1rem; }
+  form { gap: 1.1rem; }
+  .entrada input { min-height: 50px; font-size: 16px; }
+  .entrar { min-height: 52px; font-size: 1.05rem; }
+  .cambiar-acceso { margin-top: 1.75rem; padding-top: 1.25rem; font-size: 0.95rem; }
+}
+
+// Pantallas horizontales bajitas (768 px o menos de alto): todo un poco más apretado
+@media (min-width: 1024px) and (orientation: landscape) and (max-height: 800px) {
+  .tarjeta { padding: 2rem 2.25rem 1.5rem; }
+  h1 { font-size: 1.6rem; }
+  .bajada { margin-bottom: 1.25rem; }
+  form { gap: 0.9rem; }
+  .entrada input { min-height: 46px; }
+  .entrar { min-height: 48px; }
+  .cambiar-acceso { margin-top: 1.25rem; padding-top: 1rem; }
+}

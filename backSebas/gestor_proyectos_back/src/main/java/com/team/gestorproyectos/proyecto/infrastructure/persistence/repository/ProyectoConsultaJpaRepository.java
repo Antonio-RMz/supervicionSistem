@@ -93,7 +93,8 @@ public interface ProyectoConsultaJpaRepository extends Repository<ProyectoEntity
                    TRIM(CONCAT(l.nombre, ' ', COALESCE(l.apellidos, ''))) AS liderNombre,
                    p.permitir_autovalidacion AS permitirAutovalidacion,
                    p.comentario_al_rechazar AS comentarioAlRechazar,
-                   p.rama_al_iniciar AS ramaAlIniciar, p.notificar_cliente_fase AS notificarClienteFase
+                   p.rama_al_iniciar AS ramaAlIniciar, p.notificar_cliente_fase AS notificarClienteFase,
+                   p.forma_trabajo AS formaTrabajo, p.requiere_pr AS requierePr
             FROM proyecto p
             LEFT JOIN cliente c ON c.id = p.cliente_id
             JOIN usuario l ON l.id = p.lider_id
@@ -197,7 +198,8 @@ public interface ProyectoConsultaJpaRepository extends Repository<ProyectoEntity
                     WHERE he.entidad = 'TICKET' AND he.entidad_id = t.id
                     ORDER BY he.creado_en DESC, he.id DESC LIMIT 1) AS ultimoEstadoAnterior,
                    t.fase_id AS faseId, t.historia_id AS historiaId, m.tipo AS moduloTipo,
-                   UPPER(CONCAT(LEFT(r.nombre, 1), LEFT(COALESCE(r.apellidos, ''), 1))) AS responsableIniciales
+                   UPPER(CONCAT(LEFT(r.nombre, 1), LEFT(COALESCE(r.apellidos, ''), 1))) AS responsableIniciales,
+                   p.requiere_pr AS requierePr
             FROM ticket t
             JOIN proyecto p      ON p.id = t.proyecto_id
             LEFT JOIN historia h ON h.id = t.historia_id
@@ -268,6 +270,8 @@ public interface ProyectoConsultaJpaRepository extends Repository<ProyectoEntity
         Boolean getComentarioAlRechazar();
         Boolean getRamaAlIniciar();
         Boolean getNotificarClienteFase();
+        String getFormaTrabajo();
+        Boolean getRequierePr();
     }
 
     interface FaseFila {
@@ -338,6 +342,7 @@ public interface ProyectoConsultaJpaRepository extends Repository<ProyectoEntity
         Long getHistoriaId();
         String getModuloTipo();
         String getResponsableIniciales();
+        Boolean getRequierePr();
     }
 
     interface PersonaFila {

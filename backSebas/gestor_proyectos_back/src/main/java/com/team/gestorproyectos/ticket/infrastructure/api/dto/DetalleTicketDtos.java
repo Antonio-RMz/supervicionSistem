@@ -15,7 +15,8 @@ public final class DetalleTicketDtos {
     }
 
     public record DetalleTicketResponse(
-            InfoTicketResponse info, String severidad, boolean hotfix, ParcheResponse parche, String actor, boolean meToca, List<OpcionResponse> opciones,
+            InfoTicketResponse info, String severidad, boolean hotfix, boolean requierePr,
+            ParcheResponse parche, String actor, boolean meToca, List<OpcionResponse> opciones,
             boolean puedeMarcarSubtareas, boolean puedeEditarSubtareas, boolean puedeEditar,
             List<TicketAbiertoResponse> bloqueadores, List<PersonaEquipoResponse> equipo) {
     }

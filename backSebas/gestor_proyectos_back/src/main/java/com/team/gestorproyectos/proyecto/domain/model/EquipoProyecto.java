@@ -86,7 +86,7 @@ public record EquipoProyecto(Long liderId, List<MiembroEquipo> miembros, List<Co
         List<ItemTrabajo> pendientes = new ArrayList<>(abiertos.stream().map(t -> t.item().item()).toList());
         historias.stream().filter(h -> !HISTORIA_CERRADA.contains(h.estado()))
                 .map(h -> new ItemTrabajo(h.id(), "HIST", h.numero(), h.titulo(), h.estado(), null, h.analistaId(),
-                        null, null, null, null, null))
+                        null, null, null, null, null, true))
                 .forEach(pendientes::add);
 
         List<MiembroEquipo> miembros = personas.stream().map(p -> {

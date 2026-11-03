@@ -18,7 +18,8 @@ public interface EquipoProyectoJpaRepository extends Repository<ProyectoEntity, 
     @Query(value = """
             SELECT p.id AS id, p.lider_id AS liderId, p.permitir_autovalidacion AS permitirAutovalidacion,
                    p.comentario_al_rechazar AS comentarioAlRechazar, p.rama_al_iniciar AS ramaAlIniciar,
-                   p.notificar_cliente_fase AS notificarClienteFase
+                   p.notificar_cliente_fase AS notificarClienteFase,
+                   p.forma_trabajo AS formaTrabajo, p.requiere_pr AS requierePr
             FROM proyecto p WHERE p.id = :proyectoId
             """, nativeQuery = true)
     Optional<ProyectoFila> proyecto(@Param("proyectoId") Long proyectoId);
@@ -108,6 +109,8 @@ public interface EquipoProyectoJpaRepository extends Repository<ProyectoEntity, 
         Boolean getComentarioAlRechazar();
         Boolean getRamaAlIniciar();
         Boolean getNotificarClienteFase();
+        String getFormaTrabajo();
+        Boolean getRequierePr();
     }
 
     interface PersonaFila {

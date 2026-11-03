@@ -35,6 +35,7 @@ export function aDetalle(dto: DetalleFaseDto, hoy = new Date()): DetalleFase {
     proyectoId: i.proyectoId,
     proyectoNombre: i.proyectoNombre,
     proyectoCodigo: i.proyectoCodigo,
+    formaTrabajo: i.formaTrabajo,
     clienteNombre: i.clienteNombre,
     numero: i.numero,
     titulo: i.mantenimiento ? i.nombre : `Fase ${i.numero} · ${i.nombre}`,

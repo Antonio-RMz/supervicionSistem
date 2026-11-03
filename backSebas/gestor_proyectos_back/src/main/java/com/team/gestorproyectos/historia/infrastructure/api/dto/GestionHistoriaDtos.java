@@ -21,11 +21,39 @@ public final class GestionHistoriaDtos {
             boolean puedeVerificarCriterios, boolean puedeEditar, boolean puedeAdjuntar, boolean puedeCrearTicket,
             int ticketsSinEmpezar,
             List<TicketReabribleResponse> ticketsReabribles, List<FaseDestinoResponse> fasesDestino,
-            boolean puedeEliminar) {
+            boolean puedeEliminar, DesarrolloResponse desarrollo) {
+    }
+
+    /** Pestaña Desarrollo de una historia con Desarrolladores; null si se trabaja con Actividades. */
+    public record DesarrolloResponse(List<DesarrolladorResponse> desarrolladores, List<TrabajoResponse> trabajo,
+                                     List<RepositorioResponse> repositorios, Boolean miParteTerminada,
+                                     boolean puedeAnotar, boolean puedeMarcar, boolean requierePr) {
+    }
+
+    public record DesarrolladorResponse(Long usuarioId, String nombre, Long moduloId, String moduloNombre,
+                                        boolean terminado) {
+    }
+
+    public record TrabajoResponse(Long id, String descripcion, Long moduloId, String moduloNombre, boolean hecho,
+                                  String creadoPor, LocalDateTime creadoEn) {
+    }
+
+    public record RepositorioResponse(Long id, String tipo, String nombre, String tecnologia, String ramaBase,
+                                      String url) {
+    }
+
+    public record MiParteRequest(boolean terminado) {
+    }
+
+    public record NuevoTrabajoRequest(@NotBlank @Size(max = 300) String descripcion, Long moduloId) {
+    }
+
+    public record TrabajoHechoRequest(boolean hecho) {
     }
 
     public record InfoHistoriaResponse(
-            Long id, Long proyectoId, String proyectoNombre, Long faseId, int faseNumero, String faseNombre,
+            Long id, Long proyectoId, String proyectoNombre, String formaTrabajo, Long faseId, int faseNumero,
+            String faseNombre,
             String faseEstado, LocalDate faseInicio, LocalDate faseFin, int numero, String titulo, String como,
             String quiero, String para, String estado, String prioridad, Integer puntos, String analistaNombre,
             String figmaUrl, boolean disenoDeFase, boolean disenoAprobado, String disenoAprobadoPor,

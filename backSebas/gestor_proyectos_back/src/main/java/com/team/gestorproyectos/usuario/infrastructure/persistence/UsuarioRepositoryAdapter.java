@@ -76,6 +76,7 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
         entity.setNombre(nuevo.nombre());
         entity.setApellidos(nuevo.apellidos());
         entity.setCorreo(nuevo.correo());
+        entity.setUsuarioGit(nuevo.usuarioGit());
         entity.setPasswordHash(passwordHash);
         entity.setTipo(EQUIPO);
         entity.setActivo(nuevo.activo());
@@ -113,5 +114,15 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
     @Override
     public void cambiarActivo(Long usuarioId, boolean activo) {
         repository.actualizarActivo(usuarioId, activo);
+    }
+
+    @Override
+    public void cambiarUsuarioGit(Long usuarioId, String usuarioGit) {
+        repository.actualizarUsuarioGit(usuarioId, usuarioGit);
+    }
+
+    @Override
+    public Optional<String> usuarioGit(Long usuarioId) {
+        return repository.findById(usuarioId).map(UsuarioEntity::getUsuarioGit);
     }
 }

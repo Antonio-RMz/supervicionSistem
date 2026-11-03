@@ -1,0 +1,210 @@
+:host {
+  position: relative;
+  display: inline-flex;
+}
+
+.campana {
+  position: relative;
+  padding: 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--texto-suave);
+  font-size: 1.3rem;
+  cursor: pointer;
+
+  .bi-bell-fill { color: var(--morado); }
+}
+
+.contador {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.35rem;
+  min-width: 18px;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--rojo);
+  color: var(--sobre-color);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+// ─── Panel ───────────────────────────────────────────────────────────────────
+.panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  width: min(380px, 90vw);
+  max-height: min(520px, 75vh);
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+}
+
+.panel-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--borde);
+
+  h2 {
+    flex: 1;
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+.icono {
+  padding: 0.2rem;
+  border: 0;
+  background: none;
+  color: var(--texto-suave);
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.enlace {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--morado);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+}
+
+.lista {
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+
+  li + li { border-top: 1px solid var(--borde); }
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 0;
+  background: none;
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover { background: var(--fondo-pagina); }
+  &.sin-leer { background: var(--morado-suave); }
+  &.sin-leer:hover { background: var(--fondo-pagina); }
+}
+
+.icono-tipo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--fondo);
+  color: var(--texto-suave);
+
+  &.tipo-bug_reportado { color: var(--rojo); }
+  &.tipo-asignacion { color: var(--morado); }
+}
+
+.cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+
+  .texto { font-size: 0.9rem; }
+  small { color: var(--texto-suave); font-size: 0.78rem; }
+}
+
+.punto {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 0.4rem;
+  border-radius: 50%;
+  background: var(--morado);
+}
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 2rem 1.5rem;
+  color: var(--texto-suave);
+  text-align: center;
+
+  .bi { font-size: 1.6rem; }
+  small { font-size: 0.8rem; }
+}
+
+// ─── Las que acaban de llegar: abajo a la izquierda ─────────────────────────
+.emergentes {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: min(360px, calc(100vw - 2.5rem));
+  pointer-events: none;
+}
+
+.emergente {
+  display: flex;
+  align-items: flex-start;
+  padding: 0;
+  overflow: hidden;
+  border-left: 4px solid var(--morado);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.22);
+  pointer-events: auto;
+  animation: entrar 0.25s ease-out;
+
+  &.tipo-bug_reportado { border-left-color: var(--rojo); }
+
+  .cerrar { margin: 0.6rem 0.6rem 0 0; }
+}
+
+.emergente-cuerpo {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 0.85rem 0.5rem 0.85rem 0.9rem;
+  border: 0;
+  background: none;
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  strong { font-size: 0.85rem; }
+  .texto { font-size: 0.9rem; }
+}
+
+@keyframes entrar {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emergente { animation: none; }
+}

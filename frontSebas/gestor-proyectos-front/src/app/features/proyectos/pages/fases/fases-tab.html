@@ -5,8 +5,57 @@
 } @else {
   <div class="cabecera">
     <h2>Fases <small>{{ fases().length }}</small></h2>
+    <div class="vistas" role="group" aria-label="Vista">
+      <button type="button" [class.activa]="vista() === 'tarjetas'" [attr.aria-pressed]="vista() === 'tarjetas'"
+              (click)="cambiarVista('tarjetas')" title="Tarjetas, solo fases">
+        <i class="bi bi-grid-3x2-gap"></i><span class="solo-lectores">Tarjetas, solo fases</span>
+      </button>
+      <button type="button" [class.activa]="vista() === 'lista'" [attr.aria-pressed]="vista() === 'lista'"
+              (click)="cambiarVista('lista')" title="Lista con historias">
+        <i class="bi bi-list-ul"></i><span class="solo-lectores">Lista con historias</span>
+      </button>
+    </div>
   </div>
 
+  @if (vista() === 'tarjetas') {
+  <!-- ─── Tarjetas: solo las fases; clic abre la fase ─── -->
+  <ul class="tarjetas-fases">
+    @for (f of fases(); track f.fase.id) {
+      <li>
+        <a class="tarjeta tarjeta-fase" [routerLink]="['/proyectos', store.resumen()?.id, 'fases', f.fase.id]">
+          <span class="tarjeta-arriba">
+            @if (f.fase.estado === 'PUBLICADA') {
+              <span class="marca listo"><i class="bi bi-check-lg"></i></span>
+            } @else {
+              <span class="marca" [class.actual]="f.fase.estado !== 'PLANEADA' && f.fase.estado !== 'CANCELADA'">{{ f.fase.numero }}</span>
+            }
+            <span class="numero-fase">Fase {{ f.fase.numero }}{{ f.fase.versionRelease ? ' · ' + f.fase.versionRelease : '' }}</span>
+            <app-etiqueta-estado class="derecha" [etiqueta]="f.fase.etiqueta" />
+          </span>
+          <strong class="tarjeta-nombre">{{ f.fase.nombre }}</strong>
+          <small class="tarjeta-fechas"><i class="bi bi-calendar3"></i> {{ f.fase.fechas || 'Sin fechas' }}</small>
+          <span class="avance-fase">
+            <app-barra-avance [valor]="f.fase.avance" [tono]="f.fase.tonoAvance" />
+            <strong>{{ f.fase.avance }}%</strong>
+          </span>
+          <span class="tarjeta-abajo">
+            <span>{{ f.historias.length }} {{ f.historias.length === 1 ? 'historia' : 'historias' }}</span>
+            <span>{{ f.fase.tickets }} {{ f.fase.tickets === 1 ? 'ticket' : 'tickets' }}</span>
+            @if (f.fase.modulos.length) {
+              <span class="modulos">
+                @for (m of f.fase.modulos; track m.corto) {
+                  <app-chip-modulo [texto]="m.corto" [icono]="m.icono" [tono]="m.tono" />
+                }
+              </span>
+            }
+          </span>
+        </a>
+      </li>
+    } @empty {
+      <li class="vacio tarjeta">El proyecto aún no tiene fases.</li>
+    }
+  </ul>
+  } @else {
   <ul class="fases">
     @for (f of fases(); track f.fase.id) {
       @let abierta = abiertas().has(f.fase.id);
@@ -58,4 +107,5 @@
       <li class="vacio tarjeta">El proyecto aún no tiene fases.</li>
     }
   </ul>
+  }
 }

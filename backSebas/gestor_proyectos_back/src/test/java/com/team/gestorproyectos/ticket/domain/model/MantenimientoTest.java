@@ -12,7 +12,7 @@ class MantenimientoTest {
 
     private static TicketDeMantenimiento t(String tipo, int numero, String estado, String severidad) {
         return new TicketDeMantenimiento((long) numero, tipo, numero, tipo + " " + numero, estado, severidad, null,
-                3L, "Pedro Ramírez");
+                3L, "Pedro Ramírez", null, null, 0);
     }
 
     /** Como en el PDF: dos urgentes en camino, uno listo para el parche y el trabajo normal. */

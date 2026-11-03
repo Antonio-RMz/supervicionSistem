@@ -180,6 +180,35 @@
               }
             </select>
           </label>
+          <!-- La historia les llega directo a sus Desarrolladores: ya no se crean Actividades -->
+          <div class="campo">
+            <span>Desarrolladores <small class="pista">· a quienes les llega</small></span>
+            @if (p.desarrolladores.length) {
+              <ul class="desarrolladores">
+                @for (d of p.desarrolladores; track d.id) {
+                  <li [class.elegido]="!!asignado(d.id)">
+                    <label class="dev">
+                      <input type="checkbox" [checked]="!!asignado(d.id)" (change)="alternarDesarrollador(d.id)" />
+                      {{ d.nombreCompleto }}
+                    </label>
+                    @if (asignado(d.id); as a) {
+                      @if (repositoriosElegidos().length > 1) {
+                        <select class="repo" aria-label="Repositorio de {{ d.nombreCompleto }}"
+                                [value]="a.moduloId ?? ''" (change)="elegirRepositorio(d.id, $any($event.target).value)">
+                          <option value="">Todos</option>
+                          @for (m of repositoriosElegidos(); track m.id) {
+                            <option [value]="m.id">{{ m.tipo || m.nombre }}</option>
+                          }
+                        </select>
+                      }
+                    }
+                  </li>
+                }
+              </ul>
+            } @else {
+              <small class="pista">El equipo del proyecto no tiene Desarrolladores. Agrégalos en la pestaña Equipo.</small>
+            }
+          </div>
           <label class="campo">
             <span>Prioridad</span>
             <select formControlName="prioridad">
@@ -226,7 +255,7 @@
           </dl>
           <p class="nota">
             <i class="bi bi-info-circle"></i>
-            {{ completo() ? 'Siguiente: marcarla como Lista. Después el Líder crea sus Actividades.'
+            {{ completo() ? 'Siguiente: marcarla como Lista. Después les llega a sus Desarrolladores.'
               : 'Siguiente: en su detalle, Iniciar planeación para definirla completa.' }}
           </p>
         </section>

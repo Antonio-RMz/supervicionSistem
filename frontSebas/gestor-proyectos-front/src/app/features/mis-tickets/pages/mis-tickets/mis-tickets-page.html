@@ -60,13 +60,13 @@
   </label>
 
   <div class="vistas" role="group" aria-label="Vista">
+    <button type="button" [class.activa]="vista() === 'tarjetas'" [attr.aria-pressed]="vista() === 'tarjetas'"
+            (click)="cambiarVista('tarjetas')" title="Tarjetas">
+      <i class="bi bi-grid-3x2-gap"></i><span class="solo-lectores">Tarjetas</span>
+    </button>
     <button type="button" [class.activa]="vista() === 'lista'" [attr.aria-pressed]="vista() === 'lista'"
             (click)="cambiarVista('lista')" title="Lista">
       <i class="bi bi-list-ul"></i><span class="solo-lectores">Lista</span>
-    </button>
-    <button type="button" [class.activa]="vista() === 'tablero'" [attr.aria-pressed]="vista() === 'tablero'"
-            (click)="cambiarVista('tablero')" title="Tablero">
-      <i class="bi bi-kanban"></i><span class="solo-lectores">Tablero</span>
     </button>
   </div>
 </div>
@@ -136,35 +136,45 @@
     </table>
   </div>
 } @else {
-  <div class="tablero" [class.recargando]="cargando()">
-    @for (columna of columnas(); track columna.estado) {
-      <section class="columna">
-        <h2>{{ columna.titulo }} <span>{{ columna.tickets.length }}</span></h2>
-        @for (t of columna.tickets; track t.tipo + t.id) {
-          <article class="tarjeta ficha" [class.mia]="t.meToca">
-            <div class="ficha-arriba">
-              <app-tipo-ticket [tipo]="t.tipo" />
-              <span class="codigo">{{ t.codigo }}</span>
-              <app-etiqueta-estado [etiqueta]="t.etiquetaPrioridad" class="prioridad" />
-            </div>
-            <p><a class="enlace-titulo"
-                  [routerLink]="['/proyectos', proyectos.actual()?.id, t.tipo === 'HIST' ? 'historias' : 'tickets', t.id]">{{ t.titulo }}</a></p>
-            <div class="ficha-abajo">
-              <span class="contexto">{{ t.historiaOFase }}</span>
-              @if (t.responsable; as r) {
-                <app-avatar [iniciales]="r.iniciales" [tono]="r.tono" class="chico" [title]="r.nombre" />
-              }
-            </div>
-            @if (t.meToca && t.accion) {
-              <span class="pendiente mia" [class.corregir]="t.rechazadaEnQa"><i class="bi bi-arrow-right-short"></i> {{ t.accion }}</span>
+  <!-- ─── Tarjetas: lo que te toca, resaltado abajo de cada una ─── -->
+  <ul class="tarjetas-mias" [class.recargando]="cargando()">
+    @for (t of enTarjetas(); track t.tipo + t.id) {
+      <li>
+        <a class="tarjeta ficha" [class.corregir]="t.rechazadaEnQa"
+           [routerLink]="['/proyectos', proyectos.actual()?.id, t.tipo === 'HIST' ? 'historias' : 'tickets', t.id]">
+          <span class="ficha-arriba">
+            <app-tipo-ticket [tipo]="t.tipo" />
+            <span class="codigo">{{ t.codigo }}</span>
+            <app-etiqueta-estado [etiqueta]="t.etiquetaPrioridad" class="prioridad" />
+          </span>
+          <strong class="ficha-titulo">{{ t.titulo }}</strong>
+          <span class="ficha-contexto">
+            <span class="contexto"><i class="bi bi-flag"></i> {{ t.historiaOFase }}</span>
+            <span class="estado" [class.rechazo]="t.rechazadaEnQa">{{ t.estadoTexto }}</span>
+          </span>
+          <span class="ficha-abajo">
+            @if (t.accion) {
+              <span class="te-toca" [class.corregir]="t.rechazadaEnQa">
+                <i class="bi" [class.bi-arrow-right-circle-fill]="!t.rechazadaEnQa" [class.bi-exclamation-circle-fill]="t.rechazadaEnQa"></i>
+                Te toca: {{ t.accion }}
+              </span>
             }
-          </article>
-        }
-      </section>
+            @if (t.responsable; as r) {
+              <app-avatar [iniciales]="r.iniciales" [tono]="r.tono" class="chico" [title]="r.nombre" />
+            }
+          </span>
+        </a>
+      </li>
     } @empty {
-      <p class="sin-resultados tarjeta">No hay tickets aquí.</p>
+      <li class="sin-resultados tarjeta">
+        @if (hayFiltros()) {
+          Ningún ticket coincide con los filtros. <button type="button" class="enlace" (click)="limpiarFiltros()">Quitar filtros</button>
+        } @else {
+          <i class="bi bi-check2-circle"></i> Nada esperando tu acción en {{ proyectos.actual()?.nombre }}.
+        }
+      </li>
     }
-  </div>
+  </ul>
 }
 
 @if (!error() && !cargando()) {

@@ -70,22 +70,6 @@ public final class NuevoTicketDtos {
     public record TicketCreadoResponse(Long id) {
     }
 
-    /** Importar tickets: el JSON que devolvió la IA, ya leído, más la historia y el responsable elegidos. */
-    public record ImportarTicketsRequest(
-            @NotNull Long historiaId,
-            @NotNull Long responsableId,
-            @NotEmpty @Size(max = 50) List<@Valid TicketImportadoRequest> tickets) {
-    }
-
-    public record TicketImportadoRequest(
-            @NotBlank @Size(max = 200) String titulo,
-            String descripcion,
-            @Size(max = 100) String repositorio,
-            @Size(max = 30) List<@Size(max = 300) String> subtareas) {
-    }
-
-    public record TicketsImportadosResponse(int creados) {
-    }
 
     /** Editar ticket: el mismo formulario de Nuevo ticket con lo que ya tiene. */
     public record EdicionResponse(PreparacionResponse preparacion, TicketEditableResponse ticket) {

@@ -103,7 +103,9 @@ public class HistoriaRepositoryAdapter implements HistoriaRepositoryPort {
                         h.getComo(), h.getQuiero(), h.getPara(), repository.criterios(historiaId),
                         h.getFigmaUrl(), h.isDisenoAprobado(),
                         h.getAnalistaId(), h.getPrioridad(), h.getPuntos(),
-                        new HashSet<>(repository.modulosDeHistoria(historiaId))));
+                        new HashSet<>(repository.modulosDeHistoria(historiaId)),
+                        repository.desarrolladores(historiaId).stream()
+                                .map(d -> new NuevaHistoria.Desarrollador(d.getUsuarioId(), d.getModuloId())).toList()));
     }
 
     @Override
@@ -131,6 +133,7 @@ public class HistoriaRepositoryAdapter implements HistoriaRepositoryPort {
 
         repository.quitarCriterios(historiaId);
         repository.quitarModulos(historiaId);
+        repository.quitarDesarrolladores(historiaId);
         guardarListas(historiaId, cambios);
     }
 
@@ -139,6 +142,7 @@ public class HistoriaRepositoryAdapter implements HistoriaRepositoryPort {
             repository.agregarCriterio(id, datos.criterios().get(i), i + 1);
         }
         datos.moduloIds().forEach(moduloId -> repository.agregarModulo(id, moduloId));
+        datos.desarrolladores().forEach(d -> repository.agregarDesarrollador(id, d.usuarioId(), d.moduloId()));
     }
 
     private static Map<Long, List<Opcion>> porFase(List<OpcionFila> filas) {

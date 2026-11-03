@@ -36,6 +36,11 @@ export class UsuariosService {
     return this.http.patch<void>(`${this.url}/${id}/estado`, { activo });
   }
 
+  /** Vacío lo quita. */
+  cambiarUsuarioGit(id: number, usuarioGit: string): Observable<void> {
+    return this.http.patch<void>(`${this.url}/${id}/git`, { usuarioGit: usuarioGit.trim() || null });
+  }
+
   roles(): Observable<Rol[]> {
     return this.http
       .get<RolDto[]>(`${environment.apiUrl}/equipo/accesos/roles`)
